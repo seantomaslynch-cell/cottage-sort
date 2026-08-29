@@ -135,9 +135,14 @@ seasonal decor bundle. No pay-to-win.
   (26-32) -> hard tail (33-40); endless generator past L40 (`_next` unbounded).
   `level_gen.generate()` gained a `scramble_mult`; move budget + star cutoffs
   scale by `bm`. Curve shape asserted in `tools/test_logic.gd`.
-- [ ] **M16+ — Monetization / content:** struggle-triggered offer, booster
-  bundles/inventory, battle pass / daily jackpot / leaderboards / themed
-  realms / more cottage rooms; then tune the M15 curve from analytics.
+- [x] **M16 — Struggle-triggered offer:** a $0.99 "Struggle pack" (40 gems +
+  300 coins + 8 moves) on the fail screen from the 2nd-4th fail on a stage,
+  capped at once/day (`SaveData.struggle_bought_day`). New `struggle` IAP
+  kind (repeatable). Doubles as a premium continue. Filtered out of the
+  regular Shop list.
+- [ ] **M17+ — Monetization / content:** booster bundles/inventory, battle
+  pass / daily jackpot / leaderboards / themed realms / more cottage rooms;
+  then tune the M15 curve from analytics.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
 

@@ -27,6 +27,7 @@ file map in [README.md](README.md).
 | M13 gems currency + six-booster set + Menu-consolidated nav | ✅ done |
 | M14 piggy bank + starter pack (offer cards in the Shop) | ✅ done |
 | M15 authored 40-stage difficulty curve (+ endless mode past it) | ✅ done |
+| M16 struggle-triggered offer ($0.99 pack on the fail screen) | ✅ done |
 
 See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test_decor`, `test_booster` — all pass.
@@ -35,8 +36,8 @@ Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test
 
 **In-engine, high impact (do next):**
 
-1. **Struggle-triggered offer** (discounted bundle after 2+ fails on a level);
-   **booster bundles** (discounted packs) on top of the M13 single-use boosters.
+1. **Booster bundles** (discounted packs / a small inventory) on top of the M13
+   single-use boosters.
 2. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
    content cadence and, for leaderboards, a small backend.
 3. **More cottage rooms** and seasonal decor drops on top of the M12 catalog.

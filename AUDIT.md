@@ -140,12 +140,13 @@ Done:
 - [x] **Authored difficulty curve** — 40 hand-shaped stages: fail-free flow
   through ~L10, first challenge ~L13, designed spike ~L20, relief, rising, hard
   tail; endless generator past L40  *(M15)*
+- [x] **Struggle-triggered offer** — a $0.99 "Struggle pack" on the fail screen
+  from the 2nd-4th fail on a stage, once/day  *(M16)*
 
 Open:
 
 - [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
 - [ ] Booster *bundles* (buy a pack of boosters at a discount) + a booster inventory
-- [ ] Struggle-triggered offers (a discounted bundle after 2+ fails on a level)
 - [ ] Battle pass, leaderboards, daily jackpot, themed realms  *(need content cadence / a small backend)*
 - [ ] Real art / font / music, ASO, localization, crash reporting  *(Tier 4, pre-launch)*
 - [ ] Real ad SDK + real IAP bindings + real analytics SDK  *(one-file swaps at the seams)*
