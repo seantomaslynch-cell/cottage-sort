@@ -11,16 +11,18 @@ const CAP := 4
 
 static var _cache: Dictionary = {}
 
-static func generate(num_colors: int, extra_jars: int, rng_seed: int) -> Dictionary:
-	var key := "%d_%d_%d" % [num_colors, extra_jars, rng_seed]
+## scramble_mult scales how thoroughly the board is mixed: <1 = closer to solved
+## (easier), >1 = more tangled (harder). The stage list uses it to shape the curve.
+static func generate(num_colors: int, extra_jars: int, rng_seed: int, scramble_mult := 1.0) -> Dictionary:
+	var key := "%d_%d_%d_%d" % [num_colors, extra_jars, rng_seed, int(round(scramble_mult * 100))]
 	if _cache.has(key):
 		return _cache[key].duplicate(true)
 
-	var result := _build(num_colors, extra_jars, rng_seed)
+	var result := _build(num_colors, extra_jars, rng_seed, scramble_mult)
 	_cache[key] = result
 	return result.duplicate(true)
 
-static func _build(num_colors: int, extra_jars: int, rng_seed: int) -> Dictionary:
+static func _build(num_colors: int, extra_jars: int, rng_seed: int, scramble_mult: float) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = rng_seed
 	var jar_count := num_colors + extra_jars
@@ -34,7 +36,7 @@ static func _build(num_colors: int, extra_jars: int, rng_seed: int) -> Dictionar
 	for _e in extra_jars:
 		jars.append([])
 
-	var target := 26 + num_colors * 10
+	var target := maxi(12, int(round((26 + num_colors * 10) * scramble_mult)))
 	var last := Vector2i(-1, -1)
 	var done := 0
 	var guard := 0
@@ -62,7 +64,7 @@ static func _build(num_colors: int, extra_jars: int, rng_seed: int) -> Dictionar
 		done += 1
 
 	if _is_goal(jars):
-		return _build(num_colors, extra_jars, rng_seed + 1)
+		return _build(num_colors, extra_jars, rng_seed + 1, scramble_mult)
 	return {"jars": jars}
 
 static func _top_run(j: Array) -> int:

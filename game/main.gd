@@ -485,7 +485,7 @@ func _on_stage_picked(idx: int) -> void:
 
 func _next() -> void:
 	_ads.maybe_show_interstitial()
-	_stage = (_stage + 1) % Levels.count()
+	_stage += 1   # unbounded — past the authored list, build() runs endless mode
 	_load_current()
 
 func _show_cottage() -> void:
