@@ -27,9 +27,10 @@ func _run() -> void:
 	var shop := _find(get_root(), "ShopPanel")
 	var settings := _find(get_root(), "SettingsPanel")
 	var levelsel := _find(get_root(), "LevelSelect")
+	var booster := _find(get_root(), "BoosterPanel")
 	var economy := _find(get_root(), "Economy")
 
-	for o in [cottage, daily, shop, settings, levelsel]:
+	for o in [cottage, daily, shop, settings, levelsel, booster]:
 		if o:
 			o.visible = false
 
@@ -61,6 +62,11 @@ func _run() -> void:
 		"settings":
 			if settings:
 				settings.open()
+		"booster":
+			if economy:
+				economy.add_gems(12)
+			if booster:
+				booster.open()
 
 	await create_timer(0.7).timeout
 

@@ -4,11 +4,32 @@ class_name Economy
 ## Emits signals so the HUD and cottage screen can refresh.
 
 signal coins_changed(total: int)
+signal gems_changed(total: int)
 signal changed
 signal set_completed(set_name: String, bonus: int)
 
 func coins() -> int:
 	return int(SaveData.data.get("coins", 0))
+
+func gems() -> int:
+	return int(SaveData.data.get("gems", 0))
+
+func add_gems(n: int) -> void:
+	if n == 0:
+		return
+	SaveData.data["gems"] = maxi(0, gems() + n)
+	SaveData.save_now()
+	gems_changed.emit(gems())
+	changed.emit()
+
+func spend_gems(n: int) -> bool:
+	if gems() < n:
+		return false
+	SaveData.data["gems"] = gems() - n
+	SaveData.save_now()
+	gems_changed.emit(gems())
+	changed.emit()
+	return true
 
 func add_coins(n: int) -> void:
 	if n == 0:

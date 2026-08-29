@@ -17,6 +17,7 @@ signal add_moves_pressed
 signal buy_moves_pressed
 signal skip_pressed
 signal settings_pressed
+signal boost_pressed
 signal mute_toggled(muted: bool)
 
 const BOARD_UNLIMITED := 999
@@ -25,6 +26,7 @@ var _status: Label
 var _lv := 1
 var _mv := 0
 var _co := 0
+var _gm := 0
 var _budget := BOARD_UNLIMITED
 var _undo_btn: Button
 var _addjar_btn: Button
@@ -40,6 +42,7 @@ var _win_earned := 0
 var _fail_root: Control
 var _fail_buy_btn: Button
 var _fail_skip_btn: Button
+var _nav: Control
 
 func _ready() -> void:
 	layer = 10
@@ -60,21 +63,15 @@ func _ready() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(spacer)
 
-	var daily_btn := _button("Daily")
-	daily_btn.pressed.connect(func() -> void: daily_pressed.emit())
-	top.add_child(daily_btn)
-
-	var shop_btn := _button("Shop")
-	shop_btn.pressed.connect(func() -> void: shop_pressed.emit())
-	top.add_child(shop_btn)
-
-	var settings_btn := _button("Settings")
-	settings_btn.pressed.connect(func() -> void: settings_pressed.emit())
-	top.add_child(settings_btn)
+	var menu_btn := _button("Menu")
+	menu_btn.pressed.connect(func() -> void: _nav.visible = not _nav.visible)
+	top.add_child(menu_btn)
 
 	var restart_btn := _button("Restart")
 	restart_btn.pressed.connect(func() -> void: restart_pressed.emit())
 	top.add_child(restart_btn)
+
+	_build_nav()
 
 	var bottom := HBoxContainer.new()
 	bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
@@ -84,31 +81,38 @@ func _ready() -> void:
 	bottom.offset_bottom = -28.0
 	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
-	bottom.add_theme_constant_override("separation", 18)
+	bottom.add_theme_constant_override("separation", 10)
 	add_child(bottom)
 
+	var bsz := Vector2(100, 64)
+
 	_undo_btn = _button("Undo")
-	_undo_btn.custom_minimum_size = Vector2(112, 66)
+	_undo_btn.custom_minimum_size = bsz
 	_undo_btn.pressed.connect(func() -> void: undo_pressed.emit())
 	bottom.add_child(_undo_btn)
 
 	var hint_btn := _button("Hint")
-	hint_btn.custom_minimum_size = Vector2(112, 66)
+	hint_btn.custom_minimum_size = bsz
 	hint_btn.pressed.connect(func() -> void: hint_pressed.emit())
 	bottom.add_child(hint_btn)
 
-	_addjar_btn = _button("Add jar")
-	_addjar_btn.custom_minimum_size = Vector2(112, 66)
+	_addjar_btn = _button("Jar")
+	_addjar_btn.custom_minimum_size = bsz
 	_addjar_btn.pressed.connect(func() -> void: add_jar_pressed.emit())
 	bottom.add_child(_addjar_btn)
 
+	var boost_btn := _button("Boost")
+	boost_btn.custom_minimum_size = bsz
+	boost_btn.pressed.connect(func() -> void: boost_pressed.emit())
+	bottom.add_child(boost_btn)
+
 	var levels_btn := _button("Levels")
-	levels_btn.custom_minimum_size = Vector2(112, 66)
+	levels_btn.custom_minimum_size = bsz
 	levels_btn.pressed.connect(func() -> void: levels_pressed.emit())
 	bottom.add_child(levels_btn)
 
 	var cottage_btn := _button("Cottage")
-	cottage_btn.custom_minimum_size = Vector2(112, 66)
+	cottage_btn.custom_minimum_size = bsz
 	cottage_btn.pressed.connect(func() -> void: cottage_pressed.emit())
 	bottom.add_child(cottage_btn)
 
@@ -121,6 +125,47 @@ func _ready() -> void:
 
 	_build_win_overlay()
 	_build_fail_overlay()
+
+func _build_nav() -> void:
+	_nav = Control.new()
+	_nav.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_nav.visible = false
+	add_child(_nav)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.2, 0.15, 0.12, 0.4)
+	dim.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.pressed:
+			_nav.visible = false)
+	_nav.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_nav.add_child(center)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	center.add_child(box)
+
+	var items := [
+		["Cottage", cottage_pressed], ["Daily", daily_pressed],
+		["Shop", shop_pressed], ["Levels", levels_pressed],
+		["Settings", settings_pressed],
+	]
+	for it in items:
+		var b := _button(it[0])
+		b.custom_minimum_size = Vector2(300, 66)
+		var sig: Signal = it[1]
+		b.pressed.connect(func() -> void:
+			_nav.visible = false
+			sig.emit())
+		box.add_child(b)
+
+	var close := _button("Close")
+	close.custom_minimum_size = Vector2(300, 60)
+	close.pressed.connect(func() -> void: _nav.visible = false)
+	box.add_child(close)
 
 func _build_fail_overlay() -> void:
 	_fail_root = Control.new()
@@ -272,8 +317,12 @@ func _sync_status() -> void:
 		var left := maxi(0, _budget - _mv)
 		mv_txt = "%d / %d moves" % [_mv, _budget]
 		warn = left <= 5
-	_status.text = "Lv %d    %s    %dc" % [_lv, mv_txt, _co]
+	_status.text = "Lv %d   ·   %s   ·   %dc  %dg" % [_lv, mv_txt, _co, _gm]
 	_status.add_theme_color_override("font_color", Color("b0553c") if warn else Color("5b4636"))
+
+func set_gems(n: int) -> void:
+	_gm = n
+	_sync_status()
 
 func set_level(n: int) -> void:
 	_lv = n
@@ -339,6 +388,9 @@ func hide_fail() -> void:
 
 func fail_open() -> bool:
 	return _fail_root.visible
+
+func nav_open() -> bool:
+	return _nav.visible
 
 func _stars_str(n: int) -> String:
 	var s := ""

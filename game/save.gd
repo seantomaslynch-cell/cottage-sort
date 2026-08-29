@@ -12,6 +12,7 @@ static var data: Dictionary = {
 	"music_on": true,
 	"haptics_on": true,
 	"coins": 0,
+	"gems": 0,         # premium currency (earned slowly, bought via IAP)
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
 	"decor": [],       # owned decor ids (incl. "sundry_N")
 	"decor_sets_done": [],  # authored decor sets already bonused

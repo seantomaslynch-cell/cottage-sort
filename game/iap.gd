@@ -10,9 +10,11 @@ signal restored
 
 const PRODUCTS: Array[Dictionary] = [
 	{"id": "remove_ads",   "name": "Remove interstitial ads", "price": "$2.99", "kind": "entitlement"},
+	{"id": "gems_small",   "name": "Handful of gems (80)",    "price": "$1.99", "kind": "gems",  "amount": 80},
+	{"id": "gems_medium",  "name": "Pouch of gems (250)",     "price": "$4.99", "kind": "gems",  "amount": 250},
+	{"id": "gems_large",   "name": "Chest of gems (700)",     "price": "$9.99", "kind": "gems",  "amount": 700},
 	{"id": "coins_small",  "name": "Pouch of coins (500)",    "price": "$0.99", "kind": "coins", "amount": 500},
 	{"id": "coins_medium", "name": "Bag of coins (1500)",     "price": "$3.99", "kind": "coins", "amount": 1500},
-	{"id": "coins_large",  "name": "Chest of coins (5000)",   "price": "$9.99", "kind": "coins", "amount": 5000},
 ]
 
 func product(id: String) -> Dictionary:

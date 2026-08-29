@@ -21,6 +21,7 @@ const CoachScene := preload("res://game/coach.gd")
 const SettingsPanelScene := preload("res://game/settings_panel.gd")
 const AnalyticsScene := preload("res://game/analytics.gd")
 const PlatformScene := preload("res://game/platform.gd")
+const BoosterPanelScene := preload("res://game/booster_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -45,6 +46,7 @@ var _coach: Coach
 var _settings: SettingsPanel
 var _analytics: Analytics
 var _platform: Platform
+var _booster: BoosterPanel
 var _new_player := false
 var _stage := 0
 var _last_earned := 0
@@ -83,6 +85,7 @@ func _ready() -> void:
 	add_child(_hud)
 	_hud.set_muted(_audio.muted)
 	_hud.set_coins(_economy.coins())
+	_hud.set_gems(_economy.gems())
 
 	_select = LevelSelectScene.new()
 	add_child(_select)
@@ -118,6 +121,10 @@ func _ready() -> void:
 	_platform = PlatformScene.new()
 	add_child(_platform)
 
+	_booster = BoosterPanelScene.new()
+	add_child(_booster)
+	_booster.set_economy(_economy)
+
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
 		if n >= 2:
@@ -144,6 +151,9 @@ func _ready() -> void:
 	_select.picked.connect(_on_stage_picked)
 
 	_economy.coins_changed.connect(func(total: int) -> void: _hud.set_coins(total))
+	_economy.gems_changed.connect(func(total: int) -> void:
+		_hud.set_gems(total)
+		_booster.refresh())
 
 	_cottage.closed.connect(_show_puzzle)
 	_cottage.buy_pressed.connect(func(id: String) -> void:
@@ -163,6 +173,12 @@ func _ready() -> void:
 	_hud.daily_pressed.connect(_open_daily)
 	_hud.shop_pressed.connect(func() -> void: _shop.open())
 	_hud.settings_pressed.connect(func() -> void: _settings.open())
+	_hud.boost_pressed.connect(func() -> void:
+		if _board.visible and not _hud.fail_open():
+			_booster.open())
+
+	_booster.closed.connect(func() -> void: _booster.visible = false)
+	_booster.use_pressed.connect(_on_use_booster)
 
 	_settings.closed.connect(func() -> void: _settings.visible = false)
 	_settings.restore_pressed.connect(func() -> void:
@@ -189,8 +205,9 @@ func _ready() -> void:
 		_daily_panel.refresh())
 	_daily.chest_awarded.connect(func(amount: int) -> void:
 		_economy.add_coins(amount)
-		_daily_panel.flash("Ad-streak chest!  +%d" % amount)
-		_hud.flash("Ad-streak chest!  +%d coins" % amount))
+		_economy.add_gems(1)
+		_daily_panel.flash("Ad-streak chest!  +%d  +1 gem" % amount)
+		_hud.flash("Ad-streak chest!  +%d coins, +1 gem" % amount))
 	_ads.rewarded_finished.connect(func(granted: bool) -> void:
 		if granted:
 			_daily.note_ad_watched()
@@ -198,7 +215,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster]:
 		_apply_theme(scr)
 
 	_load_current()
@@ -245,7 +262,7 @@ func _coach_for_stage() -> void:
 		0: _coach.show_tip("Tap a jar to pick it up, then tap another to pour matching colours on top.")
 		1: _coach.show_tip("Some jars are mixed. Look for a pour that frees a whole colour.")
 		2: _coach.show_tip("Wrong move? Tap Undo below to take it back.")
-		3: _coach.show_tip("Out of room? Add jar gives you a spare to work with.")
+		3: _coach.show_tip("Out of room? The Jar button gives you a spare to work with.")
 
 func _on_undo() -> void:
 	if not _board.can_undo():
@@ -261,6 +278,30 @@ func _on_failed() -> void:
 	_stage_fails += 1
 	_analytics.log_event("level_fail", {"stage": _stage, "moves": _board.moves, "n": _stage_fails})
 	_hud.show_fail(MOVES_COIN_COST, _economy.coins(), _stage_fails >= 2)
+
+func _on_use_booster(id: String) -> void:
+	var cost: int = Boosters.COST.get(id, 0)
+	if not _economy.spend_gems(cost):
+		_booster.note("Not enough gems")
+		return
+	match id:
+		"moves8":
+			_board.add_moves(8)
+			_hud.set_budget(_board.move_budget)
+		"undos3":
+			_undos_used = maxi(0, _undos_used - 3)
+		"jar1":
+			_board.force_add_jar()
+		"hints3":
+			_hints_used = maxi(0, _hints_used - 3)
+		"magnet":
+			_board.magnet()
+		"headstart":
+			_board.autoplay(3)
+	_analytics.log_event("booster", {"id": id, "cost": cost})
+	_booster.visible = false
+	_hud.flash("%s" % Boosters.NAME.get(id, id))
+	_refresh_buttons()
 
 func _on_claim_week() -> void:
 	var amt := _daily.claim_week()
@@ -342,6 +383,8 @@ func _on_solved() -> void:
 	SaveData.mark_complete(_stage, _board.moves)
 	SaveData.set_stars(_stage, stars)
 	_daily.note_level_cleared()
+	if first and stars == 3:
+		_economy.add_gems(1)   # a taste of the premium currency for skilful play
 	_analytics.log_event("level_complete",
 		{"stage": _stage, "moves": _board.moves, "stars": stars, "first": first})
 
@@ -373,6 +416,8 @@ func _on_purchased(id: String) -> void:
 	_analytics.log_event("iap", {"id": id})
 	if p.get("kind") == "coins":
 		_economy.add_coins(int(p["amount"]))
+	elif p.get("kind") == "gems":
+		_economy.add_gems(int(p["amount"]))
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
 	_shop.flash("Purchased: %s" % p.get("name", id))
@@ -423,8 +468,8 @@ func _show_puzzle() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	if _hud.fail_open():
-		return  # resolve the out-of-moves prompt with the buttons
+	if _hud.fail_open() or _hud.nav_open() or _booster.visible:
+		return
 	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay

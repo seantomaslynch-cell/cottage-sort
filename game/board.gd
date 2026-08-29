@@ -115,6 +115,79 @@ func moves_left() -> int:
 		return UNLIMITED
 	return maxi(0, move_budget - moves)
 
+# --- booster effects (do not count against the move budget) ----------------
+
+func force_add_jar() -> bool:
+	if _locked or _busy:
+		return false
+	jars.append([])
+	_pops.resize(jars.size())
+	_clear_hint()
+	_layout()
+	queue_redraw()
+	changed.emit()
+	_sfx("place", 1.1)
+	return true
+
+## Pull every top-accessible run of one colour (the most common on the tops)
+## into a single home jar.
+func magnet() -> void:
+	if _locked or _busy:
+		return
+	var best_c := -1
+	var best_n := -1
+	for c in COLORS.size():
+		var n := 0
+		for j in jars:
+			var a: Array = j
+			if not a.is_empty() and a[-1] == c:
+				n += _top_run_len(a)
+		if n > best_n:
+			best_n = n
+			best_c = c
+	if best_c < 0:
+		return
+	var home := -1
+	for i in jars.size():
+		var a: Array = jars[i]
+		if a.size() < CAP and not a.is_empty() and a[-1] == best_c:
+			home = i
+			break
+	if home == -1:
+		for i in jars.size():
+			if (jars[i] as Array).is_empty():
+				home = i
+				break
+	if home == -1:
+		return
+	for i in jars.size():
+		if i == home:
+			continue
+		while not (jars[i] as Array).is_empty() and jars[i][-1] == best_c and jars[home].size() < CAP:
+			jars[home].append((jars[i] as Array).pop_back())
+	_after_booster()
+
+## Apply up to n solver-recommended moves instantly.
+func autoplay(n: int) -> void:
+	if _locked or _busy:
+		return
+	for _i in n:
+		var mv := SortSolver.hint(jars)
+		if mv.size() != 2:
+			break
+		_apply_move(mv[0], mv[1])
+	_after_booster()
+
+func _after_booster() -> void:
+	_clear_hint()
+	queue_redraw()
+	_sfx("pour", 1.1)
+	if _is_solved():
+		_locked = true
+		_start_win_juice()
+		solved.emit()
+	changed.emit()
+
 func add_moves(n: int) -> void:
 	move_budget += n
 	if _locked and not _is_solved():
