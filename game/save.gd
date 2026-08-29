@@ -10,6 +10,7 @@ static var data: Dictionary = {
 	"muted": false,
 	"coins": 0,
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
+	"stars": {},       # str(stage_index) -> best star count (1..3)
 	"daily": {
 		"streak_len": 0,
 		"last_login_day": 0,
@@ -48,6 +49,21 @@ static func is_complete(stage: int) -> bool:
 
 static func best_moves(stage: int) -> int:
 	return int(data["completed"].get(str(stage), 0))
+
+static func stars(stage: int) -> int:
+	return int(data["stars"].get(str(stage), 0))
+
+static func set_stars(stage: int, s: int) -> void:
+	var key := str(stage)
+	if s > int(data["stars"].get(key, 0)):
+		data["stars"][key] = s
+	save_now()
+
+static func total_stars() -> int:
+	var n := 0
+	for k in data["stars"]:
+		n += int(data["stars"][k])
+	return n
 
 static func set_muted(m: bool) -> void:
 	data["muted"] = m

@@ -43,6 +43,18 @@ func _initialize() -> void:
 		b.free()
 		print("stage %d  jars=%d colours=%d extra=%d  OK" % [stage, jars.size(), cfg["colors"], cfg["extra"]])
 
+	# solver smoke test: it should find a plan for a fresh board on a few stages
+	for stage in [0, 8, 15, 23]:
+		if stage >= Levels.count():
+			continue
+		var jj := _deep(Levels.build(stage)["jars"])
+		var sol: Dictionary = SortSolver.solve(jj, 80000)
+		if sol.is_empty() or int(sol.get("par", 0)) <= 0 or (sol["move"] as Array).size() != 2:
+			push_error("stage %d: solver returned no usable plan" % stage)
+			fails += 1
+		else:
+			print("stage %d  solver par=%d  first move %s" % [stage, int(sol["par"]), str(sol["move"])])
+
 	# a couple of explicit move-logic checks
 	var mb = Board.new()
 	mb.jars = [[0, 0, 1], [1, 1], []]

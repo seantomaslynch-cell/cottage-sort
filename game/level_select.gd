@@ -48,9 +48,12 @@ func open(total: int) -> void:
 		c.queue_free()
 	for i in total:
 		var b := Button.new()
-		b.text = ("%d  *" % [i + 1]) if SaveData.is_complete(i) else str(i + 1)
+		if SaveData.is_complete(i):
+			b.text = "%d\n%s" % [i + 1, _stars(SaveData.stars(i))]
+		else:
+			b.text = str(i + 1)
 		b.custom_minimum_size = Vector2(104, 96)
-		b.add_theme_font_size_override("font_size", 28)
+		b.add_theme_font_size_override("font_size", 24)
 		var idx := i
 		b.pressed.connect(func() -> void:
 			visible = false
@@ -61,3 +64,9 @@ func open(total: int) -> void:
 func _on_close() -> void:
 	visible = false
 	closed.emit()
+
+func _stars(n: int) -> String:
+	var s := ""
+	for i in 3:
+		s += "*" if i < n else "."
+	return s

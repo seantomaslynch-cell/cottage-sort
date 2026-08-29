@@ -14,8 +14,10 @@ const EconomyScene := preload("res://game/economy.gd")
 const CottageScreenScene := preload("res://game/cottage_screen.gd")
 const DailyScene := preload("res://game/daily.gd")
 const DailyPanelScene := preload("res://game/daily_panel.gd")
+const Solver := preload("res://game/solver.gd")
 
 const FREE_EXTRA_JARS := 1
+const FREE_HINTS := 2
 const COIN_BASE := 20
 const COIN_FIRST_CLEAR := 30
 
@@ -30,6 +32,7 @@ var _daily: Daily
 var _daily_panel: DailyPanel
 var _stage := 0
 var _last_earned := 0
+var _hints_used := 0
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Color("f3e9d8"))
@@ -78,6 +81,7 @@ func _ready() -> void:
 	_hud.add_jar_pressed.connect(_on_add_jar)
 	_hud.levels_pressed.connect(func() -> void: _select.open(Levels.count()))
 	_hud.cottage_pressed.connect(_show_cottage)
+	_hud.hint_pressed.connect(_on_hint)
 	_hud.double_pressed.connect(_on_double)
 	_hud.mute_toggled.connect(_on_mute_toggled)
 
@@ -118,7 +122,24 @@ func _load_current() -> void:
 	_hud.set_level(_stage + 1)
 	_hud.set_moves(0)
 	_hud.hide_win()
+	_hints_used = 0
 	_refresh_buttons()
+
+func _on_hint() -> void:
+	if _board.visible == false or _daily_panel.visible or _cottage.visible:
+		return
+	if _hints_used < FREE_HINTS:
+		_hints_used += 1
+		_do_hint()
+	else:
+		_ads.watch_rewarded(_do_hint)
+
+func _do_hint() -> void:
+	var mv := Solver.hint(_board.jars)
+	if mv.is_empty():
+		_hud.flash("No hint right now")
+	else:
+		_board.show_hint(mv)
 
 func _refresh_buttons() -> void:
 	_hud.set_undo_enabled(_board.can_undo())
@@ -140,12 +161,14 @@ func _on_mute_toggled(muted: bool) -> void:
 
 func _on_solved() -> void:
 	var first := not SaveData.is_complete(_stage)
-	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0)
+	var stars := Levels.stars_for(_stage, _board.moves)
+	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5
 	_last_earned = earned
 	_economy.add_coins(earned)
 	var prev_best := SaveData.best_moves(_stage)
 	SaveData.mark_complete(_stage, _board.moves)
-	_hud.show_win("Cottage corner tidied!", prev_best, _board.moves, earned)
+	SaveData.set_stars(_stage, stars)
+	_hud.show_win("Cottage corner tidied!", prev_best, _board.moves, earned, stars)
 
 func _on_double() -> void:
 	_ads.watch_rewarded(func() -> void:
@@ -216,6 +239,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_board.undo()
 		KEY_L:
 			_select.open(Levels.count())
+		KEY_H:
+			_on_hint()
 		KEY_C:
 			if _daily_panel.visible:
 				return

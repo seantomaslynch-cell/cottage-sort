@@ -10,6 +10,7 @@ signal add_jar_pressed
 signal levels_pressed
 signal cottage_pressed
 signal daily_pressed
+signal hint_pressed
 signal double_pressed
 signal mute_toggled(muted: bool)
 
@@ -22,6 +23,7 @@ var _addjar_btn: Button
 var _toast: Label
 var _win_root: Control
 var _win_label: Label
+var _win_stars: Label
 var _win_best: Label
 var _win_coins: Label
 var _double_btn: Button
@@ -75,22 +77,27 @@ func _ready() -> void:
 	add_child(bottom)
 
 	_undo_btn = _button("Undo")
-	_undo_btn.custom_minimum_size = Vector2(138, 68)
+	_undo_btn.custom_minimum_size = Vector2(112, 66)
 	_undo_btn.pressed.connect(func() -> void: undo_pressed.emit())
 	bottom.add_child(_undo_btn)
 
+	var hint_btn := _button("Hint")
+	hint_btn.custom_minimum_size = Vector2(112, 66)
+	hint_btn.pressed.connect(func() -> void: hint_pressed.emit())
+	bottom.add_child(hint_btn)
+
 	_addjar_btn = _button("Add jar")
-	_addjar_btn.custom_minimum_size = Vector2(138, 68)
+	_addjar_btn.custom_minimum_size = Vector2(112, 66)
 	_addjar_btn.pressed.connect(func() -> void: add_jar_pressed.emit())
 	bottom.add_child(_addjar_btn)
 
 	var levels_btn := _button("Levels")
-	levels_btn.custom_minimum_size = Vector2(138, 68)
+	levels_btn.custom_minimum_size = Vector2(112, 66)
 	levels_btn.pressed.connect(func() -> void: levels_pressed.emit())
 	bottom.add_child(levels_btn)
 
 	var cottage_btn := _button("Cottage")
-	cottage_btn.custom_minimum_size = Vector2(138, 68)
+	cottage_btn.custom_minimum_size = Vector2(112, 66)
 	cottage_btn.pressed.connect(func() -> void: cottage_pressed.emit())
 	bottom.add_child(cottage_btn)
 
@@ -127,6 +134,12 @@ func _build_win_overlay() -> void:
 	_win_label.add_theme_font_size_override("font_size", 44)
 	_win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_win_label)
+
+	_win_stars = _label("")
+	_win_stars.add_theme_font_size_override("font_size", 52)
+	_win_stars.add_theme_color_override("font_color", Color("f2c14e"))
+	_win_stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_win_stars)
 
 	_win_best = _label("")
 	_win_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -208,8 +221,9 @@ func flash(text: String) -> void:
 	tw.tween_interval(0.9)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.5)
 
-func show_win(text: String, best: int, current: int, earned: int) -> void:
+func show_win(text: String, best: int, current: int, earned: int, stars: int) -> void:
 	_win_label.text = text
+	_win_stars.text = _stars_str(stars)
 	if best > 0 and current > best:
 		_win_best.text = "Solved in %d moves  (best %d)" % [current, best]
 	else:
@@ -227,3 +241,9 @@ func mark_doubled() -> void:
 
 func hide_win() -> void:
 	_win_root.visible = false
+
+func _stars_str(n: int) -> String:
+	var s := ""
+	for i in 3:
+		s += "*" if i < n else "."
+	return s

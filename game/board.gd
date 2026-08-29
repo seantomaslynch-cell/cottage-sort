@@ -48,6 +48,11 @@ var _recv_jar := -1
 var _recv_count := 0
 var _pops: PackedFloat32Array = PackedFloat32Array()
 var _rings: Array = []            # [{pos, t, dur}]
+var _hint_from := -1
+var _hint_to := -1
+var _hint_time := 0.0
+
+const HINT_TIME := 2.6
 
 func _ready() -> void:
 	set_process(true)
@@ -68,9 +73,23 @@ func load_level(data: Dictionary) -> void:
 	_recv_count = 0
 	_pops = PackedFloat32Array()
 	_pops.resize(jars.size())
+	_clear_hint()
 	_layout()
 	queue_redraw()
 	changed.emit()
+
+func show_hint(mv: Array) -> void:
+	if mv.size() != 2:
+		return
+	_hint_from = mv[0]
+	_hint_to = mv[1]
+	_hint_time = HINT_TIME
+	queue_redraw()
+
+func _clear_hint() -> void:
+	_hint_from = -1
+	_hint_to = -1
+	_hint_time = 0.0
 
 func can_undo() -> bool:
 	return _history.size() > 0 and not _busy and not _locked
@@ -122,6 +141,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	var hit := _jar_at(pos)
 	if hit == -1:
 		return
+
+	_clear_hint()
 
 	if selected == -1:
 		if not (jars[hit] as Array).is_empty():
@@ -208,6 +229,10 @@ func _process(delta: float) -> void:
 		_rings = _rings.filter(func(r): return r["t"] < r["dur"])
 		redraw = true
 
+	if _hint_time > 0.0:
+		_hint_time = maxf(0.0, _hint_time - delta)
+		redraw = true
+
 	if redraw:
 		queue_redraw()
 
@@ -287,6 +312,7 @@ func _is_solved() -> bool:
 func _draw() -> void:
 	for i in jars.size():
 		_draw_jar(i)
+	_draw_hint()
 	for f in _flying:
 		if f["delay"] > 0.0:
 			continue
@@ -299,6 +325,17 @@ func _draw() -> void:
 		var e2: float = r["t"] / r["dur"]
 		var rad := lerpf(18.0, 92.0, e2)
 		draw_arc(r["pos"], rad, 0.0, TAU, 40, Color(0.95, 0.78, 0.35, (1.0 - e2) * 0.5), 4.0, true)
+
+func _draw_hint() -> void:
+	if _hint_time <= 0.0:
+		return
+	if _hint_from < 0 or _hint_to < 0 or _hint_from >= _rects.size() or _hint_to >= _rects.size():
+		return
+	var fade := clampf(_hint_time / HINT_TIME, 0.0, 1.0)
+	var pulse := 0.45 + 0.55 * (0.5 + 0.5 * sin(Time.get_ticks_msec() / 130.0))
+	var a := fade * pulse
+	_round_rect(_rects[_hint_from].grow(6.0), Color(0, 0, 0, 0), Color(0.42, 0.66, 0.90, a), 5, 30)
+	_round_rect(_rects[_hint_to].grow(6.0), Color(0, 0, 0, 0), Color(0.42, 0.80, 0.48, a), 5, 30)
 
 func _draw_jar(i: int) -> void:
 	var r: Rect2 = _rects[i]
