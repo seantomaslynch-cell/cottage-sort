@@ -13,6 +13,7 @@ signal daily_pressed
 signal season_pressed
 signal shop_pressed
 signal home_pressed
+signal trophies_pressed
 signal hint_pressed
 signal double_pressed
 signal add_moves_pressed
@@ -157,7 +158,7 @@ func _build_nav() -> void:
 
 	var items := [
 		["Home", home_pressed], ["Cottage", cottage_pressed], ["Daily", daily_pressed],
-		["Season", season_pressed], ["Shop", shop_pressed],
+		["Season", season_pressed], ["Trophies", trophies_pressed], ["Shop", shop_pressed],
 		["Levels", levels_pressed], ["Settings", settings_pressed],
 	]
 	for it in items:

@@ -101,6 +101,25 @@ func _run() -> void:
 			if bp and bp.bp:
 				bp.bp.add_xp(340)
 				bp.open()
+		"trophies":
+			var apanel := _find(get_root(), "AchievementsPanel")
+			if economy:
+				economy.add_coins(500)
+				for slot in ["roof", "walls"]:
+					economy.buy(slot)
+			SaveData.data["completed"] = {}
+			SaveData.data["stars"] = {}
+			for i in 12:
+				SaveData.data["completed"][str(i)] = 6
+				SaveData.data["stars"][str(i)] = (3 if i % 2 == 0 else 2)
+			SaveData.data["stat_best_combo"] = 4
+			SaveData.data["stat_flawless"] = 1
+			SaveData.data["stat_deepest"] = 12
+			var ach := _find(get_root(), "Achievements")
+			if ach:
+				ach.scan()
+			if apanel:
+				apanel.open()
 
 	await create_timer(0.7).timeout
 

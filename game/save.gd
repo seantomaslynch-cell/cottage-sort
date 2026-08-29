@@ -30,6 +30,15 @@ static var data: Dictionary = {
 	"ftue_done": false,        # L1 guided tutorial completed
 	"ftue_budget_seen": false, # shown the "moves are limited now" heads-up
 	"ftue_stars_seen": false,  # shown the star-rating explainer
+	"achievements": {},        # id -> true once earned
+	"stat_deepest": 0,         # furthest stage index reached
+	"stat_flawless": 0,        # 3-star clears with no undo/hint
+	"stat_best_combo": 0,      # highest combo multiplier landed
+	"stat_week_chests": 0,     # weekly chests claimed (lifetime)
+	"stat_jackpot_wins": 0,    # daily jackpots won
+	"stat_days_played": 0,     # distinct days the game was opened
+	"stat_last_played_day": 0,
+	"stat_coins_earned": 0,    # lifetime coins earned
 	"daily": {
 		"streak_len": 0,
 		"last_login_day": 0,

@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M34 home screen
+**Updated:** 2026-08-29 · +M35 achievements
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -46,13 +46,14 @@ file map in [README.md](README.md).
 | M32 endless ramp — 9th bead colour + 12-level colour tiers so difficulty keeps climbing past L40 | ✅ done |
 | M33 interactive FTUE — L1 guided pours + pointer, first-pour juice, coins→cottage explainer, L11 budget heads-up, star teach | ✅ done |
 | M34 home screen (title, living cottage backdrop, Play/stats/shortcuts) + resume last stage + full-bleed chapter cards | ✅ done |
+| M35 achievements — 24 badges (Progress/Skill/Cottage/Habit), auto-granted with rewards, gallery panel + lifetime stat counters | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
 [AUDIT_CONTENT.md](AUDIT_CONTENT.md) = content / FTUE / "full game" pass + M33+
 roadmap · `store/` = App Store submission kit.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
-`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms`, `test_ftue` — all pass.
+`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms`, `test_ftue`, `test_ach` — all pass.
 
 ## What's left — all need an external piece
 
@@ -118,13 +119,13 @@ godot --path .
 godot --headless --path . --editor --quit
 
 # tests
-for t in logic daily shop decor booster bp lb realms ftue; do
+for t in logic daily shop decor booster bp lb realms ftue ach; do
   godot --headless --path . --script res://tools/test_$t.gd
 done
 
 # screenshot a screen (no --headless; restores save.json after)
 godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage]
-#   modes: home | board | chapter | cottage | cottage_decor | daily | shop | settings | booster | season | fail
+#   modes: home | board | chapter | trophies | cottage | cottage_decor | daily | shop | settings | booster | season | fail
 
 # summarise the analytics log to tune the difficulty curve
 python tools/analyze_events.py

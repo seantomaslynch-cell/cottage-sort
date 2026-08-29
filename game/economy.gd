@@ -79,6 +79,8 @@ func add_coins(n: int) -> void:
 	if n == 0:
 		return
 	SaveData.data["coins"] = maxi(0, coins() + n)
+	if n > 0:
+		SaveData.data["stat_coins_earned"] = int(SaveData.data.get("stat_coins_earned", 0)) + n
 	SaveData.save_now()
 	coins_changed.emit(coins())
 	changed.emit()

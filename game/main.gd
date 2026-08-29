@@ -27,6 +27,8 @@ const BattlePassPanelScene := preload("res://game/battle_pass_panel.gd")
 const LeaderboardPanelScene := preload("res://game/leaderboard_panel.gd")
 const HomeScreenScene := preload("res://game/home_screen.gd")
 const ChapterCardScene := preload("res://game/chapter_card.gd")
+const AchievementsScene := preload("res://game/achievements.gd")
+const AchievementsPanelScene := preload("res://game/achievements_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -57,6 +59,8 @@ var _bp_panel: BattlePassPanel
 var _lb_panel: LeaderboardPanel
 var _home: HomeScreen
 var _chapter_card: ChapterCard
+var _ach: Achievements
+var _ach_panel: AchievementsPanel
 var _session_popups_done := false
 var _new_player := false
 var _stage := 0
@@ -158,6 +162,18 @@ func _ready() -> void:
 	_chapter_card = ChapterCardScene.new()
 	add_child(_chapter_card)
 
+	_ach = AchievementsScene.new()
+	add_child(_ach)
+	_ach.set_refs(_economy, _daily, _bp)
+	_ach.granted.connect(_on_achievement)
+	_ach_panel = AchievementsPanelScene.new()
+	add_child(_ach_panel)
+	_ach_panel.ach = _ach
+	_ach_panel.closed.connect(func() -> void: _ach_panel.visible = false)
+	_economy.changed.connect(func() -> void: _ach.scan())
+	_daily.changed.connect(func() -> void: _ach.scan())
+	_bp.changed.connect(func() -> void: _ach.scan())
+
 	_home = HomeScreenScene.new()
 	add_child(_home)
 	_home.set_economy(_economy)
@@ -221,6 +237,7 @@ func _ready() -> void:
 	_hud.season_pressed.connect(func() -> void: _bp_panel.open())
 	_hud.shop_pressed.connect(_open_shop)
 	_hud.home_pressed.connect(_show_home)
+	_hud.trophies_pressed.connect(func() -> void: _ach_panel.open())
 
 	_bp_panel.closed.connect(func() -> void: _bp_panel.visible = false)
 	_bp_panel.unlock_pressed.connect(func() -> void: _iap.purchase("battle_pass"))
@@ -294,7 +311,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card, _ach_panel]:
 		_apply_theme(scr)
 
 	_last_chapter = Realms.index_for(_stage)   # so the card only fires on a real change
@@ -303,6 +320,13 @@ func _ready() -> void:
 	_analytics.log_event("session_start", {"new_player": _new_player})
 	_platform.schedule_daily_reminder(24)
 	_platform.schedule_streak_warning(20)
+
+	var day := _daily.today()
+	if day != int(SaveData.data.get("stat_last_played_day", 0)):
+		SaveData.data["stat_last_played_day"] = day
+		SaveData.data["stat_days_played"] = int(SaveData.data.get("stat_days_played", 0)) + 1
+		SaveData.save_now()
+	_ach.scan()
 	if _new_player:
 		SaveData.data["intro_seen"] = true
 		SaveData.save_now()
@@ -324,6 +348,11 @@ func _load_current() -> void:
 	if int(SaveData.data.get("last_stage", 0)) != _stage:
 		SaveData.data["last_stage"] = _stage
 		SaveData.save_now()
+	if _stage > int(SaveData.data.get("stat_deepest", 0)):
+		SaveData.data["stat_deepest"] = _stage
+		SaveData.save_now()
+	if _ach != null:
+		_ach.scan()
 	var realm := Realms.for_stage(_stage)
 	_board.realm = realm
 	RenderingServer.set_default_clear_color(realm["bg_top"])
@@ -427,11 +456,24 @@ const COMBO_WORDS := ["", "", "Nice!", "Great!", "Superb!", "Unreal!"]
 func _on_combo(n: int) -> void:
 	if _jackpot_active:
 		return
+	if n > int(SaveData.data.get("stat_best_combo", 0)):
+		SaveData.data["stat_best_combo"] = n
 	var bonus := n * 5
-	_economy.add_coins(bonus)
+	_economy.add_coins(bonus)   # -> economy.changed -> _ach.scan()
 	var word: String = COMBO_WORDS[mini(n, COMBO_WORDS.size() - 1)]
 	_hud.flash("%s  x%d combo   +%d" % [word, n, bonus])
 	_analytics.log_event("combo", {"n": n, "stage": _stage})
+
+func _on_achievement(id: String, aname: String, coins: int, gems: int) -> void:
+	if coins > 0:
+		_economy.add_coins(coins)
+	if gems > 0:
+		_economy.add_gems(gems)
+	var reward := ("  +%dc" % coins) if coins > 0 else ""
+	if gems > 0:
+		reward += "  +%dg" % gems
+	_hud.flash("Achievement — %s%s" % [aname, reward])
+	_analytics.log_event("achievement", {"id": id})
 
 func _on_failed() -> void:
 	_coach.clear()
@@ -486,6 +528,7 @@ func _apply_booster(id: String) -> bool:
 func _on_claim_week() -> void:
 	var amt := _daily.claim_week()
 	if amt > 0:
+		SaveData.data["stat_week_chests"] = int(SaveData.data.get("stat_week_chests", 0)) + 1
 		_economy.add_coins(amt)
 		_economy.add_booster(Boosters.LIST[randi() % Boosters.LIST.size()], 1)
 		_bp.add_xp(50)
@@ -563,6 +606,8 @@ func _on_solved() -> void:
 	_ftue_finish()
 	var first := not SaveData.is_complete(_stage)
 	var stars := Levels.stars_for(_stage, _board.moves)
+	if stars == 3 and _undos_used == 0 and _hints_used == 0:
+		SaveData.data["stat_flawless"] = int(SaveData.data.get("stat_flawless", 0)) + 1
 	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5
 	_last_earned = earned
 	_economy.add_coins(earned)
@@ -595,6 +640,8 @@ func _on_solved() -> void:
 	_hud.show_win(win_title, prev_best, _board.moves, earned, stars)
 	if was_ftue:
 		_hud.pulse_cottage()
+
+	_ach.scan()   # stars/levels changed via SaveData, not economy.changed
 
 	if SaveData.data["completed"].size() >= 5:
 		_platform.request_review()
@@ -697,6 +744,7 @@ func _open_ranks() -> void:
 
 func _finish_jackpot() -> void:
 	_jackpot_active = false
+	SaveData.data["stat_jackpot_wins"] = int(SaveData.data.get("stat_jackpot_wins", 0)) + 1
 	_economy.add_coins(Daily.JACKPOT_COINS)
 	_economy.add_gems(Daily.JACKPOT_GEMS)
 	_analytics.log_event("jackpot_win")
@@ -759,7 +807,7 @@ func _show_puzzle() -> void:
 func _show_home() -> void:
 	_board.visible = false
 	_hud.visible = false
-	for o in [_cottage, _daily_panel, _shop, _settings, _bp_panel, _lb_panel, _select, _booster]:
+	for o in [_cottage, _daily_panel, _shop, _settings, _bp_panel, _lb_panel, _select, _booster, _ach_panel]:
 		o.visible = false
 	_home.configure(_stage, SaveData.data["completed"].size(),
 		SaveData.total_stars(), _daily.login_pending())
@@ -786,7 +834,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _hud.fail_open() or _hud.nav_open() or _booster.visible:
 		return
-	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible or _ach_panel.visible or _home.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
 		if not (_shop.visible and event.keycode == KEY_S) \
