@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · Codemagic CI + assets + procedural art pass
+**Updated:** 2026-08-29 · +M31 level solvability verification
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -42,6 +42,7 @@ file map in [README.md](README.md).
 | M28 Codemagic CI (iOS/Android/Web) — no local Mac needed | ✅ done |
 | M29 free-asset pack (Fredoka font, Kenney SFX, FreePD music, AdMob+ATT plugins) | ✅ fetched + committed |
 | M30 procedural art pass — `game/art.gd` shared helpers; cottage scene rebuild, board dressing, tactile UI | ✅ done (jars/beads kept procedural; Kenney sprites rejected — style clash) |
+| M31 level solvability verification — fixes the unsolvable L20; frozen `level_data.gd`; budget floored at par | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
@@ -77,8 +78,10 @@ guide in [store/INTEGRATION.md](store/INTEGRATION.md).
 5. **Localization** (strings → a translation table), **crash reporting**, a
    **low-end device pass**.
 6. **Content cadence** — hand-author L41–80, rotate the weekly event type.
-7. **Tune the M15 curve** — run `tools/analyze_events.py` on a real `events.log`
-   and adjust the `scr` / `bm` knobs in `levels.gd`.
+7. **Tune the M15 curve** — run `tools/analyze_events.py` on a real `events.log`,
+   adjust the `scr` / `bm` knobs in `levels.gd`, then re-freeze:
+   `godot --headless --script res://tools/bake_levels.gd > game/level_data.gd`.
+   Every authored level is solvability-verified with a known par (M31).
 
 Ranked fun/retention/money ideas: see the bottom of
 [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md).
@@ -121,6 +124,12 @@ godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage
 
 # summarise the analytics log to tune the difficulty curve
 python tools/analyze_events.py
+
+# regenerate the frozen, solvability-verified authored levels
+godot --headless --path . --script res://tools/bake_levels.gd > game/level_data.gd
+
+# solver-driven playthrough (proves the curve is beatable): <levels> <start> <budget>
+godot --path . --script res://tools/playthrough.gd -- 30 0 200000 res://play
 ```
 
 In-game keys: `R` restart · `N` next · `U` undo · `H` hint · `L` levels ·
@@ -137,4 +146,7 @@ print `[evt]` / `[platform TODO]` lines.
   rebuild it.
 - `save.json` lives at `user://` (per-machine, not in the repo). The daily/shop
   tests back it up and restore it; the screenshot tool does too.
-- `build/` and `shot*.png` are git-ignored.
+- `build/`, `shot*.png`, `play_*.png` are git-ignored.
+- `tools/bake_levels.gd` prints to stdout; `... > game/level_data.gd` truncates
+  the file *before* Godot runs, so if the run fails you lose the old table —
+  bake to a temp file first, then move it.
