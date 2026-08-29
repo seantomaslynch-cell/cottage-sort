@@ -60,6 +60,7 @@ var _hints_used := 0
 var _undos_used := 0
 var _stage_fails := 0
 var _jackpot_active := false
+var _last_chapter := -1
 
 var _theme: Theme
 
@@ -295,8 +296,12 @@ func _apply_theme(n: Node) -> void:
 
 func _load_current() -> void:
 	_jackpot_active = false
+	var realm := Realms.for_stage(_stage)
+	_board.realm = realm
+	RenderingServer.set_default_clear_color(realm["bg_top"])
 	_board.load_level(Levels.build(_stage))
 	_board.move_budget = Levels.move_budget(_stage)
+	_hud.set_chapter(realm["name"])
 	_hud.set_level(_stage + 1)
 	_hud.set_budget(_board.move_budget)
 	_hud.set_moves(0)
@@ -306,6 +311,10 @@ func _load_current() -> void:
 	_undos_used = 0
 	_stage_fails = 0
 	_coach_for_stage()
+	var ch := Realms.index_for(_stage)
+	if _stage >= 4 and ch != _last_chapter:
+		_coach.show_tip("Chapter %d  —  %s" % [ch + 1, realm["name"]])
+	_last_chapter = ch
 	_analytics.log_event("level_start", {"stage": _stage, "budget": _board.move_budget})
 	_refresh_buttons()
 
@@ -552,6 +561,7 @@ func _start_jackpot() -> void:
 	_hints_used = 0
 	_undos_used = 0
 	_stage_fails = 0
+	_board.realm = Realms.CHAPTERS[0]
 	_board.load_level(LevelGen.generate(4, 3, _daily.jackpot_seed(), 0.7))
 	_board.move_budget = _board.UNLIMITED
 	_hud.set_title_override("Daily Jackpot")

@@ -28,6 +28,7 @@ const TOP_Y := 296.0
 const POP_TIME := 0.45
 
 var audio: GameAudio = null
+var realm: Dictionary = {}        # chapter reskin (bg + shelf colours); set by main
 
 var jars: Array = []              # Array of Array[int], bottom -> top
 var selected: int = -1
@@ -454,19 +455,23 @@ func _draw() -> void:
 		_draw_confetti(c)
 
 func _draw_background() -> void:
+	var top: Color = realm.get("bg_top", Palette.BG)
+	var bot: Color = realm.get("bg_bot", Palette.BG_DEEP)
 	var bands := 20
 	for b in bands:
 		var t := float(b) / float(bands - 1)
 		var y := VIEW_H * float(b) / bands
-		draw_rect(Rect2(0, y, VIEW_W, VIEW_H / bands + 1.0), Palette.BG.lerp(Palette.BG_DEEP, t))
+		draw_rect(Rect2(0, y, VIEW_W, VIEW_H / bands + 1.0), top.lerp(bot, t))
 
 func _draw_shelf(row: Dictionary) -> void:
 	var y: float = row["y"] - 6.0
 	var x0: float = row["x0"]
 	var x1: float = row["x1"]
+	var sh: Color = realm.get("shelf", Palette.SHELF)
+	var shd: Color = realm.get("shelf_dark", Palette.SHELF_DARK)
 	draw_rect(Rect2(x0, y + 20.0, x1 - x0, 10.0), Color(0, 0, 0, 0.06))
-	_round_rect(Rect2(x0, y, x1 - x0, 22.0), Palette.SHELF, Palette.SHELF_DARK, 0, 7)
-	draw_rect(Rect2(x0 + 3.0, y + 15.0, x1 - x0 - 6.0, 5.0), Palette.SHELF_DARK)
+	_round_rect(Rect2(x0, y, x1 - x0, 22.0), sh, shd, 0, 7)
+	draw_rect(Rect2(x0 + 3.0, y + 15.0, x1 - x0 - 6.0, 5.0), shd)
 
 func _draw_confetti(c: Dictionary) -> void:
 	var life: float = c["life"]

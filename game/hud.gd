@@ -29,6 +29,7 @@ var _lv := 1
 var _mv := 0
 var _co := 0
 var _gm := 0
+var _chapter := ""
 var _title_override := ""
 var _budget := BOARD_UNLIMITED
 var _undo_btn: Button
@@ -337,7 +338,9 @@ func _sync_status() -> void:
 		var left := maxi(0, _budget - _mv)
 		mv_txt = "%d / %d moves" % [_mv, _budget]
 		warn = left <= 5
-	var head := _title_override if _title_override != "" else "Lv %d" % _lv
+	var head := _title_override
+	if head == "":
+		head = ("%s  Lv %d" % [_chapter, _lv]) if _chapter != "" else "Lv %d" % _lv
 	_status.text = "%s   ·   %s   ·   %dc  %dg" % [head, mv_txt, _co, _gm]
 	_status.add_theme_color_override("font_color", Color("b0553c") if warn else Color("5b4636"))
 
@@ -352,6 +355,10 @@ func set_level(n: int) -> void:
 
 func set_title_override(text: String) -> void:
 	_title_override = text
+	_sync_status()
+
+func set_chapter(name: String) -> void:
+	_chapter = name
 	_sync_status()
 
 func set_moves(n: int) -> void:

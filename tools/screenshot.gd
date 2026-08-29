@@ -21,6 +21,12 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "res://shot.png"
 	var mode: String = args[1] if args.size() > 1 else "board"
+	var arg_stage: int = int(args[2]) if args.size() > 2 else -1
+	if arg_stage >= 0:
+		var main := _find_by_script(get_root(), "res://game/main.gd")
+		if main and main.has_method("_on_stage_picked"):
+			main._on_stage_picked(arg_stage)
+			await create_timer(0.5).timeout
 
 	var cottage := _find(get_root(), "CottageScreen")
 	var daily := _find(get_root(), "DailyPanel")
@@ -100,6 +106,16 @@ func _find(n: Node, cls: String) -> Node:
 		return n
 	for c in n.get_children():
 		var r := _find(c, cls)
+		if r:
+			return r
+	return null
+
+func _find_by_script(n: Node, path: String) -> Node:
+	var s: Script = n.get_script()
+	if s != null and s.resource_path == path:
+		return n
+	for c in n.get_children():
+		var r := _find_by_script(c, path)
 		if r:
 			return r
 	return null
