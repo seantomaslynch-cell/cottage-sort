@@ -115,9 +115,16 @@ seasonal decor bundle. No pay-to-win.
   tabs; `cottage_view.gd` draws owned decor as tokens along the front.
   `economy.gd` + `SaveData` track `decor` / `decor_sets_done`. Tests:
   `tools/test_decor.gd`.
-- [ ] **M13+ — Monetization depth:** authored curve past L4, gems (premium
-  currency), a 6+ booster set + bundles, piggy bank, starter pack, then battle
-  pass / daily jackpot / leaderboards / themed realms / more cottage rooms.
+- [x] **M13 — Gems + boosters:** `SaveData.gems` premium currency (earned on
+  first 3-star clears + the ad-streak chest; bought via 3 IAP gem packs).
+  `boosters.gd` — six boosters (+8 moves / +3 undos / +1 jar / +3 hints /
+  colour magnet / head start) bought-and-used instantly for gems from
+  `booster_panel.gd`. `board.gd` gains `force_add_jar()`, `magnet()`,
+  `autoplay()`. HUD navigation consolidated behind a "Menu" popup; bottom bar
+  gains "Boost". Tests: `tools/test_booster.gd`.
+- [ ] **M14+ — Monetization depth:** authored curve past L4, piggy bank,
+  starter pack + struggle offers, booster bundles/inventory, then battle pass /
+  daily jackpot / leaderboards / themed realms / more cottage rooms.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
 

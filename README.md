@@ -23,6 +23,7 @@ godot --headless --path . --script res://tools/test_logic.gd
 godot --headless --path . --script res://tools/test_daily.gd
 godot --headless --path . --script res://tools/test_shop.gd
 godot --headless --path . --script res://tools/test_decor.gd
+godot --headless --path . --script res://tools/test_booster.gd
 ```
 
 `test_logic` checks colour counts, that generated levels aren't pre-solved,
@@ -72,6 +73,7 @@ tools/
   test_daily.gd    headless sanity checks (retention logic)
   test_shop.gd     headless sanity checks (IAP + interstitial gating)
   test_decor.gd    headless sanity checks (endless decor meta)
+  test_booster.gd  headless sanity checks (gems + boosters)
 web/
   README.md        how to build for web
 ```

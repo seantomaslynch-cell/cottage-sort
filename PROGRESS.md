@@ -24,9 +24,10 @@ file map in [README.md](README.md).
 | M10 haptics + settings screen + ambient music | ✅ done |
 | M11 weekly event + session-end hook + local analytics + platform seams | ✅ done |
 | M12 endless cottage meta (decor sets + infinite Sundries; coins always have a sink) | ✅ done |
+| M13 gems currency + six-booster set + Menu-consolidated nav | ✅ done |
 
 See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
-Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test_decor` — all pass.
+Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test_decor`, `test_booster` — all pass.
 
 ## What's next
 
@@ -34,8 +35,8 @@ Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test
 
 1. **Authored difficulty curve** past the first 4 levels — a deliberate first
    peak, a spike after ~L20. Keep the generator for an endless mode after.
-2. **Monetization depth** — gems (premium currency), a 6+ booster set with a
-   shop + bundles, a piggy bank, a starter pack + struggle-triggered offers.
+2. **Piggy bank** + a **starter pack** + struggle-triggered offers; **booster
+   bundles** (discounted packs) on top of the M13 single-use boosters.
 3. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
    content cadence and, for leaderboards, a small backend.
 4. **More cottage rooms** and seasonal decor drops on top of the M12 catalog.
@@ -73,9 +74,10 @@ godot --path . --script res://tools/screenshot.gd -- res://shot.png board   # bo
 ```
 
 In-game keys: `R` restart · `N` next · `U` undo · `H` hint · `L` levels ·
-`C` cottage · `D` daily · `S` shop · `M` mute (SFX). Sound/music/haptics
-toggles live on the Settings screen. Debug builds get a "+1 day" button in
-the Daily panel and print `[evt]` / `[platform TODO]` lines.
+`C` cottage · `D` daily · `S` shop · `M` mute (SFX). Cottage / Daily / Shop /
+Levels / Settings also live behind the **Menu** button; **Boost** opens the
+booster popup. Debug builds get a "+1 day" button in the Daily panel and
+print `[evt]` / `[platform TODO]` lines.
 
 ## Gotchas
 

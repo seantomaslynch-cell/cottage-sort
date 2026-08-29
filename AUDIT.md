@@ -132,12 +132,15 @@ Done:
 - [x] **Review prompt** trigger after 5 cleared levels *(stub — needs a plugin)*  *(M11)*
 - [x] **Endless cottage meta** — 3 collection sets + completion bonuses + an
   infinite "Sundries" set whose next item always costs more; coins can't run dry  *(M12)*
+- [x] **Gems (premium currency)** — earned slowly, bought via 3 IAP gem packs  *(M13)*
+- [x] **Six-booster set** — +8 moves / +3 undos / +1 jar / +3 hints / colour
+  magnet / head start, bought-and-used instantly for gems  *(M13)*
 
 Open:
 
 - [ ] Authored difficulty curve beyond the first 4 levels (deliberate first peak, spike after ~L20)
 - [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
-- [ ] Gems (premium currency) + a 6+ booster set + shop bundles
+- [ ] Booster *bundles* (buy a pack of boosters at a discount) + a booster inventory
 - [ ] Piggy bank
 - [ ] Starter pack + struggle-triggered offers
 - [ ] Battle pass, leaderboards, daily jackpot, themed realms  *(need content cadence / a small backend)*
