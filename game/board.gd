@@ -501,8 +501,10 @@ func _draw_jar(i: int) -> void:
 	var pv: float = _pops[i] if i < _pops.size() else 0.0
 	var sc := 1.0 + 0.14 * _pop_curve(pv)
 	var rr := _scaled(r, sc)
-	var center := rr.position + rr.size * 0.5
 	var lifted := (i == selected and not _busy)
+	if lifted:
+		rr.position.y -= 10.0   # the picked jar rises a touch
+	var center := rr.position + rr.size * 0.5
 
 	if lifted:
 		_glow(rr, Palette.ACCENT, 0.9)
@@ -520,9 +522,17 @@ func _draw_jar(i: int) -> void:
 	glass.corner_radius_bottom_left = 30
 	glass.corner_radius_bottom_right = 30
 	draw_style_box(glass, rr)
-	# top sheen + a vertical light streak
-	draw_rect(Rect2(rr.position + Vector2(6, 5), Vector2(rr.size.x - 12, rr.size.y * 0.32)), Palette.GLASS_TOP)
-	draw_rect(Rect2(rr.position + Vector2(rr.size.x * 0.24, 10), Vector2(6, rr.size.y - 26)), Color(1, 1, 1, 0.18))
+	# vertical glass sheen: a few translucent bands, brightest near the top
+	for k in 5:
+		var f := float(k) / 4.0
+		var bh := rr.size.y * 0.20
+		draw_rect(Rect2(rr.position + Vector2(6, 5 + f * (rr.size.y - bh - 10)),
+			Vector2(rr.size.x - 12, bh)), Color(1, 1, 1, 0.11 * (1.0 - f * 0.8)))
+	# a crisp vertical light streak + a faint one on the far side
+	draw_rect(Rect2(rr.position + Vector2(rr.size.x * 0.22, 10), Vector2(6, rr.size.y - 26)), Color(1, 1, 1, 0.20))
+	draw_rect(Rect2(rr.position + Vector2(rr.size.x * 0.74, 16), Vector2(3, rr.size.y - 36)), Color(1, 1, 1, 0.10))
+	# rim highlight along the top inner edge
+	draw_arc(rr.position + Vector2(rr.size.x * 0.5, 14), rr.size.x * 0.42, PI * 1.05, PI * 1.95, 20, Color(1, 1, 1, 0.28), 2.0, true)
 
 	var jar: Array = jars[i]
 	var shown := jar.size()
@@ -541,10 +551,15 @@ func _draw_jar(i: int) -> void:
 
 func _draw_item(p: Vector2, col: Color, sc: float) -> void:
 	var rad := ITEM_R * sc
-	draw_circle(p + Vector2(0, rad * 0.12), rad, col.darkened(0.28))
+	# contact shadow under the bead
+	draw_circle(p + Vector2(0, rad * 0.18), rad * 0.98, col.darkened(0.34))
 	draw_circle(p, rad, col)
-	draw_arc(p, rad * 0.98, 0.15 * PI, 0.85 * PI, 20, col.darkened(0.22), 3.0, true)
-	draw_circle(p + Vector2(-rad * 0.32, -rad * 0.34), rad * 0.26, Color(1, 1, 1, 0.55))
+	# lower-right shade band + upper-left lit band
+	draw_arc(p, rad * 0.94, 0.12 * PI, 0.78 * PI, 20, col.darkened(0.20), 3.5, true)
+	draw_arc(p, rad * 0.90, PI * 1.05, PI * 1.55, 16, col.lightened(0.28), 3.0, true)
+	# two speculars: a soft one and a tight one
+	draw_circle(p + Vector2(-rad * 0.30, -rad * 0.34), rad * 0.30, Color(1, 1, 1, 0.42))
+	draw_circle(p + Vector2(-rad * 0.36, -rad * 0.40), rad * 0.12, Color(1, 1, 1, 0.75))
 
 func _round_rect(rect: Rect2, fill: Color, border: Color, border_w: int, radius: int) -> void:
 	var sb := StyleBoxFlat.new()
