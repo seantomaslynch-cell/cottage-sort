@@ -11,6 +11,7 @@
 # Build output
 /build/
 
-# Local screenshots (tools/screenshot.gd)
+# Local screenshots (tools/screenshot.gd, tools/playthrough.gd)
 /shot*.png
 /shot*.png.import
+/play_*.png
