@@ -24,12 +24,12 @@ func _ready() -> void:
 	layer = 25
 	visible = false
 
-	var dim := ColorRect.new()
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.color = Color(0.20, 0.15, 0.12, 0.74)
-	add_child(dim)
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Palette.BG
+	add_child(bg)
 
-	var title := _label("Daily", 40, Color("f3e9d8"))
+	var title := _label("Daily", 40, Palette.INK)
 	title.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	title.offset_top = 22.0
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -55,7 +55,7 @@ func _ready() -> void:
 	_claim_btn.pressed.connect(func() -> void: claim_login_pressed.emit())
 	login_box.add_child(_claim_btn)
 
-	_streak_lbl = _label("Login streak: 0 days", 24, Color("f3e9d8"))
+	_streak_lbl = _label("Login streak: 0 days", 24, Palette.INK)
 	_streak_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	login_box.add_child(_streak_lbl)
 
@@ -81,7 +81,7 @@ func _ready() -> void:
 	_spin_btn.pressed.connect(func() -> void: spin_pressed.emit())
 	spin_box.add_child(_spin_btn)
 
-	_adstreak_lbl = _label("Ad-watch streak: 0 / 3", 22, Color("f3e9d8"))
+	_adstreak_lbl = _label("Ad-watch streak: 0 / 3", 22, Palette.INK)
 	_adstreak_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	spin_box.add_child(_adstreak_lbl)
 
