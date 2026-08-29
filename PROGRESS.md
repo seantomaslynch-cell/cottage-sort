@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M39 bead skins + beat-par + kitchen
+**Updated:** 2026-08-29 · +M40 endless milestones + depth board
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -51,6 +51,7 @@ file map in [README.md](README.md).
 | M37 story + cat companion — one-time intro card, drawn cat on the board (stretches on win), daily cat gift | ✅ done |
 | M38 feel polish — flawless badge, per-colour pour pitch, last-jar glow, near-miss pulse, chapter-progress hint, first-time flourishes | ✅ done |
 | M39 realm bead skins + beat-par goal + Kitchen visual payoff (locked-jar / colour-rush variants deferred) | ✅ done |
+| M40 endless milestone chests (L50/75/100/…) + all-time "furthest level" leaderboard tab + Homesteader badge | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
@@ -129,7 +130,7 @@ done
 
 # screenshot a screen (no --headless; restores save.json after)
 godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage]
-#   modes: home | story | board | chapter | stats | collection | trophies | cottage | cottage_decor | daily | shop | settings | booster | season | fail
+#   modes: home | story | board | chapter | ranks | stats | collection | trophies | cottage | cottage_decor | daily | shop | settings | booster | season | fail
 
 # summarise the analytics log to tune the difficulty curve
 python tools/analyze_events.py

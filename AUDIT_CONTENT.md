@@ -183,14 +183,13 @@ chapter, flagged in the stage knobs:
 
 Keep it rare and cosy — variety, not difficulty spikes.
 
-### 3c. Endless milestones + a depth board
+### 3c. Endless milestones + a depth board — *done (M40)*
 
-Endless has no reward structure — you just keep going. Add:
-
-- Milestone chests at L50 / L75 / L100 / every 25 after (coins + gems + booster).
-- Track **deepest endless level** in `SaveData`; show it on the stats page and
-  splice it into the weekly leaderboard as a second tab ("This week" stars /
-  "All-time" depth).
+- Milestone chests at L50 / L75 / L100 / every 25 after — coins (300 + 100·i) +
+  gems (3 + i) + a random booster, once each (`SaveData.endless_milestone`).
+- `stat_deepest` shows on the Stats page (M36) and the leaderboard has an
+  **All-time / furthest level** tab beside the weekly stars (`Leaderboard.depth_board`).
+- Capstone achievement **Homesteader** — reach Level 100.
 
 ### 3d. Realm bead skins *(AUDIT_FUNCTIONAL #4)*
 

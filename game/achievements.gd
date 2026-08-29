@@ -31,6 +31,7 @@ const LIST: Array[Dictionary] = [
 	{"id": "set1",      "name": "Collector",     "desc": "Complete a decor set",      "cat": "Cottage", "goal": 1,   "coins": 150, "gems": 0},
 	{"id": "decor25",   "name": "Well Furnished", "desc": "Own 25 decor pieces",      "cat": "Cottage", "goal": 25,  "coins": 250, "gems": 2},
 	{"id": "endless60", "name": "Beyond",        "desc": "Reach Level 60",            "cat": "Cottage", "goal": 60,  "coins": 300, "gems": 3},
+	{"id": "endless100", "name": "Homesteader", "desc": "Reach Level 100",           "cat": "Cottage", "goal": 100, "coins": 500, "gems": 5},
 
 	{"id": "login3",  "name": "Regular",        "desc": "3-day login streak",        "cat": "Habit", "goal": 3,  "coins": 80,  "gems": 0},
 	{"id": "login7",  "name": "Devoted",        "desc": "7-day login streak",        "cat": "Habit", "goal": 7,  "coins": 200, "gems": 2},
@@ -96,7 +97,7 @@ func progress(id: String) -> Vector2i:
 	var have := 0
 	match id:
 		"lvl10", "lvl25", "lvl50", "lvl100": have = _completed()
-		"ch3", "endless60": have = _stat("stat_deepest") + 1
+		"ch3", "endless60", "endless100": have = _stat("stat_deepest") + 1
 		"curve":
 			for i in 40:
 				if (SaveData.data.get("completed", {}) as Dictionary).has(str(i)):

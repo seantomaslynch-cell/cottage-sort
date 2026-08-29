@@ -110,6 +110,13 @@ func _run() -> void:
 			if bp and bp.bp:
 				bp.bp.add_xp(340)
 				bp.open()
+		"ranks", "ranks_depth":
+			SaveData.data["stat_deepest"] = 57
+			if main and main.has_method("_open_ranks"):
+				main._open_ranks()
+			var lb := _find(get_root(), "LeaderboardPanel")
+			if lb and mode == "ranks_depth":
+				lb._show("depth")
 		"trophies", "stats", "collection":
 			var apanel := _find(get_root(), "ProgressPanel")
 			if economy:

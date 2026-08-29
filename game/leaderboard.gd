@@ -32,3 +32,18 @@ static func your_rank(rows: Array) -> int:
 		if rows[i]["you"]:
 			return i + 1
 	return rows.size()
+
+## All-time "furthest level" board. Bot depths are fixed per name (they don't
+## move day to day); the real player is spliced in by `player_depth`.
+## Rows [{name, depth, you}] sorted by depth descending.
+static func depth_board(player_depth: int) -> Array:
+	var rows: Array = []
+	for i in NAMES.size():
+		var rng := RandomNumberGenerator.new()
+		rng.seed = i * 2654435761 + 99
+		# skew low: most players never leave the authored run
+		var d := int(round(pow(rng.randf(), 1.8) * 130.0)) + 6
+		rows.append({"name": NAMES[i], "depth": d, "you": false})
+	rows.append({"name": "You", "depth": maxi(1, player_depth), "you": true})
+	rows.sort_custom(func(a, b): return int(a["depth"]) > int(b["depth"]))
+	return rows

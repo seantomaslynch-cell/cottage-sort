@@ -662,6 +662,21 @@ func _on_solved() -> void:
 	_analytics.log_event("level_complete",
 		{"stage": _stage, "moves": _board.moves, "stars": stars, "first": first})
 
+	# Endless milestone chests: L50, L75, L100, then every 25 — once each.
+	var lvl := _stage + 1
+	if not was_ftue and lvl >= 50 and (lvl - 50) % 25 == 0 \
+			and lvl > int(SaveData.data.get("endless_milestone", 0)):
+		SaveData.data["endless_milestone"] = lvl
+		var mi := (lvl - 50) / 25
+		var mc := 300 + mi * 100
+		var mg := 3 + mi
+		_economy.add_coins(mc)
+		_economy.add_gems(mg)
+		_economy.add_booster(Boosters.LIST[randi() % Boosters.LIST.size()], 1)
+		_cat.celebrate()
+		_hud.flash("Level %d milestone!  +%d coins  +%d gems  +1 booster" % [lvl, mc, mg])
+		_analytics.log_event("endless_milestone", {"level": lvl})
+
 	var left := Daily.WEEK_GOAL - _daily.week_progress()
 	var teach_stars := stars >= 2 and not bool(SaveData.data.get("ftue_stars_seen", false))
 	if was_ftue:
@@ -785,8 +800,10 @@ func _start_jackpot() -> void:
 func _open_ranks() -> void:
 	_daily_panel.visible = false
 	var dow := _daily.day_of_week()
-	var rows := Leaderboard.board(_daily.week_stars(), _daily.week_id(), dow)
-	_lb_panel.show_board(rows, Leaderboard.your_rank(rows), 8 - dow)
+	var wrows := Leaderboard.board(_daily.week_stars(), _daily.week_id(), dow)
+	var drows := Leaderboard.depth_board(int(SaveData.data.get("stat_deepest", 0)) + 1)
+	_lb_panel.open(wrows, Leaderboard.your_rank(wrows), 8 - dow,
+		drows, Leaderboard.your_rank(drows))
 
 func _finish_jackpot() -> void:
 	_jackpot_active = false
