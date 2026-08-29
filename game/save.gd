@@ -26,6 +26,9 @@ static var data: Dictionary = {
 	"stars": {},       # str(stage_index) -> best star count (1..3)
 	"remove_ads": false,
 	"intro_seen": false,   # set true after the first session; gates the daily auto-open
+	"ftue_done": false,        # L1 guided tutorial completed
+	"ftue_budget_seen": false, # shown the "moves are limited now" heads-up
+	"ftue_stars_seen": false,  # shown the star-rating explainer
 	"daily": {
 		"streak_len": 0,
 		"last_login_day": 0,

@@ -42,6 +42,7 @@ var _win_best: Label
 var _win_coins: Label
 var _win_next: Label
 var _double_btn: Button
+var _win_cottage_btn: Button
 var _win_earned := 0
 var _fail_root: Control
 var _fail_buy_btn: Button
@@ -299,10 +300,10 @@ func _build_win_overlay() -> void:
 	row.add_theme_constant_override("separation", 16)
 	box.add_child(row)
 
-	var cottage_btn := _button("Cottage")
-	cottage_btn.custom_minimum_size = Vector2(160, 72)
-	cottage_btn.pressed.connect(func() -> void: cottage_pressed.emit())
-	row.add_child(cottage_btn)
+	_win_cottage_btn = _button("Cottage")
+	_win_cottage_btn.custom_minimum_size = Vector2(160, 72)
+	_win_cottage_btn.pressed.connect(func() -> void: cottage_pressed.emit())
+	row.add_child(_win_cottage_btn)
 
 	var levels_btn := _button("Levels")
 	levels_btn.custom_minimum_size = Vector2(160, 72)
@@ -412,6 +413,16 @@ func flash(text: String) -> void:
 
 func set_next_hint(text: String) -> void:
 	_win_next.text = text
+
+## Draw attention to the Cottage button on the win panel (used once, after FTUE).
+func pulse_cottage() -> void:
+	if _win_cottage_btn == null:
+		return
+	_win_cottage_btn.pivot_offset = _win_cottage_btn.custom_minimum_size * 0.5
+	var tw := create_tween()
+	tw.set_loops(4)
+	tw.tween_property(_win_cottage_btn, "scale", Vector2(1.08, 1.08), 0.35).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(_win_cottage_btn, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_SINE)
 
 func show_win(text: String, best: int, current: int, earned: int, stars: int) -> void:
 	_win_label.text = text

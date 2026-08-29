@@ -61,6 +61,7 @@ var _undos_used := 0
 var _stage_fails := 0
 var _jackpot_active := false
 var _last_chapter := -1
+var _ftue_active := false
 
 var _theme: Theme
 
@@ -150,7 +151,9 @@ func _ready() -> void:
 
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
-		if n >= 2:
+		if _ftue_active:
+			_on_ftue_moved(n)
+		elif n >= 2:
 			_coach.clear())
 	_board.solved.connect(_on_solved)
 	_board.failed.connect(_on_failed)
@@ -315,11 +318,19 @@ func _load_current() -> void:
 	_hints_used = 0
 	_undos_used = 0
 	_stage_fails = 0
-	_coach_for_stage()
+	_maybe_start_ftue()
+	if not _ftue_active:
+		_coach_for_stage()
 	var ch := Realms.index_for(_stage)
 	if _stage >= 4 and ch != _last_chapter:
 		_coach.show_tip("Chapter %d  —  %s" % [ch + 1, realm["name"]])
 	_last_chapter = ch
+	# One-time heads-up the first time moves become limited.
+	if not _ftue_active and _stage == Levels.FLOW_STAGES \
+			and not bool(SaveData.data.get("ftue_budget_seen", false)):
+		SaveData.data["ftue_budget_seen"] = true
+		SaveData.save_now()
+		_coach.show_tip("Moves are limited from here. Run low? Watch an ad, spend coins, or just restart — no lives, ever.")
 	_analytics.log_event("level_start", {"stage": _stage, "budget": _board.move_budget})
 	_refresh_buttons()
 
@@ -332,6 +343,55 @@ func _coach_for_stage() -> void:
 		1: _coach.show_tip("Some jars are mixed. Look for a pour that frees a whole colour.")
 		2: _coach.show_tip("Wrong move? Tap Undo below to take it back.")
 		3: _coach.show_tip("Out of room? The Jar button gives you a spare to work with.")
+
+# --- First-time user experience (M33) --------------------------------------
+# Level 1 only, once ever: guide every pour with a pointer and a locked board,
+# celebrate the first success, then explain what the coins are for.
+
+func _maybe_start_ftue() -> void:
+	_ftue_active = false
+	_board.tutorial_lock = false
+	_board.tutorial_move = []
+	_coach.stop_pointing()
+	if _stage != 0 or _jackpot_active:
+		return
+	if SaveData.is_complete(0) or bool(SaveData.data.get("ftue_done", false)):
+		return
+	_ftue_active = true
+	_ftue_point_next()
+
+func _ftue_point_next() -> void:
+	if not _ftue_active:
+		return
+	var mv: Array = Solver.hint(_board.jars)
+	if mv.size() != 2:
+		_ftue_finish()
+		return
+	_board.tutorial_lock = true
+	_board.tutorial_move = mv
+	if _board.moves == 0:
+		_coach.show_tip("Tap the jar the arrow points to, then the next one.")
+	else:
+		_coach.show_tip("Keep going — pour matching colours together.")
+	_coach.point_at(_board.jar_center(int(mv[0])))
+
+func _on_ftue_moved(n: int) -> void:
+	_coach.stop_pointing()
+	if n == 1:
+		_hud.flash("Nice!")
+		_audio.play("win", 1.4)
+	if _board._is_solved():
+		return   # _on_solved wraps up
+	_ftue_point_next()
+
+func _ftue_finish() -> void:
+	_ftue_active = false
+	_board.tutorial_lock = false
+	_board.tutorial_move = []
+	_coach.stop_pointing()
+	if not bool(SaveData.data.get("ftue_done", false)):
+		SaveData.data["ftue_done"] = true
+		SaveData.save_now()
 
 func _on_undo() -> void:
 	if not _board.can_undo():
@@ -479,6 +539,8 @@ func _on_solved() -> void:
 	if _jackpot_active:
 		_finish_jackpot()
 		return
+	var was_ftue := _ftue_active
+	_ftue_finish()
 	var first := not SaveData.is_complete(_stage)
 	var stars := Levels.stars_for(_stage, _board.moves)
 	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5
@@ -497,12 +559,22 @@ func _on_solved() -> void:
 		{"stage": _stage, "moves": _board.moves, "stars": stars, "first": first})
 
 	var left := Daily.WEEK_GOAL - _daily.week_progress()
-	if left > 0 and left <= 5 and not _daily.week_claimed():
+	var teach_stars := stars >= 2 and not bool(SaveData.data.get("ftue_stars_seen", false))
+	if was_ftue:
+		_hud.set_next_hint("Coins rebuild your cottage — try the Cottage button")
+	elif teach_stars:
+		SaveData.data["ftue_stars_seen"] = true
+		SaveData.save_now()
+		_hud.set_next_hint("Fewer moves earns more stars — and more coins.")
+	elif left > 0 and left <= 5 and not _daily.week_claimed():
 		_hud.set_next_hint("%d more this week for a %d-coin chest" % [left, Daily.WEEK_CHEST])
 	else:
 		_hud.set_next_hint("Next: Level %d" % (_stage + 2))
 
-	_hud.show_win("Cottage corner tidied!", prev_best, _board.moves, earned, stars)
+	var win_title := "You did it!" if was_ftue else "Cottage corner tidied!"
+	_hud.show_win(win_title, prev_best, _board.moves, earned, stars)
+	if was_ftue:
+		_hud.pulse_cottage()
 
 	if SaveData.data["completed"].size() >= 5:
 		_platform.request_review()

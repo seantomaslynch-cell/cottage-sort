@@ -36,6 +36,10 @@ var selected: int = -1
 var moves: int = 0
 var move_budget: int = UNLIMITED  # set by main per stage; UNLIMITED = no fail
 
+# FTUE gate: while set, only the [from, to] pour is accepted (main drives it).
+var tutorial_lock := false
+var tutorial_move: Array = []
+
 var _rects: Array[Rect2] = []
 var _base_jar_count := 0
 var _locked := false              # solved
@@ -250,6 +254,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if hit == -1:
 		return
 
+	if tutorial_lock and tutorial_move.size() == 2:
+		if selected == -1 and hit != int(tutorial_move[0]):
+			return
+		if selected != -1 and hit != selected and hit != int(tutorial_move[1]):
+			return
+
 	_clear_hint()
 
 	if selected == -1:
@@ -455,6 +465,13 @@ func _jar_at(p: Vector2) -> int:
 		if _rects[i].grow(12.0).has_point(p):
 			return i
 	return -1
+
+## Screen-space point just above a jar's rim — the FTUE pointer aims here.
+func jar_center(i: int) -> Vector2:
+	if i < 0 or i >= _rects.size():
+		return Vector2.ZERO
+	var r := _rects[i]
+	return Vector2(r.position.x + r.size.x * 0.5, r.position.y - 6.0)
 
 func _top_run_len(jar: Array) -> int:
 	if jar.is_empty():

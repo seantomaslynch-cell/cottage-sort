@@ -5,10 +5,15 @@ class_name Coach
 
 var _panel: PanelContainer
 var _label: Label
+var _hand: TutorPointer
 
 func _ready() -> void:
 	layer = 12
 	visible = false
+
+	_hand = TutorPointer.new()
+	_hand.visible = false
+	add_child(_hand)
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -48,9 +53,21 @@ func show_tip(text: String) -> void:
 	var tw := create_tween()
 	tw.tween_property(_panel, "modulate:a", 1.0, 0.25)
 
+func point_at(pos: Vector2) -> void:
+	visible = true
+	_hand.target = pos
+	_hand.visible = true
+	_hand.queue_redraw()
+
+func stop_pointing() -> void:
+	_hand.visible = false
+
 func clear() -> void:
+	_hand.visible = false
 	if not visible:
 		return
 	var tw := create_tween()
 	tw.tween_property(_panel, "modulate:a", 0.0, 0.3)
-	tw.tween_callback(func() -> void: visible = false)
+	tw.tween_callback(func() -> void:
+		if not _hand.visible:
+			visible = false)

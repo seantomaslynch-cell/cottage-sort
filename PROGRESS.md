@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M32 endless colour-tier ramp
+**Updated:** 2026-08-29 · +M33 interactive FTUE
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -44,13 +44,14 @@ file map in [README.md](README.md).
 | M30 procedural art pass — `game/art.gd` shared helpers; cottage scene rebuild, board dressing, tactile UI | ✅ done (jars/beads kept procedural; Kenney sprites rejected — style clash) |
 | M31 level solvability verification — fixes the unsolvable L20; frozen `level_data.gd`; budget floored at par | ✅ done |
 | M32 endless ramp — 9th bead colour + 12-level colour tiers so difficulty keeps climbing past L40 | ✅ done |
+| M33 interactive FTUE — L1 guided pours + pointer, first-pour juice, coins→cottage explainer, L11 budget heads-up, star teach | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
 [AUDIT_CONTENT.md](AUDIT_CONTENT.md) = content / FTUE / "full game" pass + M33+
 roadmap · `store/` = App Store submission kit.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
-`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms` — all pass.
+`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms`, `test_ftue` — all pass.
 
 ## What's left — all need an external piece
 
@@ -116,7 +117,7 @@ godot --path .
 godot --headless --path . --editor --quit
 
 # tests
-for t in logic daily shop decor booster bp lb realms; do
+for t in logic daily shop decor booster bp lb realms ftue; do
   godot --headless --path . --script res://tools/test_$t.gd
 done
 
