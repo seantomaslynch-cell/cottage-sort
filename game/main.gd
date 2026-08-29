@@ -251,6 +251,7 @@ func _ready() -> void:
 	_lb_panel.closed.connect(func() -> void: _lb_panel.visible = false)
 	_daily_panel.debug_day_pressed.connect(func() -> void:
 		_daily.advance_debug_day()
+		_bp.debug_day_offset = _daily.debug_day_offset   # keep the season clock in sync for QA
 		_daily_panel.refresh())
 	_daily.chest_awarded.connect(func(amount: int) -> void:
 		_economy.add_coins(amount)
@@ -353,28 +354,39 @@ func _struggle_available() -> bool:
 	return int(SaveData.data.get("struggle_bought_day", -1)) != _daily.today()
 
 func _on_use_booster(id: String) -> void:
-	if not _economy.use_booster(id):
+	if _economy.booster_count(id) <= 0:
 		_booster.note("None left — buy one below")
 		_booster.refresh()
 		return
-	match id:
-		"moves8":
-			_board.add_moves(8)
-			_hud.set_budget(_board.move_budget)
-		"undos3":
-			_undos_used = maxi(0, _undos_used - 3)
-		"jar1":
-			_board.force_add_jar()
-		"hints3":
-			_hints_used = maxi(0, _hints_used - 3)
-		"magnet":
-			_board.magnet()
-		"headstart":
-			_board.autoplay(3)
+	var ok := _apply_booster(id)
+	if not ok:
+		_booster.note("Can't use that right now")
+		return
+	_economy.add_booster(id, -1)   # consume only on a real effect
 	_analytics.log_event("booster_used", {"id": id})
 	_booster.visible = false
 	_hud.flash("%s" % Boosters.NAME.get(id, id))
 	_refresh_buttons()
+
+func _apply_booster(id: String) -> bool:
+	match id:
+		"moves8":
+			_board.add_moves(8)
+			_hud.set_budget(_board.move_budget)
+			return true
+		"undos3":
+			_undos_used = maxi(0, _undos_used - 3)
+			return true
+		"jar1":
+			return _board.force_add_jar()
+		"hints3":
+			_hints_used = maxi(0, _hints_used - 3)
+			return true
+		"magnet":
+			return _board.magnet()
+		"headstart":
+			return _board.autoplay(3)
+	return false
 
 func _on_claim_week() -> void:
 	var amt := _daily.claim_week()
@@ -680,7 +692,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if _shop.visible:
 				_shop.visible = false
 			else:
-				_shop.open()
+				_open_shop()
 		KEY_M:
 			_on_mute_toggled(not _audio.muted)
 			_hud.set_muted(_audio.muted)

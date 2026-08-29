@@ -10,10 +10,11 @@ const TIERS := 30
 const XP_PER_TIER := 100
 const SEASON_DAYS := 28
 
-var debug_day_offset := 0   # shared feel with Daily; set by main for QA
+var debug_day_offset := 0   # kept in sync with Daily by main for QA
 
 func _today() -> int:
-	return int(Time.get_unix_time_from_system() / 86400.0) + debug_day_offset
+	var bias: int = Time.get_time_zone_from_system().get("bias", 0)
+	return int((Time.get_unix_time_from_system() + bias * 60) / 86400.0) + debug_day_offset
 
 func season_id() -> int:
 	return int(_today() / float(SEASON_DAYS))

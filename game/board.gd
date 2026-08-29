@@ -131,10 +131,10 @@ func force_add_jar() -> bool:
 	return true
 
 ## Pull every top-accessible run of one colour (the most common on the tops)
-## into a single home jar.
-func magnet() -> void:
+## into a single home jar. Returns false if it could not do anything.
+func magnet() -> bool:
 	if _locked or _busy:
-		return
+		return false
 	var best_c := -1
 	var best_n := -1
 	for c in COLORS.size():
@@ -147,7 +147,7 @@ func magnet() -> void:
 			best_n = n
 			best_c = c
 	if best_c < 0:
-		return
+		return false
 	var home := -1
 	for i in jars.size():
 		var a: Array = jars[i]
@@ -160,26 +160,39 @@ func magnet() -> void:
 				home = i
 				break
 	if home == -1:
-		return
+		return false
+	var moved_any := false
 	for i in jars.size():
 		if i == home:
 			continue
 		while not (jars[i] as Array).is_empty() and jars[i][-1] == best_c and jars[home].size() < CAP:
 			jars[home].append((jars[i] as Array).pop_back())
+			moved_any = true
+	if not moved_any:
+		return false
 	_after_booster()
+	return true
 
-## Apply up to n solver-recommended moves instantly.
-func autoplay(n: int) -> void:
+## Apply up to n solver-recommended moves instantly. False if none applied.
+func autoplay(n: int) -> bool:
 	if _locked or _busy:
-		return
+		return false
+	var applied := 0
 	for _i in n:
 		var mv := SortSolver.hint(jars)
 		if mv.size() != 2:
 			break
-		_apply_move(mv[0], mv[1])
+		if _apply_move(mv[0], mv[1]) > 0:
+			applied += 1
+	if applied == 0:
+		return false
 	_after_booster()
+	return true
 
 func _after_booster() -> void:
+	# magnet / autoplay reshape the board non-linearly, so the undo history is no
+	# longer safe to replay against it.
+	_history.clear()
 	_clear_hint()
 	queue_redraw()
 	_sfx("pour", 1.1)
@@ -203,6 +216,8 @@ func undo() -> void:
 	var from_idx: int = h["from"]
 	var to_idx: int = h["to"]
 	var cnt: int = h["count"]
+	if from_idx >= jars.size() or to_idx >= jars.size() or (jars[to_idx] as Array).size() < cnt:
+		return  # board was reshaped by a booster; this entry is stale
 	for _i in cnt:
 		(jars[from_idx] as Array).append((jars[to_idx] as Array).pop_back())
 	moves = maxi(0, moves - 1)

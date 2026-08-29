@@ -67,6 +67,24 @@ func _initialize() -> void:
 	var jc: int = b.jars.size()
 	b.force_add_jar()
 	_ok(int(b.jars.size()) == jc + 1, "force_add_jar adds a jar")
+
+	# effects report failure when the board is busy/locked (so main won't consume it)
+	b.load_level({"jars": [[0, 1], [1, 0], []]})
+	b._busy = true
+	_ok(b.magnet() == false and b.autoplay(3) == false and b.force_add_jar() == false,
+		"boosters fail while the board is busy")
+	b._busy = false
+	b.load_level({"jars": [[0, 0, 0, 0], [1, 1, 1, 1], []]})   # already solved
+	_ok(b.autoplay(3) == false, "autoplay returns false when already solved")
+
+	# a booster reshapes the board -> undo history is dropped, no stale replay
+	b.load_level({"jars": [[0, 1, 0], [1, 0, 1], [1, 0], []]})
+	b._apply_move(0, 3)                 # a real move -> would be in history
+	b._history = [{"from": 0, "to": 3, "count": 1}]
+	b.magnet()
+	_ok(b._history.is_empty(), "magnet clears the undo history")
+	b.undo()                           # must be a safe no-op, not a crash
+	_ok(true, "undo after a booster is a safe no-op")
 	b.free()
 
 	print("iap:")

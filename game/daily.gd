@@ -24,8 +24,11 @@ const SPIN := [
 
 var debug_day_offset := 0
 
+## Whole days since the epoch, in the player's LOCAL timezone, plus the QA
+## offset. Local so "daily reset" lands near local midnight, not UTC midnight.
 func today() -> int:
-	return int(Time.get_unix_time_from_system() / 86400.0) + debug_day_offset
+	var bias: int = Time.get_time_zone_from_system().get("bias", 0)
+	return int((Time.get_unix_time_from_system() + bias * 60) / 86400.0) + debug_day_offset
 
 func _d() -> Dictionary:
 	var d: Dictionary = SaveData.data.get("daily", {})
