@@ -10,13 +10,15 @@ signal add_jar_pressed
 signal levels_pressed
 signal cottage_pressed
 signal daily_pressed
+signal shop_pressed
 signal hint_pressed
 signal double_pressed
 signal mute_toggled(muted: bool)
 
-var _level_label: Label
-var _moves_label: Label
-var _coins_label: Label
+var _status: Label
+var _lv := 1
+var _mv := 0
+var _co := 0
 var _mute_btn: Button
 var _undo_btn: Button
 var _addjar_btn: Button
@@ -42,12 +44,8 @@ func _ready() -> void:
 	top.add_theme_constant_override("separation", 14)
 	add_child(top)
 
-	_level_label = _label("Level 1")
-	top.add_child(_level_label)
-	_moves_label = _label("Moves: 0")
-	top.add_child(_moves_label)
-	_coins_label = _label("Coins: 0")
-	top.add_child(_coins_label)
+	_status = _label("Lv 1    0 moves    0c")
+	top.add_child(_status)
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -57,7 +55,11 @@ func _ready() -> void:
 	daily_btn.pressed.connect(func() -> void: daily_pressed.emit())
 	top.add_child(daily_btn)
 
-	_mute_btn = _button("Sound: on")
+	var shop_btn := _button("Shop")
+	shop_btn.pressed.connect(func() -> void: shop_pressed.emit())
+	top.add_child(shop_btn)
+
+	_mute_btn = _button("Vol on")
 	_mute_btn.pressed.connect(_on_mute)
 	top.add_child(_mute_btn)
 
@@ -197,16 +199,22 @@ func _on_mute() -> void:
 
 func set_muted(m: bool) -> void:
 	_muted = m
-	_mute_btn.text = "Sound: off" if m else "Sound: on"
+	_mute_btn.text = "Vol off" if m else "Vol on"
+
+func _sync_status() -> void:
+	_status.text = "Lv %d    %d moves    %dc" % [_lv, _mv, _co]
 
 func set_level(n: int) -> void:
-	_level_label.text = "Level %d" % n
+	_lv = n
+	_sync_status()
 
 func set_moves(n: int) -> void:
-	_moves_label.text = "Moves: %d" % n
+	_mv = n
+	_sync_status()
 
 func set_coins(n: int) -> void:
-	_coins_label.text = "Coins: %d" % n
+	_co = n
+	_sync_status()
 
 func set_undo_enabled(v: bool) -> void:
 	_undo_btn.disabled = not v

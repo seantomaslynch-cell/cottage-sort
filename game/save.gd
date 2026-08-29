@@ -11,6 +11,7 @@ static var data: Dictionary = {
 	"coins": 0,
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
 	"stars": {},       # str(stage_index) -> best star count (1..3)
+	"remove_ads": false,
 	"daily": {
 		"streak_len": 0,
 		"last_login_day": 0,

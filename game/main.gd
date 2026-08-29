@@ -15,6 +15,8 @@ const CottageScreenScene := preload("res://game/cottage_screen.gd")
 const DailyScene := preload("res://game/daily.gd")
 const DailyPanelScene := preload("res://game/daily_panel.gd")
 const Solver := preload("res://game/solver.gd")
+const IapScene := preload("res://game/iap.gd")
+const ShopPanelScene := preload("res://game/shop_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -30,6 +32,8 @@ var _economy: Economy
 var _cottage: CottageScreen
 var _daily: Daily
 var _daily_panel: DailyPanel
+var _iap: GameIap
+var _shop: ShopPanel
 var _stage := 0
 var _last_earned := 0
 var _hints_used := 0
@@ -71,6 +75,14 @@ func _ready() -> void:
 	add_child(_daily_panel)
 	_daily_panel.set_daily(_daily)
 
+	_iap = IapScene.new()
+	add_child(_iap)
+	_ads.remove_ads = _iap.has_remove_ads()
+
+	_shop = ShopPanelScene.new()
+	add_child(_shop)
+	_shop.set_refs(_iap, _economy)
+
 	_board.moved.connect(func(n: int) -> void: _hud.set_moves(n))
 	_board.solved.connect(_on_solved)
 	_board.changed.connect(_refresh_buttons)
@@ -98,7 +110,18 @@ func _ready() -> void:
 	_cottage.mystery_pressed.connect(_on_mystery)
 
 	_hud.daily_pressed.connect(_open_daily)
+	_hud.shop_pressed.connect(func() -> void: _shop.open())
 	_daily_panel.closed.connect(func() -> void: _daily_panel.visible = false)
+
+	_shop.closed.connect(func() -> void: _shop.visible = false)
+	_shop.buy_pressed.connect(func(id: String) -> void: _iap.purchase(id))
+	_shop.restore_pressed.connect(func() -> void:
+		_iap.restore()
+		_ads.remove_ads = _iap.has_remove_ads()
+		_shop.refresh()
+		_hud.flash("Restore complete"))
+	_iap.purchased.connect(_on_purchased)
+	_ads.interstitial_shown.connect(func() -> void: _hud.flash("Ad"))
 	_daily_panel.claim_login_pressed.connect(_on_claim_login)
 	_daily_panel.spin_pressed.connect(_on_spin)
 	_daily_panel.debug_day_pressed.connect(func() -> void:
@@ -182,6 +205,14 @@ func _on_mystery() -> void:
 		_cottage.refresh()
 		_cottage.flash("+%d coins" % reward))
 
+func _on_purchased(id: String) -> void:
+	var p := _iap.product(id)
+	if p.get("kind") == "coins":
+		_economy.add_coins(int(p["amount"]))
+	_ads.remove_ads = _iap.has_remove_ads()
+	_shop.refresh()
+	_hud.flash("Purchased: %s" % p.get("name", id))
+
 func _open_daily() -> void:
 	_daily_panel.open()
 
@@ -211,6 +242,7 @@ func _on_stage_picked(idx: int) -> void:
 	_load_current()
 
 func _next() -> void:
+	_ads.maybe_show_interstitial()
 	_stage = (_stage + 1) % Levels.count()
 	_load_current()
 
@@ -227,9 +259,13 @@ func _show_puzzle() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	var overlay := _cottage.visible or _daily_panel.visible
-	if overlay and event.keycode != KEY_C and event.keycode != KEY_D and event.keycode != KEY_M:
-		return
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible
+	if overlay and event.keycode != KEY_M:
+		# let the matching toggle key still close its own overlay
+		if not (_shop.visible and event.keycode == KEY_S) \
+				and not (_cottage.visible and event.keycode == KEY_C) \
+				and not (_daily_panel.visible and event.keycode == KEY_D):
+			return
 	match event.keycode:
 		KEY_R:
 			_load_current()
@@ -242,19 +278,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_H:
 			_on_hint()
 		KEY_C:
-			if _daily_panel.visible:
+			if _daily_panel.visible or _shop.visible:
 				return
 			if _cottage.visible:
 				_show_puzzle()
 			else:
 				_show_cottage()
 		KEY_D:
-			if _cottage.visible:
+			if _cottage.visible or _shop.visible:
 				return
 			if _daily_panel.visible:
 				_daily_panel.visible = false
 			else:
 				_open_daily()
+		KEY_S:
+			if _cottage.visible or _daily_panel.visible:
+				return
+			if _shop.visible:
+				_shop.visible = false
+			else:
+				_shop.open()
 		KEY_M:
 			_on_mute_toggled(not _audio.muted)
 			_hud.set_muted(_audio.muted)
