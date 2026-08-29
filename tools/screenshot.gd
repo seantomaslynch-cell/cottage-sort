@@ -41,6 +41,17 @@ func _run() -> void:
 					economy.buy(slot)
 			if cottage:
 				cottage.open()
+		"cottage_decor":
+			if economy:
+				economy.add_coins(3000)
+				for slot in ["roof", "walls", "garden"]:
+					economy.buy(slot)
+				for did in ["g_bench", "g_pots", "k_rug", "n_chair"]:
+					economy.buy_decor(did)
+			if cottage:
+				cottage.open()
+				if cottage.has_method("_show_tab"):
+					cottage._show_tab("decorate")
 		"daily":
 			if daily:
 				daily.open()

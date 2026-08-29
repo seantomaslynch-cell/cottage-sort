@@ -52,6 +52,38 @@ func _draw() -> void:
 	_draw_door(hx, hy, house_w, house_h)
 	_draw_window(hx, hy, house_w, house_h)
 	_draw_fence(ground_y, w)
+	_draw_decor(w, ground_y)
+
+func _draw_decor(w: float, ground_y: float) -> void:
+	if economy == null:
+		return
+	var owned: Array = economy.decor_owned()
+	if owned.is_empty():
+		return
+	var shown := mini(owned.size(), 12)
+	var y := ground_y + 44.0
+	var step := (w - 60.0) / float(maxi(1, shown))
+	for i in shown:
+		var it := DecorData.item(str(owned[i]))
+		if it.is_empty():
+			continue
+		var col: Color = Palette.BEADS[int(it.get("color", 0)) % Palette.BEADS.size()]
+		var cx := 40.0 + step * (i + 0.5)
+		match int(it.get("shape", 0)):
+			1:  # plant
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(cx - 7, y), Vector2(cx + 7, y), Vector2(cx, y - 18)]), col)
+				draw_rect(Rect2(cx - 3, y, 6, 6), Color("7a5230"))
+			2:  # lamp
+				draw_line(Vector2(cx, y), Vector2(cx, y - 16), Color("7a5230"), 3.0)
+				draw_circle(Vector2(cx, y - 18), 6.0, col)
+			3:  # bunting
+				for k in 3:
+					draw_circle(Vector2(cx - 8 + k * 8, y - 6), 3.5,
+						Palette.BEADS[(int(it.get("color", 0)) + k) % Palette.BEADS.size()])
+			_:  # low / rug / bench
+				draw_rect(Rect2(cx - 11, y - 8, 22, 10), col)
+				draw_rect(Rect2(cx - 11, y - 8, 22, 10), col.darkened(0.25), false, 2.0)
 
 func _cloud(cx: float, cy: float, s: float) -> void:
 	var col := Color(1, 1, 1, 0.75)

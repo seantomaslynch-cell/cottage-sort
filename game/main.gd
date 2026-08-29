@@ -149,6 +149,15 @@ func _ready() -> void:
 	_cottage.buy_pressed.connect(func(id: String) -> void:
 		_economy.buy(id)
 		_cottage.refresh())
+	_cottage.decor_buy_pressed.connect(func(id: String) -> void:
+		if _economy.buy_decor(id):
+			_analytics.log_event("decor_buy", {"id": id})
+		_cottage.refresh())
+	_economy.set_completed.connect(func(set_name: String, bonus: int) -> void:
+		_economy.add_coins(bonus)
+		_cottage.flash("%s set complete!   +%d" % [set_name, bonus])
+		_cottage.refresh()
+		_analytics.log_event("decor_set", {"set": set_name, "bonus": bonus}))
 	_cottage.mystery_pressed.connect(_on_mystery)
 
 	_hud.daily_pressed.connect(_open_daily)

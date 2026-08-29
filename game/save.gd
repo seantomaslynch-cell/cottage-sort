@@ -13,6 +13,8 @@ static var data: Dictionary = {
 	"haptics_on": true,
 	"coins": 0,
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
+	"decor": [],       # owned decor ids (incl. "sundry_N")
+	"decor_sets_done": [],  # authored decor sets already bonused
 	"stars": {},       # str(stage_index) -> best star count (1..3)
 	"remove_ads": false,
 	"intro_seen": false,   # set true after the first session; gates the daily auto-open
