@@ -101,12 +101,14 @@ func _run() -> void:
 			if bp and bp.bp:
 				bp.bp.add_xp(340)
 				bp.open()
-		"trophies":
-			var apanel := _find(get_root(), "AchievementsPanel")
+		"trophies", "stats", "collection":
+			var apanel := _find(get_root(), "ProgressPanel")
 			if economy:
-				economy.add_coins(500)
-				for slot in ["roof", "walls"]:
+				economy.add_coins(1500)
+				for slot in ["roof", "walls", "garden"]:
 					economy.buy(slot)
+				for did in ["g_bench", "g_pots", "k_rug", "n_chair", "n_cat"]:
+					economy.buy_decor(did)
 			SaveData.data["completed"] = {}
 			SaveData.data["stars"] = {}
 			for i in 12:
@@ -114,12 +116,14 @@ func _run() -> void:
 				SaveData.data["stars"][str(i)] = (3 if i % 2 == 0 else 2)
 			SaveData.data["stat_best_combo"] = 4
 			SaveData.data["stat_flawless"] = 1
-			SaveData.data["stat_deepest"] = 12
+			SaveData.data["stat_deepest"] = 14
+			SaveData.data["stat_days_played"] = 6
+			SaveData.data["stat_coins_earned"] = 2400
 			var ach := _find(get_root(), "Achievements")
 			if ach:
 				ach.scan()
 			if apanel:
-				apanel.open()
+				apanel.open("badges" if mode == "trophies" else mode)
 
 	await create_timer(0.7).timeout
 

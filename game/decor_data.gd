@@ -9,22 +9,22 @@ class_name DecorData
 
 const SETS := {
 	"Garden": [
-		{"id": "g_bench", "name": "Garden bench",   "cost": 40,  "color": 5, "shape": 0},
-		{"id": "g_pots",  "name": "Flower pots",     "cost": 70,  "color": 0, "shape": 1},
-		{"id": "g_arch",  "name": "Rose arch",       "cost": 120, "color": 6, "shape": 2},
-		{"id": "g_pond",  "name": "Little pond",     "cost": 180, "color": 4, "shape": 0},
+		{"id": "g_bench", "name": "Garden bench",   "cost": 40,  "color": 5, "shape": 0, "flavour": "Weathered, but it holds two."},
+		{"id": "g_pots",  "name": "Flower pots",     "cost": 70,  "color": 0, "shape": 1, "flavour": "Gran's terracotta, chipped just right."},
+		{"id": "g_arch",  "name": "Rose arch",       "cost": 120, "color": 6, "shape": 2, "flavour": "It'll be a tunnel of pink by June."},
+		{"id": "g_pond",  "name": "Little pond",     "cost": 180, "color": 4, "shape": 0, "flavour": "One frog moved in the first night."},
 	],
 	"Kitchen": [
-		{"id": "k_rug",    "name": "Woven rug",      "cost": 50,  "color": 1, "shape": 0},
-		{"id": "k_kettle", "name": "Copper kettle",  "cost": 90,  "color": 5, "shape": 2},
-		{"id": "k_herbs",  "name": "Herb shelf",     "cost": 140, "color": 2, "shape": 1},
-		{"id": "k_lamp",   "name": "Warm lamp",      "cost": 210, "color": 1, "shape": 2},
+		{"id": "k_rug",    "name": "Woven rug",      "cost": 50,  "color": 1, "shape": 0, "flavour": "Warm underfoot on cold mornings."},
+		{"id": "k_kettle", "name": "Copper kettle",  "cost": 90,  "color": 5, "shape": 2, "flavour": "Whistles a little flat. Charming."},
+		{"id": "k_herbs",  "name": "Herb shelf",     "cost": 140, "color": 2, "shape": 1, "flavour": "Thyme, sage, and something unlabelled."},
+		{"id": "k_lamp",   "name": "Warm lamp",      "cost": 210, "color": 1, "shape": 2, "flavour": "Turns the whole room honey-coloured."},
 	],
 	"Cozy Nook": [
-		{"id": "n_chair", "name": "Reading chair",   "cost": 80,  "color": 3, "shape": 0},
-		{"id": "n_books", "name": "Book stack",      "cost": 130, "color": 6, "shape": 1},
-		{"id": "n_quilt", "name": "Patchwork quilt", "cost": 200, "color": 0, "shape": 0},
-		{"id": "n_cat",   "name": "Sleepy cat",      "cost": 300, "color": 5, "shape": 3},
+		{"id": "n_chair", "name": "Reading chair",   "cost": 80,  "color": 3, "shape": 0, "flavour": "The cushion remembers you."},
+		{"id": "n_books", "name": "Book stack",      "cost": 130, "color": 6, "shape": 1, "flavour": "Half of them are bookmarked halfway."},
+		{"id": "n_quilt", "name": "Patchwork quilt", "cost": 200, "color": 0, "shape": 0, "flavour": "Every square was a dress once."},
+		{"id": "n_cat",   "name": "Sleepy cat",      "cost": 300, "color": 5, "shape": 3, "flavour": "Came with the cottage. Won't be moved."},
 	],
 }
 const SET_BONUS := 150      # coins, first time a set is completed
@@ -33,28 +33,28 @@ const ENDLESS_SET := "Sundries"
 ## Rotating seasonal sets — one is on offer at a time, changing every 28 days.
 const SEASONS := [
 	{"name": "Spring", "items": [
-		{"id": "s0_wreath", "name": "Blossom wreath", "cost": 90,  "color": 6, "shape": 3},
-		{"id": "s0_tulips", "name": "Tulip row",      "cost": 130, "color": 0, "shape": 1},
-		{"id": "s0_swing",  "name": "Rope swing",     "cost": 190, "color": 5, "shape": 2},
-		{"id": "s0_hutch",  "name": "Bunny hutch",    "cost": 260, "color": 2, "shape": 0},
+		{"id": "s0_wreath", "name": "Blossom wreath", "cost": 90,  "color": 6, "shape": 3, "flavour": "The door's wearing petals."},
+		{"id": "s0_tulips", "name": "Tulip row",      "cost": 130, "color": 0, "shape": 1, "flavour": "Closed by dusk, open by nine."},
+		{"id": "s0_swing",  "name": "Rope swing",     "cost": 190, "color": 5, "shape": 2, "flavour": "The oak branch has held for decades."},
+		{"id": "s0_hutch",  "name": "Bunny hutch",    "cost": 260, "color": 2, "shape": 0, "flavour": "Two in. Soon to be more."},
 	]},
 	{"name": "Summer", "items": [
-		{"id": "s1_awning",  "name": "Striped awning", "cost": 90,  "color": 0, "shape": 0},
-		{"id": "s1_pitcher", "name": "Lemonade stand", "cost": 130, "color": 1, "shape": 2},
-		{"id": "s1_sunfl",   "name": "Sunflowers",     "cost": 190, "color": 1, "shape": 1},
-		{"id": "s1_hammock", "name": "Hammock",        "cost": 260, "color": 4, "shape": 0},
+		{"id": "s1_awning",  "name": "Striped awning", "cost": 90,  "color": 0, "shape": 0, "flavour": "Shade for the afternoon slump."},
+		{"id": "s1_pitcher", "name": "Lemonade stand", "cost": 130, "color": 1, "shape": 2, "flavour": "Honesty box on the gatepost."},
+		{"id": "s1_sunfl",   "name": "Sunflowers",     "cost": 190, "color": 1, "shape": 1, "flavour": "Taller than the fence now."},
+		{"id": "s1_hammock", "name": "Hammock",        "cost": 260, "color": 4, "shape": 0, "flavour": "For books you won't finish."},
 	]},
 	{"name": "Autumn", "items": [
-		{"id": "s2_pumpkins", "name": "Pumpkin pile",  "cost": 90,  "color": 5, "shape": 0},
-		{"id": "s2_lantern",  "name": "Paper lanterns", "cost": 130, "color": 1, "shape": 2},
-		{"id": "s2_wheat",    "name": "Wheat sheaf",    "cost": 190, "color": 1, "shape": 1},
-		{"id": "s2_scare",    "name": "Scarecrow",      "cost": 260, "color": 2, "shape": 2},
+		{"id": "s2_pumpkins", "name": "Pumpkin pile",  "cost": 90,  "color": 5, "shape": 0, "flavour": "Three for the step, one for the pie."},
+		{"id": "s2_lantern",  "name": "Paper lanterns", "cost": 130, "color": 1, "shape": 2, "flavour": "They sway when the door opens."},
+		{"id": "s2_wheat",    "name": "Wheat sheaf",    "cost": 190, "color": 1, "shape": 1, "flavour": "Tied with garden twine."},
+		{"id": "s2_scare",    "name": "Scarecrow",      "cost": 260, "color": 2, "shape": 2, "flavour": "The crows are unimpressed."},
 	]},
 	{"name": "Winter", "items": [
-		{"id": "s3_lights",  "name": "String lights",  "cost": 90,  "color": 4, "shape": 3},
-		{"id": "s3_tree",    "name": "Little fir tree", "cost": 130, "color": 2, "shape": 1},
-		{"id": "s3_sled",    "name": "Wooden sled",     "cost": 190, "color": 5, "shape": 0},
-		{"id": "s3_snowman", "name": "Snow friend",     "cost": 260, "color": 4, "shape": 2},
+		{"id": "s3_lights",  "name": "String lights",  "cost": 90,  "color": 4, "shape": 3, "flavour": "Warm white, never blinking."},
+		{"id": "s3_tree",    "name": "Little fir tree", "cost": 130, "color": 2, "shape": 1, "flavour": "In a pot, to plant out later."},
+		{"id": "s3_sled",    "name": "Wooden sled",     "cost": 190, "color": 5, "shape": 0, "flavour": "Waxed runners, ready for the hill."},
+		{"id": "s3_snowman", "name": "Snow friend",     "cost": 260, "color": 4, "shape": 2, "flavour": "Coal eyes, carrot nose, borrowed scarf."},
 	]},
 ]
 
@@ -109,4 +109,5 @@ static func endless_item(n: int) -> Dictionary:
 		"color": n % 8,
 		"shape": n % 4,
 		"set": ENDLESS_SET,
+		"flavour": "A little more character for the place.",
 	}

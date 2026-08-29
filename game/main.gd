@@ -28,7 +28,7 @@ const LeaderboardPanelScene := preload("res://game/leaderboard_panel.gd")
 const HomeScreenScene := preload("res://game/home_screen.gd")
 const ChapterCardScene := preload("res://game/chapter_card.gd")
 const AchievementsScene := preload("res://game/achievements.gd")
-const AchievementsPanelScene := preload("res://game/achievements_panel.gd")
+const ProgressPanelScene := preload("res://game/progress_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -60,7 +60,7 @@ var _lb_panel: LeaderboardPanel
 var _home: HomeScreen
 var _chapter_card: ChapterCard
 var _ach: Achievements
-var _ach_panel: AchievementsPanel
+var _progress: ProgressPanel
 var _session_popups_done := false
 var _new_player := false
 var _stage := 0
@@ -166,10 +166,10 @@ func _ready() -> void:
 	add_child(_ach)
 	_ach.set_refs(_economy, _daily, _bp)
 	_ach.granted.connect(_on_achievement)
-	_ach_panel = AchievementsPanelScene.new()
-	add_child(_ach_panel)
-	_ach_panel.ach = _ach
-	_ach_panel.closed.connect(func() -> void: _ach_panel.visible = false)
+	_progress = ProgressPanelScene.new()
+	add_child(_progress)
+	_progress.set_refs(_economy, _daily, _bp, _ach)
+	_progress.closed.connect(func() -> void: _progress.visible = false)
 	_economy.changed.connect(func() -> void: _ach.scan())
 	_daily.changed.connect(func() -> void: _ach.scan())
 	_bp.changed.connect(func() -> void: _ach.scan())
@@ -237,7 +237,7 @@ func _ready() -> void:
 	_hud.season_pressed.connect(func() -> void: _bp_panel.open())
 	_hud.shop_pressed.connect(_open_shop)
 	_hud.home_pressed.connect(_show_home)
-	_hud.trophies_pressed.connect(func() -> void: _ach_panel.open())
+	_hud.progress_pressed.connect(func() -> void: _progress.open("badges"))
 
 	_bp_panel.closed.connect(func() -> void: _bp_panel.visible = false)
 	_bp_panel.unlock_pressed.connect(func() -> void: _iap.purchase("battle_pass"))
@@ -311,7 +311,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card, _ach_panel]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card, _progress]:
 		_apply_theme(scr)
 
 	_last_chapter = Realms.index_for(_stage)   # so the card only fires on a real change
@@ -807,7 +807,7 @@ func _show_puzzle() -> void:
 func _show_home() -> void:
 	_board.visible = false
 	_hud.visible = false
-	for o in [_cottage, _daily_panel, _shop, _settings, _bp_panel, _lb_panel, _select, _booster, _ach_panel]:
+	for o in [_cottage, _daily_panel, _shop, _settings, _bp_panel, _lb_panel, _select, _booster, _progress]:
 		o.visible = false
 	_home.configure(_stage, SaveData.data["completed"].size(),
 		SaveData.total_stars(), _daily.login_pending())
@@ -834,7 +834,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _hud.fail_open() or _hud.nav_open() or _booster.visible:
 		return
-	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible or _ach_panel.visible or _home.visible
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible or _progress.visible or _home.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
 		if not (_shop.visible and event.keycode == KEY_S) \

@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M35 achievements
+**Updated:** 2026-08-29 · +M36 progress hub
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -47,6 +47,7 @@ file map in [README.md](README.md).
 | M33 interactive FTUE — L1 guided pours + pointer, first-pour juice, coins→cottage explainer, L11 budget heads-up, star teach | ✅ done |
 | M34 home screen (title, living cottage backdrop, Play/stats/shortcuts) + resume last stage + full-bleed chapter cards | ✅ done |
 | M35 achievements — 24 badges (Progress/Skill/Cottage/Habit), auto-granted with rewards, gallery panel + lifetime stat counters | ✅ done |
+| M36 progress hub — Stats / Collection / Badges tabs (folds in M35 panel); decor flavour text | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
@@ -125,7 +126,7 @@ done
 
 # screenshot a screen (no --headless; restores save.json after)
 godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage]
-#   modes: home | board | chapter | trophies | cottage | cottage_decor | daily | shop | settings | booster | season | fail
+#   modes: home | board | chapter | stats | collection | trophies | cottage | cottage_decor | daily | shop | settings | booster | season | fail
 
 # summarise the analytics log to tune the difficulty curve
 python tools/analyze_events.py
