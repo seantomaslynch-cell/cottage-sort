@@ -24,6 +24,7 @@ const PlatformScene := preload("res://game/platform.gd")
 const BoosterPanelScene := preload("res://game/booster_panel.gd")
 const BattlePassScene := preload("res://game/battle_pass.gd")
 const BattlePassPanelScene := preload("res://game/battle_pass_panel.gd")
+const LeaderboardPanelScene := preload("res://game/leaderboard_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -51,6 +52,7 @@ var _platform: Platform
 var _booster: BoosterPanel
 var _bp: BattlePass
 var _bp_panel: BattlePassPanel
+var _lb_panel: LeaderboardPanel
 var _new_player := false
 var _stage := 0
 var _last_earned := 0
@@ -138,6 +140,9 @@ func _ready() -> void:
 	_bp_panel = BattlePassPanelScene.new()
 	add_child(_bp_panel)
 	_bp_panel.set_pass(_bp)
+
+	_lb_panel = LeaderboardPanelScene.new()
+	add_child(_lb_panel)
 
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
@@ -241,6 +246,8 @@ func _ready() -> void:
 	_daily_panel.spin_pressed.connect(_on_spin)
 	_daily_panel.week_claim_pressed.connect(_on_claim_week)
 	_daily_panel.jackpot_pressed.connect(_start_jackpot)
+	_daily_panel.ranks_pressed.connect(_open_ranks)
+	_lb_panel.closed.connect(func() -> void: _lb_panel.visible = false)
 	_daily_panel.debug_day_pressed.connect(func() -> void:
 		_daily.advance_debug_day()
 		_daily_panel.refresh())
@@ -258,7 +265,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel]:
 		_apply_theme(scr)
 
 	_load_current()
@@ -445,6 +452,7 @@ func _on_solved() -> void:
 	SaveData.mark_complete(_stage, _board.moves)
 	SaveData.set_stars(_stage, stars)
 	_daily.note_level_cleared()
+	_daily.note_week_stars(stars)
 	_economy.piggy_add(2)
 	_bp.add_xp(10 + (stars - 1) * 5)
 	if first and stars == 3:
@@ -552,6 +560,12 @@ func _start_jackpot() -> void:
 	_analytics.log_event("jackpot_start")
 	_refresh_buttons()
 
+func _open_ranks() -> void:
+	_daily_panel.visible = false
+	var dow := _daily.day_of_week()
+	var rows := Leaderboard.board(_daily.week_stars(), _daily.week_id(), dow)
+	_lb_panel.show_board(rows, Leaderboard.your_rank(rows), 8 - dow)
+
 func _finish_jackpot() -> void:
 	_jackpot_active = false
 	_economy.add_coins(Daily.JACKPOT_COINS)
@@ -618,7 +632,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _hud.fail_open() or _hud.nav_open() or _booster.visible:
 		return
-	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
 		if not (_shop.visible and event.keycode == KEY_S) \

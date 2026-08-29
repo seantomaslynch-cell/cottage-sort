@@ -7,6 +7,7 @@ signal claim_login_pressed
 signal spin_pressed
 signal week_claim_pressed
 signal jackpot_pressed
+signal ranks_pressed
 signal closed
 signal debug_day_pressed
 
@@ -105,6 +106,11 @@ func _ready() -> void:
 	_week_btn.custom_minimum_size = Vector2(280, 60)
 	_week_btn.pressed.connect(func() -> void: week_claim_pressed.emit())
 	spin_box.add_child(_week_btn)
+
+	var ranks := _button("Weekly ranks", 22)
+	ranks.custom_minimum_size = Vector2(220, 54)
+	ranks.pressed.connect(func() -> void: ranks_pressed.emit())
+	spin_box.add_child(ranks)
 
 	_toast = _label("", 30, Color("f2c14e"))
 	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)

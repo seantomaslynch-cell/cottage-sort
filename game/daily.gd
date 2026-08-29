@@ -179,6 +179,17 @@ func note_level_cleared() -> void:
 		d["week_cleared"] = int(d.get("week_cleared", 0)) + 1
 		_commit(d)
 
+func note_week_stars(n: int) -> void:
+	var d := _week()
+	d["week_stars"] = int(d.get("week_stars", 0)) + n
+	_commit(d)
+
+func week_stars() -> int:
+	return int(_week().get("week_stars", 0))
+
+func day_of_week() -> int:
+	return today() % 7 + 1
+
 func claim_week() -> int:
 	var d := _week()
 	if not week_goal_met() or bool(d.get("week_claimed", false)):
