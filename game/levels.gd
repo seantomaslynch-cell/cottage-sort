@@ -81,16 +81,20 @@ static func _knobs(stage_index: int) -> Dictionary:
 	return STAGES[clampi(stage_index, 0, STAGES.size() - 1)]
 
 static func build(stage_index: int) -> Dictionary:
-	if HAND_LEVELS.has(stage_index):
-		return (HAND_LEVELS[stage_index] as Dictionary).duplicate(true)
-	if stage_index < STAGES.size():
-		var s := _knobs(stage_index)
-		return LevelGen.generate(s["colors"], s["extra"],
-			4100 + stage_index * 17, float(s.get("scr", 1.0)))
+	# Authored run: frozen + pre-verified in game/level_data.gd (regenerate with
+	# tools/bake_levels.gd). No runtime solver stall, puzzles stable across builds.
+	if stage_index >= 0 and stage_index < LevelData.STAGES.size():
+		return (LevelData.STAGES[stage_index] as Dictionary).duplicate(true)
 	# Endless mode past the authored run: 8 colours, 2 spares, scramble creeps up.
+	# LevelGen verifies each board and returns its par.
 	var over := stage_index - STAGES.size()
 	var scr := 1.4 + minf(over, 24) * 0.02
 	return LevelGen.generate(8, 2, 9000 + stage_index * 17, scr)
+
+## Shortest known solution length for a stage (0 for hand levels / if unknown).
+## LevelGen verifies every generated board and reports this.
+static func par_for(stage_index: int) -> int:
+	return int(build(stage_index).get("par", 0))
 
 static func move_budget(stage_index: int) -> int:
 	if stage_index < FLOW_STAGES:
@@ -99,7 +103,13 @@ static func move_budget(stage_index: int) -> int:
 	if bool(s.get("flow", false)):
 		return 999
 	var base := int(s["colors"]) * 4 + 10
-	return int(round(base * float(s.get("bm", 1.0))))
+	var formula := int(round(base * float(s.get("bm", 1.0))))
+	# Never ship a budget below what the level actually needs: give the solver's
+	# shortest path (BFS) or greedy estimate ~18% headroom.
+	var par := par_for(stage_index)
+	if par > 0:
+		return maxi(formula, int(ceil(par * 1.18)))
+	return formula
 
 ## [three_star_max, two_star_max] move counts. Flow / generous stages get very
 ## lenient 3-star targets; tight stages get harsh ones.
@@ -107,7 +117,16 @@ static func star_cutoffs(stage_index: int) -> Array:
 	var s := _knobs(stage_index)
 	var c: int = s["colors"]
 	var m := float(s.get("bm", 1.3 if bool(s.get("flow", false)) else 1.0))
-	return [int(round((c * 2 + 6) * m)), int(round((c * 4 + 14) * m))]
+	var three := int(round((c * 2 + 6) * m))
+	var two := int(round((c * 4 + 14) * m))
+	# When BFS gave an exact par, anchor the cutoffs to it so a tight budget
+	# can't make 3 stars impossible.
+	var lvl := build(stage_index)
+	if bool(lvl.get("exact", false)) and int(lvl.get("par", 0)) > 0:
+		var par: int = lvl["par"]
+		three = maxi(three, int(ceil(par * 1.08)))
+		two = maxi(two, int(ceil(par * 1.5)))
+	return [three, two]
 
 static func stars_for(stage_index: int, moves: int) -> int:
 	var cut := star_cutoffs(stage_index)

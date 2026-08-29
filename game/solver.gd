@@ -55,6 +55,56 @@ static func solve_full(start: Array, budget := 120000) -> Array:
 	var s := solve(start, budget)
 	return s.get("path", [])
 
+## Randomised weighted-greedy playouts. Returns the shortest solve length found
+## across `trials`, or -1 if none solved within `move_cap`. Fast (no frontier),
+## and a decent proxy for "a real player can finish this" — used by LevelGen to
+## verify generated boards that BFS can't crack in a sane budget.
+static func greedy_solve(start: Array, trials := 400, move_cap := 300) -> int:
+	var best := -1
+	var rng := RandomNumberGenerator.new()
+	for t in trials:
+		rng.seed = hash(_key(start)) ^ (t * 0x9E3779B1)
+		var jars := _dup(start)
+		var mv := 0
+		while mv < move_cap:
+			if _goal(jars):
+				if best < 0 or mv < best:
+					best = mv
+				break
+			var ms := _moves(jars)
+			if ms.is_empty():
+				break
+			jars = _apply(jars, _greedy_pick(jars, ms, rng))
+			mv += 1
+		if best in [1, 2, 3]:   # can't get much better; stop early
+			break
+	return best
+
+static func _greedy_pick(jars: Array, moves: Array, rng: RandomNumberGenerator) -> Array:
+	var scored: Array = []
+	var total := 0.0
+	for m in moves:
+		var src: Array = jars[m[0]]
+		var dst: Array = jars[m[1]]
+		var w := 1.0
+		var moved := mini(_run_len(src), CAP - dst.size())
+		if not dst.is_empty() and dst[-1] == src[-1]:
+			w += 4.0                                   # extend a matching run
+			if dst.size() + moved == CAP:
+				w += 8.0                               # completes a jar
+		if dst.is_empty():
+			w += 0.4
+		if moved == src.size():
+			w += 1.5                                   # empties the source
+		scored.append([m, w])
+		total += w
+	var r := rng.randf() * total
+	for e in scored:
+		r -= e[1]
+		if r <= 0.0:
+			return e[0]
+	return scored[-1][0]
+
 static func _moves(jars: Array) -> Array:
 	var out: Array = []
 	var n := jars.size()

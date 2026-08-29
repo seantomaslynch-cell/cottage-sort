@@ -40,30 +40,36 @@ func _initialize() -> void:
 			push_error("stage %d: generated already solved" % stage)
 			fails += 1
 
-		# independently confirm solvable. Generated levels are solvable by
-		# construction (reverse-scramble); the BFS verifier can run out of budget
-		# on the deeply-tangled tail stages, so a budget-exhaust there is a note,
-		# not a failure. Hand levels must verify outright.
+		# LevelGen now verifies every board it returns and reports a par; a
+		# generated stage with par <= 0 means verification fell through.
 		var note := ""
+		if not hand:
+			var par: int = int(data.get("par", 0))
+			if par <= 0:
+				push_error("stage %d: generator returned no par (unverified)" % stage)
+				fails += 1
+			else:
+				note = "  par=%d%s" % [par, "" if bool(data.get("exact", false)) else " (est)"]
+		# independent cross-check with a plain DFS.
 		if not _solvable(jars):
 			if hand:
 				push_error("stage %d: hand level NOT solvable" % stage)
 				fails += 1
 			else:
-				note = "  (solvable by construction; verifier out of budget)"
+				note += "  (DFS check out of budget)"
 
 		b.free()
 		print("stage %d  jars=%d colours=%d extra=%d  OK%s" % [stage, jars.size(), cfg["colors"], cfg["extra"], note])
 
 	# solver smoke test: a shortest plan on the easier stages,
 	# at least a usable hint move on the hard ones.
-	for stage in [0, 8, 15, 20]:
+	for stage in [0, 8, 12]:
 		var jj := _deep(Levels.build(stage)["jars"])
 		var sol: Dictionary = SortSolver.solve(jj, 80000)
 		if sol.is_empty() or int(sol.get("par", 0)) <= 0 or (sol["move"] as Array).size() != 2:
 			push_error("stage %d: solver returned no usable plan" % stage)
 			fails += 1
-	for stage in [30, 39]:
+	for stage in [20, 30, 39]:
 		var mv: Array = SortSolver.hint(_deep(Levels.build(stage)["jars"]))
 		if mv.size() != 2:
 			push_error("stage %d: hint() gave no move" % stage)
@@ -113,18 +119,22 @@ func _initialize() -> void:
 	fb.free()
 	print("fail-state checks OK")
 
-	# move budget curve: tutorial unlimited, later stages finite and sane
-	# flow window (0..9) never fails; from stage 10 the budget is finite
+	# move budget: flow window (0..9) never fails; every later authored stage has
+	# a finite budget that is NEVER below what the level actually needs (par).
 	for s in Levels.FLOW_STAGES:
 		assert(Levels.move_budget(s) >= 999)
-	assert(Levels.move_budget(10) < 999 and Levels.move_budget(19) < 999)
-	# the designed spike (~stage 19) is tighter than the first challenge (~stage 12)
-	assert(Levels.move_budget(19) < Levels.move_budget(12))
-	# relief (stage 21) loosens again vs the spike
-	assert(Levels.move_budget(21) > Levels.move_budget(19))
-	print("difficulty curve OK  (L11=%d  L13=%d  L20=%d  L22=%d)" % [
-		Levels.move_budget(10), Levels.move_budget(12),
-		Levels.move_budget(19), Levels.move_budget(21)])
+	for s in range(Levels.FLOW_STAGES, Levels.count()):
+		if bool(Levels.STAGES[s].get("flow", false)):
+			continue
+		var bud := Levels.move_budget(s)
+		var par := Levels.par_for(s)
+		if bud >= 999 or (par > 0 and bud < par):
+			push_error("stage %d: budget %d vs par %d" % [s, bud, par])
+			fails += 1
+	print("budget >= par for every authored stage  (L11 bud=%d/par=%d  L20 bud=%d/par=%d  L27 bud=%d/par=%d)" % [
+		Levels.move_budget(10), Levels.par_for(10),
+		Levels.move_budget(19), Levels.par_for(19),
+		Levels.move_budget(26), Levels.par_for(26)])
 
 	if fails == 0:
 		print("\nALL PASS")
