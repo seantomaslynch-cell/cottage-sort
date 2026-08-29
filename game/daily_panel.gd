@@ -5,6 +5,7 @@ class_name DailyPanel
 
 signal claim_login_pressed
 signal spin_pressed
+signal week_claim_pressed
 signal closed
 signal debug_day_pressed
 
@@ -18,6 +19,8 @@ var _streak_lbl: Label
 var _wheel: SpinWheel
 var _spin_btn: Button
 var _adstreak_lbl: Label
+var _week_lbl: Label
+var _week_btn: Button
 var _toast: Label
 
 func _ready() -> void:
@@ -84,6 +87,17 @@ func _ready() -> void:
 	_adstreak_lbl = _label("Ad-watch streak: 0 / 3", 22, Palette.INK)
 	_adstreak_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	spin_box.add_child(_adstreak_lbl)
+
+	spin_box.add_child(_hsep(10))
+
+	_week_lbl = _label("Weekly goal: 0 / 15", 22, Palette.INK)
+	_week_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	spin_box.add_child(_week_lbl)
+
+	_week_btn = _button("Claim weekly chest", 24)
+	_week_btn.custom_minimum_size = Vector2(280, 60)
+	_week_btn.pressed.connect(func() -> void: week_claim_pressed.emit())
+	spin_box.add_child(_week_btn)
 
 	_toast = _label("", 30, Color("f2c14e"))
 	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -153,6 +167,20 @@ func refresh() -> void:
 	_spin_btn.text = "Spin  (free)" if _daily.free_spin_available() else "Spin  (Watch)"
 	_adstreak_lbl.text = "Ad-watch streak: %d / %d   (chest %d)" % [
 		_daily.ad_streak(), Daily.AD_STREAK_TARGET, Daily.AD_STREAK_CHEST]
+
+	_week_lbl.text = "Weekly goal: %d / %d   (chest %d)" % [
+		_daily.week_progress(), Daily.WEEK_GOAL, Daily.WEEK_CHEST]
+	if _daily.week_claimed():
+		_week_btn.visible = true
+		_week_btn.disabled = true
+		_week_btn.text = "Weekly chest claimed"
+	elif _daily.week_goal_met():
+		_week_btn.visible = true
+		_week_btn.disabled = false
+		_week_btn.text = "Claim weekly chest  +%d" % Daily.WEEK_CHEST
+	else:
+		_week_btn.visible = false
+
 	_wheel.queue_redraw()
 
 func play_spin(index: int, on_settled: Callable) -> void:
@@ -163,6 +191,12 @@ func play_spin(index: int, on_settled: Callable) -> void:
 		if on_settled.is_valid():
 			on_settled.call()
 		refresh())
+
+func _hsep(h: int) -> Control:
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(0, h)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return c
 
 func flash(text: String) -> void:
 	_toast.text = text

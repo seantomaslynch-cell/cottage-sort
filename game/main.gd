@@ -19,6 +19,8 @@ const IapScene := preload("res://game/iap.gd")
 const ShopPanelScene := preload("res://game/shop_panel.gd")
 const CoachScene := preload("res://game/coach.gd")
 const SettingsPanelScene := preload("res://game/settings_panel.gd")
+const AnalyticsScene := preload("res://game/analytics.gd")
+const PlatformScene := preload("res://game/platform.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -41,6 +43,8 @@ var _iap: GameIap
 var _shop: ShopPanel
 var _coach: Coach
 var _settings: SettingsPanel
+var _analytics: Analytics
+var _platform: Platform
 var _new_player := false
 var _stage := 0
 var _last_earned := 0
@@ -109,6 +113,11 @@ func _ready() -> void:
 	add_child(_settings)
 	_settings.set_flags(_audio.sfx_on, _audio.music_on, _audio.haptics_on)
 
+	_analytics = AnalyticsScene.new()
+	add_child(_analytics)
+	_platform = PlatformScene.new()
+	add_child(_platform)
+
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
 		if n >= 2:
@@ -165,6 +174,7 @@ func _ready() -> void:
 	_ads.interstitial_shown.connect(func() -> void: _hud.flash("Ad"))
 	_daily_panel.claim_login_pressed.connect(_on_claim_login)
 	_daily_panel.spin_pressed.connect(_on_spin)
+	_daily_panel.week_claim_pressed.connect(_on_claim_week)
 	_daily_panel.debug_day_pressed.connect(func() -> void:
 		_daily.advance_debug_day()
 		_daily_panel.refresh())
@@ -174,7 +184,8 @@ func _ready() -> void:
 		_hud.flash("Ad-streak chest!  +%d coins" % amount))
 	_ads.rewarded_finished.connect(func(granted: bool) -> void:
 		if granted:
-			_daily.note_ad_watched())
+			_daily.note_ad_watched()
+			_analytics.log_event("ad_reward"))
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
@@ -182,6 +193,10 @@ func _ready() -> void:
 		_apply_theme(scr)
 
 	_load_current()
+
+	_analytics.log_event("session_start", {"new_player": _new_player})
+	_platform.schedule_daily_reminder(24)
+	_platform.schedule_streak_warning(20)
 
 	# A brand-new player gets a clean first session: no daily pop-up over an
 	# unexplained board. It opens from the next launch on.
@@ -210,6 +225,7 @@ func _load_current() -> void:
 	_undos_used = 0
 	_stage_fails = 0
 	_coach_for_stage()
+	_analytics.log_event("level_start", {"stage": _stage, "budget": _board.move_budget})
 	_refresh_buttons()
 
 func _coach_for_stage() -> void:
@@ -234,7 +250,16 @@ func _on_undo() -> void:
 func _on_failed() -> void:
 	_coach.clear()
 	_stage_fails += 1
+	_analytics.log_event("level_fail", {"stage": _stage, "moves": _board.moves, "n": _stage_fails})
 	_hud.show_fail(MOVES_COIN_COST, _economy.coins(), _stage_fails >= 2)
+
+func _on_claim_week() -> void:
+	var amt := _daily.claim_week()
+	if amt > 0:
+		_economy.add_coins(amt)
+		_daily_panel.flash("Weekly chest!  +%d" % amt)
+		_daily_panel.refresh()
+		_analytics.log_event("week_chest", {"amount": amt})
 
 func _on_add_moves() -> void:
 	_ads.watch_rewarded(func() -> void:
@@ -307,7 +332,20 @@ func _on_solved() -> void:
 	var prev_best := SaveData.best_moves(_stage)
 	SaveData.mark_complete(_stage, _board.moves)
 	SaveData.set_stars(_stage, stars)
+	_daily.note_level_cleared()
+	_analytics.log_event("level_complete",
+		{"stage": _stage, "moves": _board.moves, "stars": stars, "first": first})
+
+	var left := Daily.WEEK_GOAL - _daily.week_progress()
+	if left > 0 and left <= 5 and not _daily.week_claimed():
+		_hud.set_next_hint("%d more this week for a %d-coin chest" % [left, Daily.WEEK_CHEST])
+	else:
+		_hud.set_next_hint("Next: Level %d" % (_stage + 2))
+
 	_hud.show_win("Cottage corner tidied!", prev_best, _board.moves, earned, stars)
+
+	if SaveData.data["completed"].size() >= 5:
+		_platform.request_review()
 
 func _on_double() -> void:
 	_ads.watch_rewarded(func() -> void:
@@ -323,6 +361,7 @@ func _on_mystery() -> void:
 
 func _on_purchased(id: String) -> void:
 	var p := _iap.product(id)
+	_analytics.log_event("iap", {"id": id})
 	if p.get("kind") == "coins":
 		_economy.add_coins(int(p["amount"]))
 	_ads.remove_ads = _iap.has_remove_ads()

@@ -127,3 +127,43 @@ func note_ad_watched() -> void:
 func advance_debug_day() -> void:
 	debug_day_offset += 1
 	changed.emit()
+
+# --- weekly event -----------------------------------------------------------
+
+const WEEK_GOAL := 15
+const WEEK_CHEST := 200
+
+func week_id() -> int:
+	return int(today() / 7.0)
+
+func _week() -> Dictionary:
+	var d := _d()
+	if int(d.get("week_id", -1)) != week_id():
+		d["week_id"] = week_id()
+		d["week_cleared"] = 0
+		d["week_claimed"] = false
+		_commit(d)
+	return d
+
+func week_progress() -> int:
+	return mini(int(_week().get("week_cleared", 0)), WEEK_GOAL)
+
+func week_goal_met() -> bool:
+	return int(_week().get("week_cleared", 0)) >= WEEK_GOAL
+
+func week_claimed() -> bool:
+	return bool(_week().get("week_claimed", false))
+
+func note_level_cleared() -> void:
+	var d := _week()
+	if not bool(d.get("week_claimed", false)):
+		d["week_cleared"] = int(d.get("week_cleared", 0)) + 1
+		_commit(d)
+
+func claim_week() -> int:
+	var d := _week()
+	if not week_goal_met() or bool(d.get("week_claimed", false)):
+		return 0
+	d["week_claimed"] = true
+	_commit(d)
+	return WEEK_CHEST

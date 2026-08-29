@@ -34,6 +34,7 @@ var _win_label: Label
 var _win_stars: Label
 var _win_best: Label
 var _win_coins: Label
+var _win_next: Label
 var _double_btn: Button
 var _win_earned := 0
 var _fail_root: Control
@@ -216,6 +217,12 @@ func _build_win_overlay() -> void:
 	_win_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_win_coins)
 
+	_win_next = _label("")
+	_win_next.add_theme_font_size_override("font_size", 22)
+	_win_next.add_theme_color_override("font_color", Color("8a7a63"))
+	_win_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_win_next)
+
 	_double_btn = _button("Double coins  (Watch)")
 	_double_btn.custom_minimum_size = Vector2(320, 68)
 	_double_btn.pressed.connect(func() -> void: double_pressed.emit())
@@ -296,6 +303,9 @@ func flash(text: String) -> void:
 	var tw := create_tween()
 	tw.tween_interval(0.9)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.5)
+
+func set_next_hint(text: String) -> void:
+	_win_next.text = text
 
 func show_win(text: String, best: int, current: int, earned: int, stars: int) -> void:
 	_win_label.text = text

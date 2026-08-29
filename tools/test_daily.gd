@@ -28,6 +28,8 @@ func _initialize() -> void:
 	_test_spin()
 	_reset()
 	_test_ad_streak()
+	_reset()
+	_test_weekly()
 
 	if had_save:
 		FileAccess.open(SaveData.PATH, FileAccess.WRITE).store_string(backup)
@@ -46,6 +48,21 @@ func _reset() -> void:
 		"streak_len": 0, "last_login_day": 0, "last_spin_day": 0,
 		"ad_streak": 0, "ad_last_day": 0,
 	}
+
+func _test_weekly() -> void:
+	print("weekly event:")
+	var d: Daily = DailyS.new()
+	_ok(d.week_progress() == 0 and not d.week_goal_met(), "starts empty")
+	for i in DailyS.WEEK_GOAL - 1:
+		d.note_level_cleared()
+	_ok(d.week_progress() == DailyS.WEEK_GOAL - 1 and not d.week_goal_met(), "one short of goal")
+	d.note_level_cleared()
+	_ok(d.week_goal_met() and not d.week_claimed(), "goal met, unclaimed")
+	_ok(d.claim_week() == DailyS.WEEK_CHEST, "claim pays the chest")
+	_ok(d.claim_week() == 0 and d.week_claimed(), "second claim pays nothing")
+	d.debug_day_offset = 7  # next week
+	_ok(d.week_progress() == 0 and not d.week_claimed(), "resets on a new week")
+	d.free()
 
 func _test_login() -> void:
 	print("login cycle:")
