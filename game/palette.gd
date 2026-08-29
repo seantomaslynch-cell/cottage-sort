@@ -30,7 +30,8 @@ const GLASS_RIM   := Color("b79b74")
 
 const DIM         := Color(0.20, 0.15, 0.12, 0.74)  # overlay scrim
 
-# Bead / jar-content colours (index-aligned; levels use up to 8).
+# Bead / jar-content colours (index-aligned). Authored stages use up to 8;
+# endless mode reaches for the 9th once it steps past the palette's first tier.
 const BEADS: Array[Color] = [
 	Color("d97a6c"), # berry
 	Color("e6b45e"), # honey
@@ -40,4 +41,5 @@ const BEADS: Array[Color] = [
 	Color("c98f6b"), # clay
 	Color("d99abf"), # rose
 	Color("6fb0a6"), # teal
+	Color("8f8fce"), # iris — periwinkle, endless tier 2
 ]

@@ -3,7 +3,7 @@ extends RefCounted
 ##
 ## Stages 0-3 are hand-built teaching levels (HAND_LEVELS). Stages 4-39 are
 ## generated but hand-shaped via per-stage knobs:
-##   colors  - number of colours (3-8)
+##   colors  - number of colours (3-9)
 ##   extra   - spare empty jars (more = easier)
 ##   scr     - scramble multiplier (<1 easier / >1 more tangled), default 1.0
 ##   bm      - move-budget multiplier over the colour-based default, default 1.0
@@ -11,7 +11,8 @@ extends RefCounted
 ##
 ## Shape: teaching (1-4) -> fail-free flow (5-10) -> first challenge (~12) ->
 ## designed spike (~20) -> relief (21-25) -> rising (26-32) -> hard tail (33-40).
-## Past stage 40 the generator runs endlessly with slowly rising scramble.
+## Past stage 40 endless mode ramps scramble within a colour tier, then steps
+## the colour count up (capped at the palette) so difficulty keeps climbing.
 
 const STAGES: Array[Dictionary] = [
 	# Teaching (authored layouts) --------------------------------------------
@@ -74,22 +75,35 @@ const HAND_LEVELS: Dictionary = {
 ## Stages 0..FLOW_STAGES-1 never fail (teaching + flow window).
 const FLOW_STAGES := 10
 
+## Endless mode: levels per colour tier before the colour count steps up.
+const ENDLESS_TIER_LEN := 12
+
 static func count() -> int:
 	return STAGES.size()
 
 static func _knobs(stage_index: int) -> Dictionary:
 	return STAGES[clampi(stage_index, 0, STAGES.size() - 1)]
 
+## Difficulty knobs for ANY stage, including endless mode past the authored run.
+static func _shape(stage_index: int) -> Dictionary:
+	if stage_index < STAGES.size():
+		return _knobs(stage_index)
+	var over := stage_index - STAGES.size()
+	var tier := over / ENDLESS_TIER_LEN
+	var colors: int = mini(8 + tier, Palette.BEADS.size())
+	var within := over - tier * ENDLESS_TIER_LEN
+	var scr := 1.35 + float(within) / float(ENDLESS_TIER_LEN) * 0.45
+	return {"colors": colors, "extra": 2, "scr": scr, "bm": 0.8}
+
 static func build(stage_index: int) -> Dictionary:
 	# Authored run: frozen + pre-verified in game/level_data.gd (regenerate with
 	# tools/bake_levels.gd). No runtime solver stall, puzzles stable across builds.
 	if stage_index >= 0 and stage_index < LevelData.STAGES.size():
 		return (LevelData.STAGES[stage_index] as Dictionary).duplicate(true)
-	# Endless mode past the authored run: 8 colours, 2 spares, scramble creeps up.
-	# LevelGen verifies each board and returns its par.
-	var over := stage_index - STAGES.size()
-	var scr := 1.4 + minf(over, 24) * 0.02
-	return LevelGen.generate(8, 2, 9000 + stage_index * 17, scr)
+	# Endless: colour tier + rising scramble. LevelGen verifies each board.
+	var sh := _shape(stage_index)
+	return LevelGen.generate(int(sh["colors"]), int(sh["extra"]),
+		9000 + stage_index * 17, float(sh["scr"]))
 
 ## Shortest known solution length for a stage (0 for hand levels / if unknown).
 ## LevelGen verifies every generated board and reports this.
@@ -99,7 +113,7 @@ static func par_for(stage_index: int) -> int:
 static func move_budget(stage_index: int) -> int:
 	if stage_index < FLOW_STAGES:
 		return 999
-	var s := _knobs(stage_index)
+	var s := _shape(stage_index)
 	if bool(s.get("flow", false)):
 		return 999
 	var base := int(s["colors"]) * 4 + 10
@@ -114,7 +128,7 @@ static func move_budget(stage_index: int) -> int:
 ## [three_star_max, two_star_max] move counts. Flow / generous stages get very
 ## lenient 3-star targets; tight stages get harsh ones.
 static func star_cutoffs(stage_index: int) -> Array:
-	var s := _knobs(stage_index)
+	var s := _shape(stage_index)
 	var c: int = s["colors"]
 	var m := float(s.get("bm", 1.3 if bool(s.get("flow", false)) else 1.0))
 	var three := int(round((c * 2 + 6) * m))
