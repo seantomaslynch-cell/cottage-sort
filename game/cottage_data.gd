@@ -1,16 +1,32 @@
 extends RefCounted
 class_name CottageData
-## The first room: a fixed list of upgrade slots. Each slot has an ordered list
-## of tier costs (in coins). Owning tier N means the first N costs have been
-## paid. Tier 0 = untouched / run-down.
+## Structural upgrade slots, grouped into rooms. Each slot has an ordered list of
+## tier costs (coins). Owning tier N means the first N costs are paid; tier 0 is
+## run-down. SLOTS is the flat view used by the economy.
 
-const SLOTS: Array[Dictionary] = [
-	{"id": "roof",   "name": "Roof",   "tiers": [40, 90, 160]},
-	{"id": "walls",  "name": "Walls",  "tiers": [50, 120, 220]},
-	{"id": "window", "name": "Window", "tiers": [30, 75]},
-	{"id": "door",   "name": "Door",   "tiers": [35, 85]},
-	{"id": "garden", "name": "Garden", "tiers": [45, 100, 190]},
+const ROOMS: Array[Dictionary] = [
+	{"name": "Cottage", "slots": [
+		{"id": "roof",   "name": "Roof",   "tiers": [40, 90, 160]},
+		{"id": "walls",  "name": "Walls",  "tiers": [50, 120, 220]},
+		{"id": "window", "name": "Window", "tiers": [30, 75]},
+		{"id": "door",   "name": "Door",   "tiers": [35, 85]},
+		{"id": "garden", "name": "Garden", "tiers": [45, 100, 190]},
+	]},
+	{"name": "Kitchen", "slots": [
+		{"id": "stove",   "name": "Stove",   "tiers": [70, 150, 260]},
+		{"id": "table",   "name": "Table",   "tiers": [60, 130]},
+		{"id": "dresser", "name": "Dresser", "tiers": [80, 170, 300]},
+		{"id": "floor",   "name": "Floor",   "tiers": [55, 120]},
+	]},
 ]
+
+static var SLOTS: Array = _flatten()
+
+static func _flatten() -> Array:
+	var out: Array = []
+	for room in ROOMS:
+		out.append_array(room["slots"])
+	return out
 
 static func slot(id: String) -> Dictionary:
 	for s in SLOTS:

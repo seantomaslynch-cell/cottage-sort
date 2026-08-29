@@ -19,6 +19,7 @@ var _view: CottageView
 var _tab := "restore"
 var _tab_restore: Button
 var _tab_decor: Button
+var _slots_scroll: ScrollContainer
 var _slots_box: VBoxContainer
 var _decor_scroll: ScrollContainer
 var _decor_list: VBoxContainer
@@ -69,14 +70,19 @@ func _ready() -> void:
 	_tab_decor.pressed.connect(func() -> void: _show_tab("decorate"))
 	tabs.add_child(_tab_decor)
 
+	_slots_scroll = ScrollContainer.new()
+	_slots_scroll.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_slots_scroll.offset_left = 24.0
+	_slots_scroll.offset_right = -24.0
+	_slots_scroll.offset_top = 566.0
+	_slots_scroll.anchor_bottom = 1.0
+	_slots_scroll.offset_bottom = -150.0
+	_slots_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(_slots_scroll)
 	_slots_box = VBoxContainer.new()
-	_slots_box.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_slots_box.offset_left = 24.0
-	_slots_box.offset_right = -24.0
-	_slots_box.offset_top = -708.0
-	_slots_box.offset_bottom = -150.0
-	_slots_box.add_theme_constant_override("separation", 10)
-	add_child(_slots_box)
+	_slots_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_slots_box.add_theme_constant_override("separation", 8)
+	_slots_scroll.add_child(_slots_box)
 
 	_decor_scroll = ScrollContainer.new()
 	_decor_scroll.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -132,7 +138,7 @@ func open() -> void:
 func _show_tab(which: String) -> void:
 	_tab = which
 	var on_restore := which == "restore"
-	_slots_box.visible = on_restore
+	_slots_scroll.visible = on_restore
 	_decor_scroll.visible = not on_restore
 	_tab_restore.disabled = on_restore
 	_tab_decor.disabled = not on_restore
@@ -151,42 +157,56 @@ func refresh() -> void:
 
 func _refresh_restore() -> void:
 	_clear(_slots_box)
-	for s in CottageData.SLOTS:
-		var id: String = s["id"]
-		var t := economy.tier(id)
-		var maxt := CottageData.max_tier(id)
+	for room in CottageData.ROOMS:
+		var pr := _room_progress(room)
+		_slots_box.add_child(_set_header("%s   (%d / %d tiers)" % [room["name"], pr.x, pr.y]))
+		for s in room["slots"]:
+			_slots_box.add_child(_slot_row(s))
 
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 12)
+func _slot_row(s: Dictionary) -> Control:
+	var id: String = s["id"]
+	var t := economy.tier(id)
+	var maxt := CottageData.max_tier(id)
 
-		var name_lbl := _label(s["name"], 26)
-		name_lbl.custom_minimum_size = Vector2(120, 0)
-		row.add_child(name_lbl)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
 
-		var pips := _label(_pips(t, maxt), 26)
-		pips.custom_minimum_size = Vector2(110, 0)
-		row.add_child(pips)
+	var name_lbl := _label(s["name"], 24)
+	name_lbl.custom_minimum_size = Vector2(110, 0)
+	row.add_child(name_lbl)
 
-		row.add_child(_grow())
+	var pips := _label(_pips(t, maxt), 24)
+	pips.custom_minimum_size = Vector2(100, 0)
+	row.add_child(pips)
 
-		var btn := _button("", 24)
-		btn.custom_minimum_size = Vector2(210, 60)
-		if t >= maxt:
-			btn.text = "Restored"
-			btn.disabled = true
-		else:
-			btn.text = "Tier %d  -  %d" % [t + 1, economy.next_cost(id)]
-			btn.disabled = not economy.can_buy(id)
-			var sid := id
-			btn.pressed.connect(func() -> void: buy_pressed.emit(sid))
-		row.add_child(btn)
-		_slots_box.add_child(row)
+	row.add_child(_grow())
+
+	var btn := _button("", 22)
+	btn.custom_minimum_size = Vector2(200, 56)
+	if t >= maxt:
+		btn.text = "Restored"
+		btn.disabled = true
+	else:
+		btn.text = "Tier %d  -  %d" % [t + 1, economy.next_cost(id)]
+		btn.disabled = not economy.can_buy(id)
+		var sid := id
+		btn.pressed.connect(func() -> void: buy_pressed.emit(sid))
+	row.add_child(btn)
+	return row
+
+func _room_progress(room: Dictionary) -> Vector2i:
+	var have := 0
+	var total := 0
+	for s in room["slots"]:
+		have += economy.tier(s["id"])
+		total += (s["tiers"] as Array).size()
+	return Vector2i(have, total)
 
 func _refresh_decor() -> void:
 	_clear(_decor_list)
 
-	var summary := _label("Decor collected: %d      Sets complete: %d / %d" % [
-		economy.decor_count(), economy.sets_complete_count(), DecorData.SETS.size()], 22)
+	var summary := _label("Decor collected: %d      Sets complete: %d" % [
+		economy.decor_count(), economy.sets_complete_count()], 22)
 	summary.add_theme_color_override("font_color", Palette.INK_FAINT)
 	_decor_list.add_child(summary)
 
@@ -195,6 +215,12 @@ func _refresh_decor() -> void:
 		_decor_list.add_child(_set_header("%s   (%d / %d)" % [set_name, pr.x, pr.y]))
 		for it in DecorData.SETS[set_name]:
 			_decor_list.add_child(_decor_row(it))
+
+	var season := DecorData.current_season()
+	var sp := economy.set_progress(season["name"])
+	_decor_list.add_child(_set_header("%s   (this season -  %d / %d)" % [season["name"], sp.x, sp.y]))
+	for it in season["items"]:
+		_decor_list.add_child(_decor_row(it))
 
 	_decor_list.add_child(_set_header("%s   (never ends)" % DecorData.ENDLESS_SET))
 	_decor_list.add_child(_decor_row(economy.next_endless()))

@@ -139,13 +139,14 @@ func next_endless() -> Dictionary:
 	return DecorData.endless_item(_endless_bought())
 
 func set_progress(set_name: String) -> Vector2i:
-	if not DecorData.SETS.has(set_name):
+	var items := DecorData.set_items(set_name)
+	if items.is_empty():
 		return Vector2i.ZERO
 	var have := 0
-	for it in DecorData.SETS[set_name]:
+	for it in items:
 		if owns_decor(it["id"]):
 			have += 1
-	return Vector2i(have, (DecorData.SETS[set_name] as Array).size())
+	return Vector2i(have, items.size())
 
 func sets_complete_count() -> int:
 	return (SaveData.data.get("decor_sets_done", []) as Array).size()
@@ -165,7 +166,7 @@ func buy_decor(id: String) -> bool:
 
 	var set_name: String = it.get("set", "")
 	var newly_done := ""
-	if DecorData.SETS.has(set_name):
+	if not DecorData.set_items(set_name).is_empty() and set_name != DecorData.ENDLESS_SET:
 		var done: Array = SaveData.data.get("decor_sets_done", [])
 		if not set_name in done and _set_full(set_name):
 			done.append(set_name)
@@ -180,7 +181,10 @@ func buy_decor(id: String) -> bool:
 	return true
 
 func _set_full(set_name: String) -> bool:
-	for it in DecorData.SETS[set_name]:
+	var items := DecorData.set_items(set_name)
+	if items.is_empty():
+		return false
+	for it in items:
 		if not owns_decor(it["id"]):
 			return false
 	return true

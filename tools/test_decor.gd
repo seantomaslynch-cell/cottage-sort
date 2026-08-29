@@ -22,6 +22,16 @@ func _initialize() -> void:
 	SaveData.data["decor_sets_done"] = []
 	SaveData.data["coins"] = 0
 
+	print("rooms + seasonal:")
+	_ok(CottageData.ROOMS.size() >= 2, "at least two cottage rooms")
+	_ok(CottageData.SLOTS.size() == _count_slots(), "SLOTS is the flat view of ROOMS")
+	_ok(not CottageData.slot("stove").is_empty() and CottageData.max_tier("stove") == 3,
+		"kitchen slots resolve by id")
+	var season := DecorData.current_season()
+	_ok(season["items"].size() == 4, "current season has 4 items")
+	_ok(DecorData.item(season["items"][0]["id"]).get("set") == season["name"],
+		"seasonal item resolves to its season set")
+
 	print("endless catalog:")
 	var costs := []
 	for i in 9:
@@ -72,3 +82,9 @@ func _initialize() -> void:
 	else:
 		print("\n%d FAILURE(S)" % _fails)
 		quit(1)
+
+func _count_slots() -> int:
+	var n := 0
+	for r in CottageData.ROOMS:
+		n += (r["slots"] as Array).size()
+	return n
