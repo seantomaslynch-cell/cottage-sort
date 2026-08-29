@@ -25,6 +25,7 @@ file map in [README.md](README.md).
 | M11 weekly event + session-end hook + local analytics + platform seams | ✅ done |
 | M12 endless cottage meta (decor sets + infinite Sundries; coins always have a sink) | ✅ done |
 | M13 gems currency + six-booster set + Menu-consolidated nav | ✅ done |
+| M14 piggy bank + starter pack (offer cards in the Shop) | ✅ done |
 
 See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test_decor`, `test_booster` — all pass.
@@ -35,8 +36,8 @@ Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test
 
 1. **Authored difficulty curve** past the first 4 levels — a deliberate first
    peak, a spike after ~L20. Keep the generator for an endless mode after.
-2. **Piggy bank** + a **starter pack** + struggle-triggered offers; **booster
-   bundles** (discounted packs) on top of the M13 single-use boosters.
+2. **Struggle-triggered offer** (discounted bundle after 2+ fails on a level);
+   **booster bundles** (discounted packs) on top of the M13 single-use boosters.
 3. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
    content cadence and, for leaderboards, a small backend.
 4. **More cottage rooms** and seasonal decor drops on top of the M12 catalog.

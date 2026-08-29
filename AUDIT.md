@@ -135,14 +135,15 @@ Done:
 - [x] **Gems (premium currency)** — earned slowly, bought via 3 IAP gem packs  *(M13)*
 - [x] **Six-booster set** — +8 moves / +3 undos / +1 jar / +3 hints / colour
   magnet / head start, bought-and-used instantly for gems  *(M13)*
+- [x] **Piggy bank** — gems accrue from play, one $4.99 IAP cracks it  *(M14)*
+- [x] **Starter pack** — one-time $2.99 bundle (gems + coins + no-ads), 48h window  *(M14)*
 
 Open:
 
 - [ ] Authored difficulty curve beyond the first 4 levels (deliberate first peak, spike after ~L20)
 - [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
 - [ ] Booster *bundles* (buy a pack of boosters at a discount) + a booster inventory
-- [ ] Piggy bank
-- [ ] Starter pack + struggle-triggered offers
+- [ ] Struggle-triggered offers (a discounted bundle after 2+ fails on a level)
 - [ ] Battle pass, leaderboards, daily jackpot, themed realms  *(need content cadence / a small backend)*
 - [ ] Real art / font / music, ASO, localization, crash reporting  *(Tier 4, pre-launch)*
 - [ ] Real ad SDK + real IAP bindings + real analytics SDK  *(one-file swaps at the seams)*

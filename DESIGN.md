@@ -122,8 +122,14 @@ seasonal decor bundle. No pay-to-win.
   `booster_panel.gd`. `board.gd` gains `force_add_jar()`, `magnet()`,
   `autoplay()`. HUD navigation consolidated behind a "Menu" popup; bottom bar
   gains "Boost". Tests: `tools/test_booster.gd`.
-- [ ] **M14+ — Monetization depth:** authored curve past L4, piggy bank,
-  starter pack + struggle offers, booster bundles/inventory, then battle pass /
+- [x] **M14 — Piggy bank + starter pack:** `SaveData.piggy` accrues gems from
+  wins / booster use / the ad-streak chest (cap 250); a $4.99 `piggy_crack`
+  IAP empties it into the gem balance. `starter_pack` — one-time $2.99 bundle
+  (120 gems + 800 coins + remove-ads), 48h window from first launch. Both
+  surface as accent-bordered offer cards atop the Shop; `iap.gd` handles the
+  `bundle` / `piggy` kinds. Tests: extended `tools/test_shop.gd`.
+- [ ] **M15+ — Monetization / content:** authored curve past L4,
+  struggle-triggered offer, booster bundles/inventory, then battle pass /
   daily jackpot / leaderboards / themed realms / more cottage rooms.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
