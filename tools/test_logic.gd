@@ -12,20 +12,25 @@ func _initialize() -> void:
 		var data: Dictionary = Levels.build(stage)
 		var jars: Array = data["jars"]
 		var cfg: Dictionary = Levels.STAGES[stage]
+		var hand: bool = Levels.HAND_LEVELS.has(stage)
 
-		# jar count
-		if jars.size() != cfg["colors"] + cfg["extra"]:
+		# generated stages must match their difficulty knob; hand levels are free-form
+		if not hand and jars.size() != cfg["colors"] + cfg["extra"]:
 			push_error("stage %d: jar count %d != %d" % [stage, jars.size(), cfg["colors"] + cfg["extra"]])
 			fails += 1
 
-		# every colour appears exactly CAP times, indices in range
+		# every colour present appears exactly CAP times, contiguous from 0
 		var counts := {}
 		for j in jars:
 			for v in j:
 				counts[v] = int(counts.get(v, 0)) + 1
-		for c in cfg["colors"]:
-			if int(counts.get(c, 0)) != CAP:
-				push_error("stage %d: colour %d count %d != %d" % [stage, c, int(counts.get(c, 0)), CAP])
+		for c in counts:
+			if int(counts[c]) != CAP:
+				push_error("stage %d: colour %d count %d != %d" % [stage, c, int(counts[c]), CAP])
+				fails += 1
+		for c in counts.size():
+			if not counts.has(c):
+				push_error("stage %d: colour indices not contiguous from 0" % stage)
 				fails += 1
 
 		# not already solved

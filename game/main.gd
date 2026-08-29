@@ -17,6 +17,7 @@ const DailyPanelScene := preload("res://game/daily_panel.gd")
 const Solver := preload("res://game/solver.gd")
 const IapScene := preload("res://game/iap.gd")
 const ShopPanelScene := preload("res://game/shop_panel.gd")
+const CoachScene := preload("res://game/coach.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -37,6 +38,8 @@ var _daily: Daily
 var _daily_panel: DailyPanel
 var _iap: GameIap
 var _shop: ShopPanel
+var _coach: Coach
+var _new_player := false
 var _stage := 0
 var _last_earned := 0
 var _hints_used := 0
@@ -50,6 +53,7 @@ func _ready() -> void:
 	_theme = UiTheme.build()
 	get_window().theme = _theme
 	SaveData.load_now()
+	_new_player = not bool(SaveData.data.get("intro_seen", false))
 
 	_audio = AudioScene.new()
 	add_child(_audio)
@@ -92,7 +96,13 @@ func _ready() -> void:
 	add_child(_shop)
 	_shop.set_refs(_iap, _economy)
 
-	_board.moved.connect(func(n: int) -> void: _hud.set_moves(n))
+	_coach = CoachScene.new()
+	add_child(_coach)
+
+	_board.moved.connect(func(n: int) -> void:
+		_hud.set_moves(n)
+		if n >= 2:
+			_coach.clear())
 	_board.solved.connect(_on_solved)
 	_board.failed.connect(_on_failed)
 	_board.changed.connect(_refresh_buttons)
@@ -155,8 +165,13 @@ func _ready() -> void:
 
 	_load_current()
 
-	if _daily.login_pending():
+	# A brand-new player gets a clean first session: no daily pop-up over an
+	# unexplained board. It opens from the next launch on.
+	if _daily.login_pending() and not _new_player:
 		_open_daily()
+	if _new_player:
+		SaveData.data["intro_seen"] = true
+		SaveData.save_now()
 
 func _apply_theme(n: Node) -> void:
 	if n is Control:
@@ -176,7 +191,18 @@ func _load_current() -> void:
 	_hints_used = 0
 	_undos_used = 0
 	_stage_fails = 0
+	_coach_for_stage()
 	_refresh_buttons()
+
+func _coach_for_stage() -> void:
+	if _stage > 3 or SaveData.is_complete(_stage):
+		_coach.clear()
+		return
+	match _stage:
+		0: _coach.show_tip("Tap a jar to pick it up, then tap another to pour matching colours on top.")
+		1: _coach.show_tip("Some jars are mixed. Look for a pour that frees a whole colour.")
+		2: _coach.show_tip("Wrong move? Tap Undo below to take it back.")
+		3: _coach.show_tip("Out of room? Add jar gives you a spare to work with.")
 
 func _on_undo() -> void:
 	if not _board.can_undo():
@@ -188,6 +214,7 @@ func _on_undo() -> void:
 		_ads.watch_rewarded(func() -> void: _board.undo())
 
 func _on_failed() -> void:
+	_coach.clear()
 	_stage_fails += 1
 	_hud.show_fail(MOVES_COIN_COST, _economy.coins(), _stage_fails >= 2)
 
@@ -240,6 +267,7 @@ func _on_mute_toggled(muted: bool) -> void:
 	SaveData.set_muted(muted)
 
 func _on_solved() -> void:
+	_coach.clear()
 	var first := not SaveData.is_complete(_stage)
 	var stars := Levels.stars_for(_stage, _board.moves)
 	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5

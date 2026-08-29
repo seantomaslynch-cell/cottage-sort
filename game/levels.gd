@@ -30,10 +30,22 @@ const STAGES: Array[Dictionary] = [
 	{"colors": 8, "extra": 2},
 ]
 
+## Hand-authored teaching levels for the first stages. Each colour appears
+## exactly CAP (4) times. Kept deliberately gentle: L1 barely mixed, then a
+## slow ramp. Stages past this fall back to the generator.
+const HAND_LEVELS: Dictionary = {
+	0: {"jars": [[0, 0, 0, 1], [1, 1, 1, 0], []]},
+	1: {"jars": [[0, 1, 2, 0], [1, 2, 0, 1], [2, 0, 1, 2], [], []]},
+	2: {"jars": [[0, 1, 2, 3], [1, 2, 3, 0], [2, 3, 0, 1], [3, 0, 1, 2], [], []]},
+	3: {"jars": [[0, 1, 2, 3], [1, 2, 3, 0], [2, 0, 3, 1], [3, 1, 0, 2], [], [], []]},
+}
+
 static func count() -> int:
 	return STAGES.size()
 
 static func build(stage_index: int) -> Dictionary:
+	if HAND_LEVELS.has(stage_index):
+		return (HAND_LEVELS[stage_index] as Dictionary).duplicate(true)
 	var s: Dictionary = STAGES[clampi(stage_index, 0, STAGES.size() - 1)]
 	return LevelGen.generate(s["colors"], s["extra"], 4100 + stage_index * 17)
 

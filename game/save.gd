@@ -12,6 +12,7 @@ static var data: Dictionary = {
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
 	"stars": {},       # str(stage_index) -> best star count (1..3)
 	"remove_ads": false,
+	"intro_seen": false,   # set true after the first session; gates the daily auto-open
 	"daily": {
 		"streak_len": 0,
 		"last_login_day": 0,
