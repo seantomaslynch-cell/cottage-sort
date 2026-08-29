@@ -4,6 +4,7 @@ extends SceneTree
 
 const IapS := preload("res://game/iap.gd")
 const AdsS := preload("res://game/ads.gd")
+const EconomyS := preload("res://game/economy.gd")
 
 var _fails := 0
 
@@ -35,7 +36,27 @@ func _initialize() -> void:
 	var cp := iap.product("coins_medium")
 	_ok(cp.get("kind") == "coins" and int(cp.get("amount", 0)) == 1500, "coins_medium product shape")
 	_ok(iap.product("nope").is_empty(), "unknown product -> empty")
+
+	var sp := iap.product("starter_pack")
+	_ok(sp.get("kind") == "bundle" and int(sp.get("gems", 0)) == 120 and bool(sp.get("remove_ads", false)),
+		"starter_pack bundle shape")
+	_ok(iap.product("piggy_crack").get("kind") == "piggy", "piggy_crack product shape")
+	SaveData.data["starter_bought"] = false
+	_ok(not iap.owns("starter_pack"), "starter_pack not owned initially")
+	iap.purchase("starter_pack")
+	_ok(iap.owns("starter_pack") and bool(SaveData.data["starter_bought"]), "starter_pack marked bought")
+	_ok(iap.has_remove_ads(), "starter_pack bundle also grants remove_ads")
 	iap.free()
+
+	print("piggy bank:")
+	SaveData.data["piggy"] = 0
+	var eco: Economy = EconomyS.new()
+	eco.piggy_add(50)
+	_ok(eco.piggy() == 50, "piggy_add accrues")
+	eco.piggy_add(9999)
+	_ok(eco.piggy() == Economy.PIGGY_MAX and eco.piggy_full(), "piggy caps at PIGGY_MAX")
+	_ok(eco.piggy_crack() == Economy.PIGGY_MAX and eco.piggy() == 0, "piggy_crack empties and returns the amount")
+	eco.free()
 
 	print("interstitial gating:")
 	var ads: GameAds = AdsS.new()

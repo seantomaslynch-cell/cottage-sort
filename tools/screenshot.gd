@@ -57,7 +57,11 @@ func _run() -> void:
 			if daily:
 				daily.open()
 		"shop":
+			if economy:
+				economy.piggy_add(140)
 			if shop:
+				if shop.has_method("set_starter_secs"):
+					shop.set_starter_secs(41 * 3600)
 				shop.open()
 		"settings":
 			if settings:

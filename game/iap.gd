@@ -9,6 +9,9 @@ signal purchased(product_id: String)
 signal restored
 
 const PRODUCTS: Array[Dictionary] = [
+	{"id": "starter_pack", "name": "Starter pack", "price": "$2.99", "kind": "bundle",
+		"gems": 120, "coins": 800, "remove_ads": true},
+	{"id": "piggy_crack",  "name": "Crack the piggy bank",   "price": "$4.99", "kind": "piggy"},
 	{"id": "remove_ads",   "name": "Remove interstitial ads", "price": "$2.99", "kind": "entitlement"},
 	{"id": "gems_small",   "name": "Handful of gems (80)",    "price": "$1.99", "kind": "gems",  "amount": 80},
 	{"id": "gems_medium",  "name": "Pouch of gems (250)",     "price": "$4.99", "kind": "gems",  "amount": 250},
@@ -27,7 +30,11 @@ func has_remove_ads() -> bool:
 	return bool(SaveData.data.get("remove_ads", false))
 
 func owns(id: String) -> bool:
-	return id == "remove_ads" and has_remove_ads()
+	if id == "remove_ads":
+		return has_remove_ads()
+	if id == "starter_pack":
+		return bool(SaveData.data.get("starter_bought", false))
+	return false
 
 func purchase(id: String) -> void:
 	var p := product(id)
@@ -35,6 +42,11 @@ func purchase(id: String) -> void:
 		return
 	if p.get("kind") == "entitlement":
 		SaveData.data["remove_ads"] = true
+		SaveData.save_now()
+	elif p.get("kind") == "bundle":
+		if bool(p.get("remove_ads", false)):
+			SaveData.data["remove_ads"] = true
+		SaveData.data["starter_bought"] = true
 		SaveData.save_now()
 	purchased.emit(id)
 

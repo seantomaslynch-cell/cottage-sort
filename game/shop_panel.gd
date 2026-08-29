@@ -10,10 +10,12 @@ signal closed
 
 var _iap: GameIap = null
 var _economy: Economy = null
+var _starter_secs := -1   # seconds left on the starter-pack window; <0 = gone
 
 var _title: Label
 var _coins: Label
 var _list: VBoxContainer
+var _scroll: ScrollContainer
 var _toast: Label
 
 func _ready() -> void:
@@ -47,17 +49,23 @@ func _ready() -> void:
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(note)
 
+	_scroll = ScrollContainer.new()
+	_scroll.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_scroll.offset_left = 24.0
+	_scroll.offset_right = -24.0
+	_scroll.offset_top = 156.0
+	_scroll.anchor_bottom = 1.0
+	_scroll.offset_bottom = -150.0
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(_scroll)
 	_list = VBoxContainer.new()
-	_list.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_list.offset_left = 24.0
-	_list.offset_right = -24.0
-	_list.offset_top = 156.0
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", 10)
-	add_child(_list)
+	_scroll.add_child(_list)
 
 	_toast = _label("", 30)
 	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_toast.offset_top = 560.0
+	_toast.offset_top = 116.0
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.modulate.a = 0.0
 	add_child(_toast)
@@ -86,6 +94,9 @@ func set_refs(iap: GameIap, economy: Economy) -> void:
 	_iap = iap
 	_economy = economy
 
+func set_starter_secs(s: int) -> void:
+	_starter_secs = s
+
 func open() -> void:
 	visible = true
 	refresh()
@@ -93,13 +104,32 @@ func open() -> void:
 func refresh() -> void:
 	if _iap == null:
 		return
-	_coins.text = "Coins: %d" % (_economy.coins() if _economy else 0)
+	_coins.text = "Coins: %d    Gems: %d" % [_economy.coins(), _economy.gems()]
 
 	for c in _list.get_children():
 		_list.remove_child(c)
 		c.queue_free()
 
+	# Starter pack — value-heavy, time-boxed, one-time
+	if _starter_secs >= 0 and not _iap.owns("starter_pack"):
+		var sp := _iap.product("starter_pack")
+		var hrs := int(ceil(_starter_secs / 3600.0))
+		_list.add_child(_offer_card(
+			"Starter pack   ·   ends in %dh" % hrs,
+			"%d gems + %d coins + no ads   —   %s" % [int(sp["gems"]), int(sp["coins"]), sp["price"]],
+			"starter_pack"))
+
+	# Piggy bank
+	var pg := _economy.piggy()
+	_list.add_child(_offer_card(
+		"Piggy bank   ·   %d / %d gems" % [pg, Economy.PIGGY_MAX],
+		"Cracks open for %s — fuller = better value" % _iap.product("piggy_crack")["price"],
+		"piggy_crack", pg >= 20))
+
+	# Regular products
 	for p in GameIap.PRODUCTS:
+		if p["id"] == "starter_pack" or p["id"] == "piggy_crack":
+			continue
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 
@@ -117,8 +147,39 @@ func refresh() -> void:
 			var pid: String = p["id"]
 			btn.pressed.connect(func() -> void: buy_pressed.emit(pid))
 		row.add_child(btn)
-
 		_list.add_child(row)
+
+func _offer_card(title: String, sub: String, pid: String, enabled := true) -> Control:
+	var card := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Palette.BTN_HOVER
+	sb.border_color = Palette.ACCENT
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
+	card.add_theme_stylebox_override("panel", sb)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	card.add_child(row)
+
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_child(_label(title, 24))
+	var s := _label(sub, 18)
+	s.add_theme_color_override("font_color", Palette.INK_FAINT)
+	col.add_child(s)
+	row.add_child(col)
+
+	var btn := _button("Buy", 24)
+	btn.custom_minimum_size = Vector2(150, 60)
+	btn.disabled = not enabled
+	btn.pressed.connect(func() -> void: buy_pressed.emit(pid))
+	row.add_child(btn)
+	return card
 
 func flash(text: String) -> void:
 	_toast.text = text

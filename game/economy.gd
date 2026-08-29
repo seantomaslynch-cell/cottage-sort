@@ -31,6 +31,32 @@ func spend_gems(n: int) -> bool:
 	changed.emit()
 	return true
 
+# --- piggy bank ----------------------------------------------------------------
+
+const PIGGY_MAX := 250
+
+func piggy() -> int:
+	return int(SaveData.data.get("piggy", 0))
+
+func piggy_add(n: int) -> void:
+	var v := mini(PIGGY_MAX, piggy() + n)
+	if v == piggy():
+		return
+	SaveData.data["piggy"] = v
+	SaveData.save_now()
+	changed.emit()
+
+func piggy_full() -> bool:
+	return piggy() >= PIGGY_MAX
+
+## Empty the bank and return what was in it (call after the IAP succeeds).
+func piggy_crack() -> int:
+	var amt := piggy()
+	SaveData.data["piggy"] = 0
+	SaveData.save_now()
+	changed.emit()
+	return amt
+
 func add_coins(n: int) -> void:
 	if n == 0:
 		return

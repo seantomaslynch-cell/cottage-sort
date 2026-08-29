@@ -62,6 +62,9 @@ func _ready() -> void:
 	get_window().theme = _theme
 	SaveData.load_now()
 	_new_player = not bool(SaveData.data.get("intro_seen", false))
+	if int(SaveData.data.get("starter_seen_at", 0)) == 0:
+		SaveData.data["starter_seen_at"] = int(Time.get_unix_time_from_system())
+		SaveData.save_now()
 
 	SaveData.migrate_audio_flags()
 	_audio = AudioScene.new()
@@ -171,7 +174,7 @@ func _ready() -> void:
 	_cottage.mystery_pressed.connect(_on_mystery)
 
 	_hud.daily_pressed.connect(_open_daily)
-	_hud.shop_pressed.connect(func() -> void: _shop.open())
+	_hud.shop_pressed.connect(_open_shop)
 	_hud.settings_pressed.connect(func() -> void: _settings.open())
 	_hud.boost_pressed.connect(func() -> void:
 		if _board.visible and not _hud.fail_open():
@@ -206,6 +209,7 @@ func _ready() -> void:
 	_daily.chest_awarded.connect(func(amount: int) -> void:
 		_economy.add_coins(amount)
 		_economy.add_gems(1)
+		_economy.piggy_add(3)
 		_daily_panel.flash("Ad-streak chest!  +%d  +1 gem" % amount)
 		_hud.flash("Ad-streak chest!  +%d coins, +1 gem" % amount))
 	_ads.rewarded_finished.connect(func(granted: bool) -> void:
@@ -231,6 +235,10 @@ func _ready() -> void:
 	if _new_player:
 		SaveData.data["intro_seen"] = true
 		SaveData.save_now()
+	elif _starter_secs_left() > 0 and not bool(SaveData.data.get("starter_shown_once", false)):
+		SaveData.data["starter_shown_once"] = true
+		SaveData.save_now()
+		_hud.flash("Starter pack in the Shop — %dh left" % int(ceil(_starter_secs_left() / 3600.0)))
 
 func _apply_theme(n: Node) -> void:
 	if n is Control:
@@ -298,6 +306,7 @@ func _on_use_booster(id: String) -> void:
 			_board.magnet()
 		"headstart":
 			_board.autoplay(3)
+	_economy.piggy_add(1 + cost / 2)   # using boosters feeds the piggy bank
 	_analytics.log_event("booster", {"id": id, "cost": cost})
 	_booster.visible = false
 	_hud.flash("%s" % Boosters.NAME.get(id, id))
@@ -383,6 +392,7 @@ func _on_solved() -> void:
 	SaveData.mark_complete(_stage, _board.moves)
 	SaveData.set_stars(_stage, stars)
 	_daily.note_level_cleared()
+	_economy.piggy_add(2)
 	if first and stars == 3:
 		_economy.add_gems(1)   # a taste of the premium currency for skilful play
 	_analytics.log_event("level_complete",
@@ -411,16 +421,39 @@ func _on_mystery() -> void:
 		_cottage.refresh()
 		_cottage.flash("+%d coins" % reward))
 
+const STARTER_WINDOW_SEC := 48 * 3600
+
+func _open_shop() -> void:
+	_shop.set_starter_secs(_starter_secs_left())
+	_shop.open()
+
+func _starter_secs_left() -> int:
+	if bool(SaveData.data.get("starter_bought", false)):
+		return -1
+	var seen := int(SaveData.data.get("starter_seen_at", 0))
+	var left := STARTER_WINDOW_SEC - (int(Time.get_unix_time_from_system()) - seen)
+	return left if left > 0 else -1
+
 func _on_purchased(id: String) -> void:
 	var p := _iap.product(id)
 	_analytics.log_event("iap", {"id": id})
-	if p.get("kind") == "coins":
-		_economy.add_coins(int(p["amount"]))
-	elif p.get("kind") == "gems":
-		_economy.add_gems(int(p["amount"]))
+	var msg := "Purchased: %s" % p.get("name", id)
+	match str(p.get("kind")):
+		"coins":
+			_economy.add_coins(int(p["amount"]))
+		"gems":
+			_economy.add_gems(int(p["amount"]))
+		"piggy":
+			var amt := _economy.piggy_crack()
+			_economy.add_gems(amt)
+			msg = "Piggy bank cracked!  +%d gems" % amt
+		"bundle":
+			_economy.add_gems(int(p.get("gems", 0)))
+			_economy.add_coins(int(p.get("coins", 0)))
+			msg = "Starter pack unlocked!"
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
-	_shop.flash("Purchased: %s" % p.get("name", id))
+	_shop.flash(msg)
 
 func _open_daily() -> void:
 	_daily_panel.open()
