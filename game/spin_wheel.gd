@@ -4,10 +4,7 @@ class_name SpinWheel
 ## origin; animate_spin() rotates so the chosen segment lands under the pointer
 ## (which the panel draws separately, at the top, not rotating).
 
-const SEG_COLORS := [
-	Color("d97a6c"), Color("e6b45e"), Color("8fae7d"), Color("7fa8c9"),
-	Color("9b7bab"), Color("c98f6b"), Color("d99abf"), Color("6fb0a6"),
-]
+const SEG_COLORS := Palette.BEADS
 
 var radius := 148.0
 var _spinning := false

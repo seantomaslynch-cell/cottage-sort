@@ -39,7 +39,8 @@ var _last_earned := 0
 var _hints_used := 0
 
 func _ready() -> void:
-	RenderingServer.set_default_clear_color(Color("f3e9d8"))
+	RenderingServer.set_default_clear_color(Palette.BG)
+	get_window().theme = UiTheme.build()
 	SaveData.load_now()
 
 	_audio = AudioScene.new()

@@ -22,7 +22,22 @@ func _draw() -> void:
 	var ground_y := h * 0.84
 	var restored := economy.restored_fraction() if economy != null else 0.0
 
+	# sky gradient (greyer when run-down, bluer as restored)
+	var sky_top := Color("aeb7bd").lerp(Color("bfe0f2"), restored)
+	var sky_bot := Color("d9d2c4").lerp(Color("eaf6fb"), restored)
+	var bands := 14
+	for b in bands:
+		var tt := float(b) / float(bands - 1)
+		draw_rect(Rect2(0, h * float(b) / bands, w, h / bands + 1.0), sky_top.lerp(sky_bot, tt))
+
+	# sun, brighter as the place comes back to life
+	draw_circle(Vector2(w * 0.82, h * 0.16), 30.0, Color("f4d98a").lerp(Color("ffe9a8"), restored))
+	_cloud(w * 0.22, h * 0.14, 1.0)
+	_cloud(w * 0.6, h * 0.24, 0.7)
+
+	# ground
 	draw_rect(Rect2(0, ground_y, w, h - ground_y), Color("8a8577").lerp(Color("7fa663"), restored))
+	draw_rect(Rect2(0, ground_y, w, 4.0), Color(0, 0, 0, 0.08))
 
 	var house_w := minf(w * 0.60, 400.0)
 	var house_h := h * 0.40
@@ -30,10 +45,35 @@ func _draw() -> void:
 	var hy := ground_y - house_h
 
 	_draw_garden(hx, house_w, ground_y, h)
+	# house drop shadow
+	draw_rect(Rect2(hx + 8, hy + 10, house_w, house_h), Color(0, 0, 0, 0.07))
 	_draw_walls(hx, hy, house_w, house_h)
 	_draw_roof(hx, hy, house_w, h)
 	_draw_door(hx, hy, house_w, house_h)
 	_draw_window(hx, hy, house_w, house_h)
+	_draw_fence(ground_y, w)
+
+func _cloud(cx: float, cy: float, s: float) -> void:
+	var col := Color(1, 1, 1, 0.75)
+	draw_circle(Vector2(cx, cy), 20.0 * s, col)
+	draw_circle(Vector2(cx + 22.0 * s, cy + 4.0 * s), 16.0 * s, col)
+	draw_circle(Vector2(cx - 20.0 * s, cy + 5.0 * s), 14.0 * s, col)
+
+func _draw_fence(ground_y: float, w: float) -> void:
+	var t := _t("garden")
+	if t < 1:
+		return
+	var col := Color("cdb891").lerp(Color("f1e6cf"), clampf(float(t) / 3.0, 0.0, 1.0))
+	var top := ground_y - 30.0
+	draw_line(Vector2(0, top + 10.0), Vector2(w, top + 10.0), col.darkened(0.1), 4.0)
+	draw_line(Vector2(0, top + 22.0), Vector2(w, top + 22.0), col.darkened(0.1), 4.0)
+	var x := 8.0
+	while x < w:
+		draw_rect(Rect2(x, top, 8.0, 34.0), col)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(x, top), Vector2(x + 8.0, top), Vector2(x + 4.0, top - 8.0)
+		]), col)
+		x += 30.0
 
 func _draw_walls(hx: float, hy: float, hw: float, hh: float) -> void:
 	var t := _t("walls")

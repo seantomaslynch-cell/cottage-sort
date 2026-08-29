@@ -81,9 +81,25 @@ seasonal decor bundle. No pay-to-win.
   cream head_include), `tools/export_web.ps1` / `.sh`, `web/README.md`. Still
   todo: install export templates and run an actual export; optional custom
   loading shell; size trim for Playables.
-- [ ] **M7 — Art pass:** cozy jar/item art, cottage isometric art, UI theme, icon, real sfx/music.
+- [x] **M7 — Art pass:** shared `palette.gd` (one colour source), runtime
+  `ui_theme.gd` Theme (rounded honey buttons with hover/pressed/disabled, soft
+  cards) applied to the Window; glass jars (rounded belly, rim, sheen, shadow),
+  glossy beads (shade + highlight), wooden shelves under each row, page
+  gradient, selected-jar glow, win confetti; cottage gets a sky gradient, sun,
+  clouds, drop shadows and a picket fence; new themed `icon.svg`. Still todo:
+  real bitmap art + custom font + music (needs an artist / assets).
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
+
+## Files added in M7
+
+- `game/palette.gd` — `Palette`: every colour the game uses (page, ink, cards,
+  buttons, shelf, glass, 8 bead colours).
+- `game/ui_theme.gd` — `UiTheme.build()` -> a `Theme` applied to the Window in
+  `main._ready()`; styles Button + Panel.
+- Upgraded drawing in `board.gd` (glass jars, glossy beads, shelves, gradient,
+  glow, confetti) and `cottage_view.gd` (sky, sun, clouds, fence, shadows).
+- New `icon.svg`.
 
 ## Files added in M5 / M6
 

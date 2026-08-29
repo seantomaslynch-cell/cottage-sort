@@ -12,18 +12,10 @@ signal changed            # selection / history / jar count changed -> refresh H
 
 const CAP := 4
 const MAX_EXTRA_JARS := 3
-const COLORS: Array[Color] = [
-	Color("d97a6c"), # berry
-	Color("e6b45e"), # honey
-	Color("8fae7d"), # sage
-	Color("9b7bab"), # plum
-	Color("7fa8c9"), # sky
-	Color("c98f6b"), # clay
-	Color("d99abf"), # rose
-	Color("6fb0a6"), # teal
-]
+const COLORS := Palette.BEADS
 
 const VIEW_W := 720.0
+const VIEW_H := 1280.0
 const JAR_W := 104.0
 const JAR_H := 268.0
 const ITEM_R := 30.0
@@ -48,6 +40,8 @@ var _recv_jar := -1
 var _recv_count := 0
 var _pops: PackedFloat32Array = PackedFloat32Array()
 var _rings: Array = []            # [{pos, t, dur}]
+var _confetti: Array = []         # [{pos, vel, rot, spin, color, life}]
+var _rows: Array = []             # [{y, x0, x1}] per shelf row, for drawing planks
 var _hint_from := -1
 var _hint_to := -1
 var _hint_time := 0.0
@@ -69,6 +63,7 @@ func load_level(data: Dictionary) -> void:
 	_history.clear()
 	_flying.clear()
 	_rings.clear()
+	_confetti.clear()
 	_recv_jar = -1
 	_recv_count = 0
 	_pops = PackedFloat32Array()
@@ -233,6 +228,15 @@ func _process(delta: float) -> void:
 		_hint_time = maxf(0.0, _hint_time - delta)
 		redraw = true
 
+	if not _confetti.is_empty():
+		for c in _confetti:
+			c["vel"] = (c["vel"] as Vector2) + Vector2(0, 640.0 * delta)
+			c["pos"] = (c["pos"] as Vector2) + (c["vel"] as Vector2) * delta
+			c["rot"] = c["rot"] + c["spin"] * delta
+			c["life"] = c["life"] - delta
+		_confetti = _confetti.filter(func(c): return c["life"] > 0.0 and c["pos"].y < VIEW_H + 40.0)
+		redraw = true
+
 	if redraw:
 		queue_redraw()
 
@@ -253,11 +257,25 @@ func _start_win_juice() -> void:
 			var r: Rect2 = _rects[i]
 			_rings.append({"pos": r.position + r.size * 0.5, "t": -0.05 * i, "dur": 0.6})
 		i += 1
+	_confetti.clear()
+	var rng := RandomNumberGenerator.new()
+	for _p in 46:
+		var ang := rng.randf_range(-2.7, -0.5)
+		var spd := rng.randf_range(280.0, 620.0)
+		_confetti.append({
+			"pos": Vector2(rng.randf_range(140.0, VIEW_W - 140.0), rng.randf_range(140.0, 320.0)),
+			"vel": Vector2(cos(ang), sin(ang)) * spd,
+			"rot": rng.randf_range(0.0, TAU),
+			"spin": rng.randf_range(-9.0, 9.0),
+			"color": COLORS[rng.randi_range(0, COLORS.size() - 1)],
+			"life": rng.randf_range(1.1, 1.9),
+		})
 
 # --- geometry -------------------------------------------------------------
 
 func _layout() -> void:
 	_rects.clear()
+	_rows.clear()
 	var n := jars.size()
 	var rows := int(ceil(n / 5.0))
 	var per_row := int(ceil(float(n) / rows)) if rows > 0 else n
@@ -267,6 +285,7 @@ func _layout() -> void:
 		var count := mini(per_row, n - i)
 		var row_w := count * JAR_W + (count - 1) * GAP_X
 		var x := (VIEW_W - row_w) * 0.5
+		_rows.append({"y": y + JAR_H, "x0": x - 18.0, "x1": x + row_w + 18.0})
 		for k in count:
 			_rects.append(Rect2(x, y, JAR_W, JAR_H))
 			x += JAR_W + GAP_X
@@ -310,6 +329,9 @@ func _is_solved() -> bool:
 # --- drawing ------------------------------------------------------------
 
 func _draw() -> void:
+	_draw_background()
+	for row in _rows:
+		_draw_shelf(row)
 	for i in jars.size():
 		_draw_jar(i)
 	_draw_hint()
@@ -324,7 +346,31 @@ func _draw() -> void:
 			continue
 		var e2: float = r["t"] / r["dur"]
 		var rad := lerpf(18.0, 92.0, e2)
-		draw_arc(r["pos"], rad, 0.0, TAU, 40, Color(0.95, 0.78, 0.35, (1.0 - e2) * 0.5), 4.0, true)
+		draw_arc(r["pos"], rad, 0.0, TAU, 40, Palette.ACCENT * Color(1, 1, 1, (1.0 - e2) * 0.5), 4.0, true)
+	for c in _confetti:
+		_draw_confetti(c)
+
+func _draw_background() -> void:
+	var bands := 20
+	for b in bands:
+		var t := float(b) / float(bands - 1)
+		var y := VIEW_H * float(b) / bands
+		draw_rect(Rect2(0, y, VIEW_W, VIEW_H / bands + 1.0), Palette.BG.lerp(Palette.BG_DEEP, t))
+
+func _draw_shelf(row: Dictionary) -> void:
+	var y: float = row["y"] - 6.0
+	var x0: float = row["x0"]
+	var x1: float = row["x1"]
+	draw_rect(Rect2(x0, y + 20.0, x1 - x0, 10.0), Color(0, 0, 0, 0.06))
+	_round_rect(Rect2(x0, y, x1 - x0, 22.0), Palette.SHELF, Palette.SHELF_DARK, 0, 7)
+	draw_rect(Rect2(x0 + 3.0, y + 15.0, x1 - x0 - 6.0, 5.0), Palette.SHELF_DARK)
+
+func _draw_confetti(c: Dictionary) -> void:
+	var life: float = c["life"]
+	var a := clampf(life, 0.0, 1.0)
+	draw_set_transform(c["pos"], c["rot"], Vector2.ONE)
+	draw_rect(Rect2(-7, -4, 14, 8), (c["color"] as Color) * Color(1, 1, 1, a), true)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_hint() -> void:
 	if _hint_time <= 0.0:
@@ -334,8 +380,13 @@ func _draw_hint() -> void:
 	var fade := clampf(_hint_time / HINT_TIME, 0.0, 1.0)
 	var pulse := 0.45 + 0.55 * (0.5 + 0.5 * sin(Time.get_ticks_msec() / 130.0))
 	var a := fade * pulse
-	_round_rect(_rects[_hint_from].grow(6.0), Color(0, 0, 0, 0), Color(0.42, 0.66, 0.90, a), 5, 30)
-	_round_rect(_rects[_hint_to].grow(6.0), Color(0, 0, 0, 0), Color(0.42, 0.80, 0.48, a), 5, 30)
+	_glow(_rects[_hint_from], Color(0.42, 0.66, 0.90), a)
+	_glow(_rects[_hint_to], Color(0.42, 0.80, 0.48), a)
+
+func _glow(rect: Rect2, col: Color, a: float) -> void:
+	for k in 3:
+		var g := 4.0 + k * 5.0
+		_round_rect(rect.grow(g), Color(0, 0, 0, 0), col * Color(1, 1, 1, a * (0.5 - k * 0.14)), 4, 28)
 
 func _draw_jar(i: int) -> void:
 	var r: Rect2 = _rects[i]
@@ -343,14 +394,32 @@ func _draw_jar(i: int) -> void:
 	var sc := 1.0 + 0.14 * _pop_curve(pv)
 	var rr := _scaled(r, sc)
 	var center := rr.position + rr.size * 0.5
+	var lifted := (i == selected and not _busy)
 
-	_round_rect(rr, Color(1, 1, 1, 0.35), Color("b79b74"), 4, 26)
+	if lifted:
+		_glow(rr, Palette.ACCENT, 0.9)
+
+	# soft ground shadow
+	_round_rect(Rect2(rr.position + Vector2(0, 8), rr.size), Color(0, 0, 0, 0.06), Color(0, 0, 0, 0), 0, 28)
+
+	# glass body: small top corners, rounded belly
+	var glass := StyleBoxFlat.new()
+	glass.bg_color = Palette.GLASS
+	glass.border_color = Palette.GLASS_RIM
+	glass.set_border_width_all(4)
+	glass.corner_radius_top_left = 10
+	glass.corner_radius_top_right = 10
+	glass.corner_radius_bottom_left = 30
+	glass.corner_radius_bottom_right = 30
+	draw_style_box(glass, rr)
+	# top sheen + a vertical light streak
+	draw_rect(Rect2(rr.position + Vector2(6, 5), Vector2(rr.size.x - 12, rr.size.y * 0.32)), Palette.GLASS_TOP)
+	draw_rect(Rect2(rr.position + Vector2(rr.size.x * 0.24, 10), Vector2(6, rr.size.y - 26)), Color(1, 1, 1, 0.18))
 
 	var jar: Array = jars[i]
 	var shown := jar.size()
 	if i == _recv_jar:
 		shown -= _recv_count
-	var lifted := (i == selected and not _busy)
 	var run := _top_run_len(jar) if lifted else 0
 
 	for s in jar.size():
@@ -362,12 +431,12 @@ func _draw_jar(i: int) -> void:
 		var p := center + (base - center) * sc
 		_draw_item(p, COLORS[jar[s]], sc)
 
-	if lifted:
-		_round_rect(rr.grow(4.0), Color(0, 0, 0, 0), Color("f2c14e"), 4, 28)
-
 func _draw_item(p: Vector2, col: Color, sc: float) -> void:
-	draw_circle(p, ITEM_R * sc, col)
-	draw_arc(p, ITEM_R * sc, 0.0, TAU, 32, col.darkened(0.18), 3.0, true)
+	var rad := ITEM_R * sc
+	draw_circle(p + Vector2(0, rad * 0.12), rad, col.darkened(0.28))
+	draw_circle(p, rad, col)
+	draw_arc(p, rad * 0.98, 0.15 * PI, 0.85 * PI, 20, col.darkened(0.22), 3.0, true)
+	draw_circle(p + Vector2(-rad * 0.32, -rad * 0.34), rad * 0.26, Color(1, 1, 1, 0.55))
 
 func _round_rect(rect: Rect2, fill: Color, border: Color, border_w: int, radius: int) -> void:
 	var sb := StyleBoxFlat.new()
