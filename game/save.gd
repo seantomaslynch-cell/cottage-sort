@@ -10,6 +10,13 @@ static var data: Dictionary = {
 	"muted": false,
 	"coins": 0,
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
+	"daily": {
+		"streak_len": 0,
+		"last_login_day": 0,
+		"last_spin_day": 0,
+		"ad_streak": 0,
+		"ad_last_day": 0,
+	},
 }
 
 static func load_now() -> void:

@@ -12,6 +12,8 @@ const AdsScene := preload("res://game/ads.gd")
 const LevelSelectScene := preload("res://game/level_select.gd")
 const EconomyScene := preload("res://game/economy.gd")
 const CottageScreenScene := preload("res://game/cottage_screen.gd")
+const DailyScene := preload("res://game/daily.gd")
+const DailyPanelScene := preload("res://game/daily_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const COIN_BASE := 20
@@ -24,6 +26,8 @@ var _ads: GameAds
 var _select: LevelSelect
 var _economy: Economy
 var _cottage: CottageScreen
+var _daily: Daily
+var _daily_panel: DailyPanel
 var _stage := 0
 var _last_earned := 0
 
@@ -57,6 +61,13 @@ func _ready() -> void:
 	add_child(_cottage)
 	_cottage.set_economy(_economy)
 
+	_daily = DailyScene.new()
+	add_child(_daily)
+
+	_daily_panel = DailyPanelScene.new()
+	add_child(_daily_panel)
+	_daily_panel.set_daily(_daily)
+
 	_board.moved.connect(func(n: int) -> void: _hud.set_moves(n))
 	_board.solved.connect(_on_solved)
 	_board.changed.connect(_refresh_buttons)
@@ -82,7 +93,25 @@ func _ready() -> void:
 		_cottage.refresh())
 	_cottage.mystery_pressed.connect(_on_mystery)
 
+	_hud.daily_pressed.connect(_open_daily)
+	_daily_panel.closed.connect(func() -> void: _daily_panel.visible = false)
+	_daily_panel.claim_login_pressed.connect(_on_claim_login)
+	_daily_panel.spin_pressed.connect(_on_spin)
+	_daily_panel.debug_day_pressed.connect(func() -> void:
+		_daily.advance_debug_day()
+		_daily_panel.refresh())
+	_daily.chest_awarded.connect(func(amount: int) -> void:
+		_economy.add_coins(amount)
+		_daily_panel.flash("Ad-streak chest!  +%d" % amount)
+		_hud.flash("Ad-streak chest!  +%d coins" % amount))
+	_ads.rewarded_finished.connect(func(granted: bool) -> void:
+		if granted:
+			_daily.note_ad_watched())
+
 	_load_current()
+
+	if _daily.login_pending():
+		_open_daily()
 
 func _load_current() -> void:
 	_board.load_level(Levels.build(_stage))
@@ -130,6 +159,29 @@ func _on_mystery() -> void:
 		_cottage.refresh()
 		_cottage.flash("+%d coins" % reward))
 
+func _open_daily() -> void:
+	_daily_panel.open()
+
+func _on_claim_login() -> void:
+	var amt := _daily.claim_login()
+	if amt > 0:
+		_economy.add_coins(amt)
+		_daily_panel.flash("+%d coins" % amt)
+		_daily_panel.refresh()
+
+func _on_spin() -> void:
+	var idx := _daily.roll_spin()
+	var grant := func() -> void:
+		_daily_panel.play_spin(idx, func() -> void:
+			var v := _daily.spin_value(idx)
+			_economy.add_coins(v)
+			_daily_panel.flash("+%d coins" % v))
+	if _daily.free_spin_available():
+		_daily.consume_free_spin()
+		grant.call()
+	else:
+		_ads.watch_rewarded(grant)
+
 func _on_stage_picked(idx: int) -> void:
 	_stage = idx
 	_show_puzzle()
@@ -152,7 +204,8 @@ func _show_puzzle() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	if _cottage.visible and event.keycode != KEY_C and event.keycode != KEY_M:
+	var overlay := _cottage.visible or _daily_panel.visible
+	if overlay and event.keycode != KEY_C and event.keycode != KEY_D and event.keycode != KEY_M:
 		return
 	match event.keycode:
 		KEY_R:
@@ -164,10 +217,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_L:
 			_select.open(Levels.count())
 		KEY_C:
+			if _daily_panel.visible:
+				return
 			if _cottage.visible:
 				_show_puzzle()
 			else:
 				_show_cottage()
+		KEY_D:
+			if _cottage.visible:
+				return
+			if _daily_panel.visible:
+				_daily_panel.visible = false
+			else:
+				_open_daily()
 		KEY_M:
 			_on_mute_toggled(not _audio.muted)
 			_hud.set_muted(_audio.muted)

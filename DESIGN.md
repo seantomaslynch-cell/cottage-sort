@@ -65,10 +65,23 @@ seasonal decor bundle. No pay-to-win.
   door / garden), each 2-3 tiers; cottage drawing warms up + gains detail as
   tiers are bought. Rewarded-ad hooks: "Double coins" on the win screen,
   "Mystery box" on the cottage screen. Economy persisted in save.
-- [ ] **M4 — Retention:** daily rewards (exponential curve), daily spin, streak loop.
+- [x] **M4 — Retention:** 7-day login cycle (rising rewards 25..300, resets on a
+  missed day), once-a-day spin wheel (extra spins via rewarded ad, weighted
+  prizes), 3-day "watched a rewarded ad" streak -> 150-coin chest. Daily panel
+  auto-opens on the first launch of a new day. Debug "+1 day" button in debug
+  builds. Headless tests in `tools/test_daily.gd`.
 - [ ] **M5 — Ads + IAP:** real rewarded-ad SDK behind the stub, remove-ads, coin packs.
 - [ ] **M6 — Web build:** itch.io / YouTube Playables export, size budget, load screen.
 - [ ] **M7 — Art pass:** cozy jar/item art, cottage isometric art, UI theme, icon, real sfx/music.
+
+## Files added in M4
+
+- `game/daily.gd` — `Daily` node: login cycle, spin, ad-streak; `today()` =
+  whole UTC days + in-memory `debug_day_offset`.
+- `game/spin_wheel.gd` — `SpinWheel` Node2D: draws the prize wheel, `animate_spin()`.
+- `game/daily_panel.gd` — `DailyPanel` CanvasLayer (layer 25).
+- `tools/test_daily.gd` — headless tests (login curve + wrap, spin gating +
+  weighting, ad streak + chest); backs up / restores the real save file.
 
 ## Files added in M3
 

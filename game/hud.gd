@@ -9,6 +9,7 @@ signal undo_pressed
 signal add_jar_pressed
 signal levels_pressed
 signal cottage_pressed
+signal daily_pressed
 signal double_pressed
 signal mute_toggled(muted: bool)
 
@@ -49,6 +50,10 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(spacer)
+
+	var daily_btn := _button("Daily")
+	daily_btn.pressed.connect(func() -> void: daily_pressed.emit())
+	top.add_child(daily_btn)
 
 	_mute_btn = _button("Sound: on")
 	_mute_btn.pressed.connect(_on_mute)
