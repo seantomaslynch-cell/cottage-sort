@@ -80,15 +80,24 @@ web/
 
 ## Current state
 
-Playable end to end (M0–M13). 4 hand-authored teaching levels + coach tips,
-then ~24 generated stages with stars, hints, a move budget + fail offers, and
-metered undo. A coins→Cottage restore arc plus an **endless** decor catalog so
-coins never run dry. Retention: login cycle, spin wheel, ad-watch streak, a
-weekly event, session-end hooks. Monetization: **gems** + a six-booster set,
-a rewarded/interstitial ad provider, an IAP stub, and a Shop. Haptics, a
-settings screen, ambient music, a first art pass (palette + UI theme, glass
-jars, cozy cottage), a local analytics log, and a working web export.
+Feature-complete for a soft launch (M0–M24), pending real SDKs and art.
 
-Ads / IAP / analytics are stubs behind clean seams; notifications + the OS
-review prompt need a native plugin. Remaining product work is tracked in
-[AUDIT.md](AUDIT.md) and [PROGRESS.md](PROGRESS.md).
+- **Puzzle:** 4 authored teaching levels, then a hand-shaped 40-stage curve
+  (fail-free flow → first challenge ~L13 → spike ~L20 → relief → hard tail),
+  then endless. Stars, hints, a move budget with fail offers, metered undo.
+- **Realms:** 6 chapters (Pantry → Garden → Attic → Bakery → Workshop → Beyond)
+  that reskin the board.
+- **Meta:** coins → a two-room Cottage restore arc + an endless decor catalog
+  with rotating seasonal sets.
+- **Retention:** login ladder, spin wheel, ad-watch streak, weekly event,
+  daily jackpot, weekly leaderboard (ghost board), a 28-day battle pass.
+- **Monetization:** gems, a six-booster inventory, piggy bank, starter pack,
+  struggle-triggered offer, booster bundle, and a rewarded/interstitial ad
+  provider — all behind clean seams.
+- **Polish:** haptics, settings, ambient music, a UI theme, procedural jar/bead
+  art, a local analytics log, a working web export.
+
+Ads / IAP / analytics / notifications / review are **stubs behind seams** —
+see [store/INTEGRATION.md](store/INTEGRATION.md). App-store copy in
+[store/ASO.md](store/ASO.md). Open work in [AUDIT.md](AUDIT.md) and
+[PROGRESS.md](PROGRESS.md).

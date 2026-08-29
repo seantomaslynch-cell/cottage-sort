@@ -28,21 +28,32 @@ file map in [README.md](README.md).
 | M14 piggy bank + starter pack (offer cards in the Shop) | ✅ done |
 | M15 authored 40-stage difficulty curve (+ endless mode past it) | ✅ done |
 | M16 struggle-triggered offer ($0.99 pack on the fail screen) | ✅ done |
+| M17 booster inventory + bundles | ✅ done |
+| M18 seasonal battle pass (free + $4.99 premium) | ✅ done |
+| M19 daily jackpot | ✅ done |
+| M20 weekly leaderboard (ghost board, no backend) | ✅ done |
+| M21 themed realms (6 chapters reskin the board) | ✅ done |
+| M22 2nd cottage room (Kitchen) + rotating seasonal decor | ✅ done |
+| M23 ship kit — SDK integration guide, ASO kit, analytics tool | ✅ done |
+| M24 procedural art polish (jars + beads) | ✅ done |
 
 See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
-Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test_decor`, `test_booster` — all pass.
+Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
+`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms` — all pass.
 
-## What's next
+## What's left — all need an external piece
 
-**In-engine, high impact (do next):**
+The seams are all in place ([store/INTEGRATION.md](store/INTEGRATION.md)):
 
-1. **Booster bundles** (discounted packs / a small inventory) on top of the M13
-   single-use boosters.
-2. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
-   content cadence and, for leaderboards, a small backend.
-3. **More cottage rooms** and seasonal decor drops on top of the M12 catalog.
-4. **Tune the M15 curve from analytics** once there's real data (the `scr` / `bm`
-   knobs in `levels.gd` are the levers).
+1. **Real ad / IAP / analytics SDKs** — swap the bodies of `game/ads.gd`,
+   `game/iap.gd`, `game/analytics.gd`. Needs plugins + developer accounts.
+2. **Local push notifications + OS review prompt** — fill in `game/platform.gd`
+   with a native plugin (Android / iOS).
+3. **Real bitmap art / custom font / licensed music** — needs an artist.
+4. **Localization** (strings → a translation table), **crash reporting**, a
+   **low-end device pass**.
+5. **Tune the M15 curve** — run `tools/analyze_events.py` on a real `events.log`
+   and adjust the `scr` / `bm` knobs in `levels.gd`.
 
 **Needs an external piece (seam is in place):**
 
@@ -68,12 +79,16 @@ godot --path .
 godot --headless --path . --editor --quit
 
 # tests
-godot --headless --path . --script res://tools/test_logic.gd   # sort logic + generator + solver
-godot --headless --path . --script res://tools/test_daily.gd   # login curve, spin, ad streak
-godot --headless --path . --script res://tools/test_shop.gd    # IAP + interstitial gating
+for t in logic daily shop decor booster bp lb realms; do
+  godot --headless --path . --script res://tools/test_$t.gd
+done
 
 # screenshot a screen (no --headless; restores save.json after)
-godot --path . --script res://tools/screenshot.gd -- res://shot.png board   # board|cottage|daily|shop
+godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage]
+#   modes: board | cottage | cottage_decor | daily | shop | settings | booster | season | fail
+
+# summarise the analytics log to tune the difficulty curve
+python tools/analyze_events.py
 ```
 
 In-game keys: `R` restart · `N` next · `U` undo · `H` hint · `L` levels ·

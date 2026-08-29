@@ -142,11 +142,26 @@ Done:
   tail; endless generator past L40  *(M15)*
 - [x] **Struggle-triggered offer** — a $0.99 "Struggle pack" on the fail screen
   from the 2nd-4th fail on a stage, once/day  *(M16)*
+- [x] **Booster inventory + bundles** — own counts, buy singly / "stock up" for
+  gems, an IAP bundle, chests grant a random booster  *(M17)*
+- [x] **Seasonal battle pass** — 28-day, 30 tiers, free + premium ($4.99) tracks,
+  XP from play  *(M18)*
+- [x] **Daily jackpot** — a once-a-day board you must win for 150c + 3g  *(M19)*
+- [x] **Weekly leaderboard** — 24 deterministic bots + you spliced in by weekly
+  stars; no backend  *(M20)*
+- [x] **Themed realms** — 6 chapters that reskin the board (bg + shelves)  *(M21)*
+- [x] **2nd cottage room + seasonal decor** — Kitchen slots; 4 rotating seasonal
+  decor sets  *(M22)*
+- [x] **Ship kit** — `store/INTEGRATION.md` (SDK swap guide), `store/ASO.md`
+  (listing + data-safety), `tools/analyze_events.py` (funnel / curve tuning)  *(M23)*
+- [x] **Art polish** — jars + beads reworked in the procedural renderer  *(M24)*
 
-Open:
+Open (need an external piece — seams are in place):
 
-- [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
-- [ ] Booster *bundles* (buy a pack of boosters at a discount) + a booster inventory
-- [ ] Battle pass, leaderboards, daily jackpot, themed realms  *(need content cadence / a small backend)*
-- [ ] Real art / font / music, ASO, localization, crash reporting  *(Tier 4, pre-launch)*
-- [ ] Real ad SDK + real IAP bindings + real analytics SDK  *(one-file swaps at the seams)*
+- [ ] Real ad SDK / IAP bindings / analytics SDK — swap `ads.gd` / `iap.gd` /
+  `analytics.gd` bodies. See `store/INTEGRATION.md`.
+- [ ] Local push notifications + OS review prompt — fill in `platform.gd` with a
+  native plugin.
+- [ ] Real bitmap art / custom font / licensed music.
+- [ ] Localization; crash-reporting SDK; low-end device pass.
+- [ ] Tune the M15 `scr` / `bm` knobs once `analyze_events.py` has live data.

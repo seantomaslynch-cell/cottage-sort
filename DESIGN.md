@@ -140,9 +140,25 @@ seasonal decor bundle. No pay-to-win.
   capped at once/day (`SaveData.struggle_bought_day`). New `struggle` IAP
   kind (repeatable). Doubles as a premium continue. Filtered out of the
   regular Shop list.
-- [ ] **M17+ — Monetization / content:** booster bundles/inventory, battle
-  pass / daily jackpot / leaderboards / themed realms / more cottage rooms;
-  then tune the M15 curve from analytics.
+- [x] **M17 — Booster inventory + bundles:** boosters owned as counts
+  (`SaveData.boosters`); Boost popup does use / buy-one / "stock up"; IAP
+  `booster_bundle`; chests grant a random booster.
+- [x] **M18 — Seasonal battle pass:** `battle_pass.gd` (28d, 30 tiers, XP from
+  play), `battle_pass_panel.gd`, IAP `battle_pass` ($4.99 premium track).
+- [x] **M19 — Daily jackpot:** one win-to-claim board a day (150c + 3g),
+  consumed on start.
+- [x] **M20 — Weekly leaderboard:** `leaderboard.gd` — 24 deterministic bots +
+  you by weekly stars, no backend; `leaderboard_panel.gd`.
+- [x] **M21 — Themed realms:** `realms.gd` — 6 chapters reskin the board bg +
+  shelves + clear colour; status bar + entry banner.
+- [x] **M22 — 2nd room + seasonal decor:** `CottageData.ROOMS` (+ Kitchen);
+  `DecorData.SEASONS` (4 rotating sets, one on offer per 28d).
+- [x] **M23 — Ship kit:** `store/INTEGRATION.md`, `store/ASO.md`,
+  `tools/analyze_events.py`.
+- [x] **M24 — Art polish:** procedural jar + bead rendering reworked.
+- [ ] **Remaining — all need an external piece:** real ad/IAP/analytics SDKs,
+  notification + review plugins, bitmap art / font / music, localization,
+  crash reporting, curve tuning from live data. Seams: `store/INTEGRATION.md`.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
 
