@@ -84,6 +84,9 @@ func _ready() -> void:
 
 	_ads = AdsScene.new()
 	add_child(_ads)
+	# iOS: show the App Tracking Transparency prompt once, before any ad request.
+	if OS.get_name() == "iOS":
+		_ads.request_att()
 
 	_economy = EconomyScene.new()
 	add_child(_economy)

@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · Codemagic CI added
+**Updated:** 2026-08-29 · Codemagic CI + free-asset pack
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -40,6 +40,7 @@ file map in [README.md](README.md).
 | M26 config layer + App Store submission prep (store/*, iOS+Android presets) | ✅ done |
 | M27 combo callouts + functional audit report | ✅ done |
 | M28 Codemagic CI (iOS/Android/Web) — no local Mac needed | ✅ done |
+| M29 free-asset pack (Fredoka font, Kenney SFX, FreePD music, AdMob+ATT plugins) | ✅ wired — run `tools/fetch_assets.*` to pull the files |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
@@ -61,11 +62,17 @@ guide in [store/INTEGRATION.md](store/INTEGRATION.md).
    checklist in [store/APP_STORE_SUBMISSION.md](store/APP_STORE_SUBMISSION.md),
    paste-ready copy + rating/privacy answers in
    [store/METADATA.md](store/METADATA.md).
-2. **Real ad / IAP / analytics SDKs** — swap the bodies of `game/ads.gd`,
-   `game/iap.gd`, `game/analytics.gd`. Needs plugins + developer accounts.
+2. **Real ad / IAP / analytics SDKs** — the AdMob + ATT plugins (cengiz-pz) are
+   bundled via `tools/fetch_assets.*` and `game/ads.gd` has the adapter +
+   `request_att()` behind `USE_ADMOB_PLUGIN := false`; flip it once a CI export
+   confirms the 4.4.1-built addon loads on 4.7 (`store/INTEGRATION.md`). IAP +
+   analytics still need plugins + accounts.
 3. **Local push notifications + OS review prompt** — fill in `game/platform.gd`
    with a native plugin (Android / iOS). Copy is in `config.gd`.
-4. **Real bitmap art / custom font / licensed music** — needs an artist.
+4. **Real bitmap art** — font + music + UI SFX are now covered by the CC0/OFL
+   pack (`store/ASSETS.md`). Sprite art for jars/beads/cottage is deliberately
+   deferred (procedural `_draw()` art is already polished; swapping is its own
+   milestone — see `store/ASSETS.md`).
 5. **Localization** (strings → a translation table), **crash reporting**, a
    **low-end device pass**.
 6. **Content cadence** — hand-author L41–80, rotate the weekly event type.
@@ -82,8 +89,8 @@ Ranked fun/retention/money ideas: see the bottom of
   to `user://events.log`.
 - **Local push notifications + OS review prompt** — fill in `game/platform.gd`
   with a native plugin (Android / iOS).
-- **Real art / font / music** — replace the procedural `_draw()` art and the
-  generated placeholder SFX (`tools/gen_sfx.py`).
+- **Sprite art** — the procedural `_draw()` jars/beads/cottage still stand; font,
+  music and UI SFX are covered by the CC0/OFL pack (`store/ASSETS.md`).
 - **Web templates** on a fresh machine (editor → *Manage Export Templates*).
   On Codemagic the `&fetch_godot` step pulls them automatically.
 

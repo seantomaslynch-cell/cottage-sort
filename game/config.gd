@@ -17,6 +17,11 @@ const ADMOB_INTERSTITIAL_ANDROID := "ca-app-pub-0000000000000000/0000000000"
 const ADMOB_INTERSTITIAL_IOS     := "ca-app-pub-0000000000000000/0000000000"
 const ADMOB_TEST_DEVICE_IDS: Array[String] = []   # add your device IDs while developing
 
+# App Tracking Transparency — iOS shows this line in the permission dialog.
+# Must also be set verbatim as NSUserTrackingUsageDescription in the iOS export
+# preset (application/additional_plist_content).
+const ATT_USAGE_DESCRIPTION := "Cottage Sort uses your device identifier to show ads that are more relevant to you."
+
 # --- Store product IDs (must match game/iap.gd PRODUCTS ids) -----------------
 # These are the *store* SKUs. Keep the ids identical on both platforms.
 const IAP_PRODUCT_IDS: Array[String] = [

@@ -11,20 +11,38 @@ The game runs fully without any of it (stubs); each item is an isolated swap.
 | Local notifications | `game/platform.gd` | `schedule_daily_reminder(h)`, `schedule_streak_warning(h)`, `cancel_reminders()` |
 | OS review prompt | `game/platform.gd` | `request_review()` (already rate-limited to once) |
 
-## Ads (AdMob)
+## Ads (AdMob) — plugin is bundled
 
-1. Add a Godot AdMob plugin (e.g. `admob-plus-godot` / `poing-studios/godot-admob`)
-   as an Android/iOS plugin in `android/plugins` and the iOS export.
-2. In `ads.gd`:
-   - init the SDK in `_ready()` with your app IDs.
-   - `watch_rewarded()` — load a rewarded ad, on `rewarded` callback grant, on
-     close/`failed` still call `rewarded_finished(false)` and **don't** grant.
-   - `maybe_show_interstitial()` — keep the `remove_ads` and cooldown guards
-     already there; only the "show it" line changes to `interstitial.show()`.
-3. Consent: run Google UMP (or an IAB TCF CMP) **before** the first ad request.
-   Gate `_ready()`'s SDK init on consent resolved.
-4. Register test device IDs while developing.
-5. Ad unit IDs live in a config, not the source.
+`tools/fetch_assets.{sh,ps1}` downloads the **cengiz-pz** AdMob plugins (iOS +
+Android, MIT) into `addons/AdmobPlugin/`. `game/ads.gd` already has the adapter:
+`request_att()`, an `Admob`-node bootstrap in `_init_admob()`, and the
+`tracking_authorized(bool)` signal — all behind `const USE_ADMOB_PLUGIN`
+(default **false**) and `has_method`/`has_signal` guards, so the simulated stub
+stays in charge until you turn it on.
+
+To go live:
+
+1. Run `tools/fetch_assets.*` so `addons/AdmobPlugin/` exists. Open the project
+   once (`godot --editor`) and enable the plugin under
+   *Project → Project Settings → Plugins* (Android) and tick it in the **iOS**
+   export preset. Confirm the addon loads on Godot 4.7 — it's built for 4.4.1.
+2. Put real unit IDs in `game/config.gd` (`ADMOB_*`), and the real
+   `GADApplicationIdentifier` into `export_presets.cfg`
+   (`application/additional_plist_content`, currently a placeholder) and the
+   Android manifest/gradle the plugin generates.
+3. Flip `USE_ADMOB_PLUGIN := true` in `ads.gd`. Wire the plugin calls where the
+   stub bodies are:
+   - `watch_rewarded()` — `_admob.load_rewarded_ad(...)`, then on the
+     *user-earned-reward* signal run `on_reward`; on dismiss/fail still emit
+     `rewarded_finished(false)` and **don't** grant.
+   - `maybe_show_interstitial()` — keep the `remove_ads` + cooldown guards; only
+     the "show" line becomes `_admob.show_interstitial_ad(id)`.
+4. ATT: `main.gd` already calls `_ads.request_att()` once on iOS before the
+   first ad. The prompt string is `Config.ATT_USAGE_DESCRIPTION` and must match
+   `NSUserTrackingUsageDescription` in the iOS preset.
+5. Consent: for EEA/UK traffic run Google UMP before the first request; gate
+   `_init_admob()` on consent resolved.
+6. Register test device IDs (`Config.ADMOB_TEST_DEVICE_IDS`) while developing.
 
 ## IAP
 

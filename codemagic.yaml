@@ -44,6 +44,18 @@ definitions:
       chmod +x "$PWD/$BIN" 2>/dev/null || true
       "$PWD/$BIN" --headless --version
 
+  fetch_assets: &fetch_assets
+    name: Fetch the free asset pack if it isn't committed
+    script: |
+      set -e
+      # If the assets were committed to the repo this is a no-op; otherwise pull
+      # them so the export has the real font / SFX / music.
+      if [ ! -f game/assets/fonts/Fredoka.ttf ]; then
+        bash tools/fetch_assets.sh
+      else
+        echo "asset pack already present — skipping fetch"
+      fi
+
 workflows:
 
   # ---------------------------------------------------------------- iOS ------
@@ -63,6 +75,7 @@ workflows:
       xcode: latest
     scripts:
       - *fetch_godot
+      - *fetch_assets
       - name: Set signing + version in the iOS preset
         script: |
           set -e
@@ -100,6 +113,7 @@ workflows:
       java: 17
     scripts:
       - *fetch_godot
+      - *fetch_assets
       - name: Android SDK + Godot build template
         script: |
           set -e
@@ -138,6 +152,7 @@ workflows:
         - godot
     scripts:
       - *fetch_godot
+      - *fetch_assets
       - name: Godot export (Web)
         script: |
           set -e

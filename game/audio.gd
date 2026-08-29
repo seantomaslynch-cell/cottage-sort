@@ -20,7 +20,20 @@ const SOUNDS := {
 	"buzz": "res://game/audio/buzz.wav",
 	"win": "res://game/audio/win.wav",
 }
-const MUSIC := "res://game/audio/music.wav"
+# First existing wins. The CC0 mp3s arrive via tools/fetch_assets.{sh,ps1};
+# the generated wav is the always-present fallback.
+const MUSIC_CANDIDATES := [
+	"res://game/assets/music/magic_in_the_garden.mp3",
+	"res://game/assets/music/slice_of_life.mp3",
+	"res://game/audio/music.wav",
+]
+const MUSIC := "res://game/audio/music.wav"  # kept for compatibility / callers
+
+static func _pick_music() -> String:
+	for path in MUSIC_CANDIDATES:
+		if ResourceLoader.exists(path):
+			return path
+	return MUSIC
 
 # device buzz length (ms) per event
 const HAPTIC := {
@@ -38,7 +51,14 @@ func _ready() -> void:
 		_players[key] = p
 
 	_music = AudioStreamPlayer.new()
-	_music.stream = load(MUSIC) as AudioStream
+	_music.stream = load(_pick_music()) as AudioStream
+	# Loop the bed. mp3/ogg carry a loop flag; wav via the import preset. The
+	# finished->replay below covers any stream that still reports completion.
+	var ms: AudioStream = _music.stream
+	if ms is AudioStreamMP3:
+		(ms as AudioStreamMP3).loop = true
+	elif ms is AudioStreamOggVorbis:
+		(ms as AudioStreamOggVorbis).loop = true
 	_music.volume_db = -6.0
 	_music.finished.connect(func() -> void:
 		if music_on and _music.stream != null:

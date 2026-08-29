@@ -4,9 +4,23 @@ class_name UiTheme
 ## hover / pressed / disabled states, soft cards, warm text. Applied to the
 ## Window in main.gd so every Control picks it up.
 
+const FONT_PATH := "res://game/assets/fonts/Fredoka.ttf"
+
 static func build() -> Theme:
 	var t := Theme.new()
 	t.default_font_size = 26
+
+	# Cozy rounded UI face (SIL OFL). Falls back to Godot's default if the asset
+	# pack hasn't been fetched yet — see tools/fetch_assets.{sh,ps1}.
+	if ResourceLoader.exists(FONT_PATH):
+		var base := load(FONT_PATH)
+		if base is Font:
+			var fv := FontVariation.new()
+			fv.base_font = base as Font
+			fv.variation_opentype = {"wght": 480}
+			t.default_font = fv
+			t.set_font("font", "Button", fv)
+			t.set_font("font", "Label", fv)
 
 	var normal := _sb(Palette.BTN, Palette.BTN_BORDER, 3)
 	var hover := _sb(Palette.BTN_HOVER, Palette.ACCENT, 3)
