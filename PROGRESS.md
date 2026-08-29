@@ -46,8 +46,9 @@ file map in [README.md](README.md).
 | M32 endless ramp — 9th bead colour + 12-level colour tiers so difficulty keeps climbing past L40 | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
-= code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
-submission kit.
+= code audit + fix log + a ranked fun/money upgrade list ·
+[AUDIT_CONTENT.md](AUDIT_CONTENT.md) = content / FTUE / "full game" pass + M33+
+roadmap · `store/` = App Store submission kit.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
 `test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms` — all pass.
 
