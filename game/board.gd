@@ -9,6 +9,7 @@ class_name SortBoard
 signal moved(count: int)
 signal solved
 signal failed             # ran out of the move budget (or wedged the board)
+signal combo(n: int)      # n jars completed in quick succession (>= 2)
 signal changed            # selection / history / jar count changed -> refresh HUD
 
 const UNLIMITED := 999
@@ -50,8 +51,12 @@ var _rows: Array = []             # [{y, x0, x1}] per shelf row, for drawing pla
 var _hint_from := -1
 var _hint_to := -1
 var _hint_time := 0.0
+var _completed := 0        # jars full+uniform after the last move
+var _combo_n := 0
+var _combo_ms := -100000
 
 const HINT_TIME := 2.6
+const COMBO_WINDOW_MS := 2200
 
 func _ready() -> void:
 	set_process(true)
@@ -69,6 +74,8 @@ func load_level(data: Dictionary) -> void:
 	_flying.clear()
 	_rings.clear()
 	_confetti.clear()
+	_completed = _jars_complete()
+	_combo_n = 0
 	_recv_jar = -1
 	_recv_count = 0
 	_pops = PackedFloat32Array()
@@ -193,6 +200,7 @@ func _after_booster() -> void:
 	# magnet / autoplay reshape the board non-linearly, so the undo history is no
 	# longer safe to replay against it.
 	_history.clear()
+	_completed = _jars_complete()   # resync so the next real move's combo math is sane
 	_clear_hint()
 	queue_redraw()
 	_sfx("pour", 1.1)
@@ -346,6 +354,7 @@ func _process(delta: float) -> void:
 		queue_redraw()
 
 func _post_move() -> void:
+	_check_combo()
 	if _is_solved():
 		_locked = true
 		_start_win_juice()
@@ -355,6 +364,32 @@ func _post_move() -> void:
 		_sfx("buzz", 0.8)
 		failed.emit()
 	changed.emit()
+
+func _jars_complete() -> int:
+	var n := 0
+	for jar in jars:
+		var a: Array = jar
+		if a.size() == CAP and _top_run_len(a) == CAP:
+			n += 1
+	return n
+
+## Fire `combo` when 2+ jars finish within a short window (a satisfying burst,
+## usually near the end of a level). Skipped once the level is solved.
+func _check_combo() -> void:
+	var now := _jars_complete()
+	var gained := now - _completed
+	_completed = now
+	if gained <= 0 or _is_solved():
+		return
+	var t := Time.get_ticks_msec()
+	if t - _combo_ms <= COMBO_WINDOW_MS:
+		_combo_n += gained
+	else:
+		_combo_n = gained
+	_combo_ms = t
+	if _combo_n >= 2:
+		_sfx("win", 1.25)
+		combo.emit(_combo_n)
 
 func _is_failed() -> bool:
 	if move_budget >= UNLIMITED:

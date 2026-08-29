@@ -83,6 +83,19 @@ func _initialize() -> void:
 	mb.free()
 	print("move-logic checks OK")
 
+	# combo: two jars finishing back-to-back fires combo(2)
+	var cb = Board.new()
+	cb.load_level({"jars": [[0, 0, 0, 1], [1, 1, 1, 0], [2, 2, 2, 3], [3, 3, 3, 2], [], []]})
+	var got_combo := [0]
+	cb.combo.connect(func(n: int) -> void: got_combo[0] = n)
+	cb._apply_move(0, 4); cb._apply_move(1, 0); cb._apply_move(4, 1)   # jar 0 -> pure 0, jar 1 -> pure 1
+	cb._post_move()
+	cb._apply_move(2, 5); cb._apply_move(3, 2); cb._apply_move(5, 3)
+	cb._post_move()
+	assert(got_combo[0] >= 2)
+	cb.free()
+	print("combo check OK")
+
 	# fail-state / move-budget checks
 	var fb = Board.new()
 	fb.jars = [[0, 1], [1, 0], []]

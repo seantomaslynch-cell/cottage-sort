@@ -151,6 +151,7 @@ func _ready() -> void:
 			_coach.clear())
 	_board.solved.connect(_on_solved)
 	_board.failed.connect(_on_failed)
+	_board.combo.connect(_on_combo)
 	_board.changed.connect(_refresh_buttons)
 
 	_hud.restart_pressed.connect(_load_current)
@@ -337,6 +338,17 @@ func _on_undo() -> void:
 		_board.undo()
 	else:
 		_ads.watch_rewarded(func() -> void: _board.undo())
+
+const COMBO_WORDS := ["", "", "Nice!", "Great!", "Superb!", "Unreal!"]
+
+func _on_combo(n: int) -> void:
+	if _jackpot_active:
+		return
+	var bonus := n * 5
+	_economy.add_coins(bonus)
+	var word: String = COMBO_WORDS[mini(n, COMBO_WORDS.size() - 1)]
+	_hud.flash("%s  x%d combo   +%d" % [word, n, bonus])
+	_analytics.log_event("combo", {"n": n, "stage": _stage})
 
 func _on_failed() -> void:
 	_coach.clear()
