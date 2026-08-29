@@ -128,9 +128,16 @@ seasonal decor bundle. No pay-to-win.
   (120 gems + 800 coins + remove-ads), 48h window from first launch. Both
   surface as accent-bordered offer cards atop the Shop; `iap.gd` handles the
   `bundle` / `piggy` kinds. Tests: extended `tools/test_shop.gd`.
-- [ ] **M15+ — Monetization / content:** authored curve past L4,
-  struggle-triggered offer, booster bundles/inventory, then battle pass /
-  daily jackpot / leaderboards / themed realms / more cottage rooms.
+- [x] **M15 — Authored difficulty curve:** `levels.gd` STAGES is a hand-shaped
+  40-stage progression with per-stage knobs (`scr` scramble mult, `bm` budget
+  mult, `flow` = no fail). Shape: teaching (1-4) -> fail-free flow (5-10) ->
+  first challenge (~L13) -> designed spike (~L20) -> relief (21-25) -> rising
+  (26-32) -> hard tail (33-40); endless generator past L40 (`_next` unbounded).
+  `level_gen.generate()` gained a `scramble_mult`; move budget + star cutoffs
+  scale by `bm`. Curve shape asserted in `tools/test_logic.gd`.
+- [ ] **M16+ — Monetization / content:** struggle-triggered offer, booster
+  bundles/inventory, battle pass / daily jackpot / leaderboards / themed
+  realms / more cottage rooms; then tune the M15 curve from analytics.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
 

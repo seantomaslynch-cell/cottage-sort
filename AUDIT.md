@@ -137,10 +137,12 @@ Done:
   magnet / head start, bought-and-used instantly for gems  *(M13)*
 - [x] **Piggy bank** — gems accrue from play, one $4.99 IAP cracks it  *(M14)*
 - [x] **Starter pack** — one-time $2.99 bundle (gems + coins + no-ads), 48h window  *(M14)*
+- [x] **Authored difficulty curve** — 40 hand-shaped stages: fail-free flow
+  through ~L10, first challenge ~L13, designed spike ~L20, relief, rising, hard
+  tail; endless generator past L40  *(M15)*
 
 Open:
 
-- [ ] Authored difficulty curve beyond the first 4 levels (deliberate first peak, spike after ~L20)
 - [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
 - [ ] Booster *bundles* (buy a pack of boosters at a discount) + a booster inventory
 - [ ] Struggle-triggered offers (a discounted bundle after 2+ fails on a level)
