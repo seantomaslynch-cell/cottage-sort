@@ -80,10 +80,15 @@ web/
 
 ## Current state
 
-Playable end to end with a first art pass: 24 generated sort stages (stars,
-hints), a coin economy feeding a Cottage you restore, a daily retention layer
-(login cycle, spin wheel, ad-watch streak), monetization scaffolding (rewarded +
-interstitial ad provider, IAP stub, Shop), and a shared palette + UI theme with
-glass jars, shelves, confetti, and a cozier cottage scene. Ads and IAP are
-stubs; the web export preset needs templates installed. Remaining: real bitmap
-art / font / music, and wiring a real ad SDK + store — see [DESIGN.md](DESIGN.md).
+Playable end to end (M0–M13). 4 hand-authored teaching levels + coach tips,
+then ~24 generated stages with stars, hints, a move budget + fail offers, and
+metered undo. A coins→Cottage restore arc plus an **endless** decor catalog so
+coins never run dry. Retention: login cycle, spin wheel, ad-watch streak, a
+weekly event, session-end hooks. Monetization: **gems** + a six-booster set,
+a rewarded/interstitial ad provider, an IAP stub, and a Shop. Haptics, a
+settings screen, ambient music, a first art pass (palette + UI theme, glass
+jars, cozy cottage), a local analytics log, and a working web export.
+
+Ads / IAP / analytics are stubs behind clean seams; notifications + the OS
+review prompt need a native plugin. Remaining product work is tracked in
+[AUDIT.md](AUDIT.md) and [PROGRESS.md](PROGRESS.md).
