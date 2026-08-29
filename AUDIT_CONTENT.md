@@ -171,13 +171,15 @@ direct answer to "more content".
 Every level is "sort every jar". Introduce 3–4 gentle variants, one new idea per
 chapter, flagged in the stage knobs:
 
-- **Beat par** — a ★ target move count shown up front; hitting it pays a bonus.
+- **Beat par** — *done (M39)*: from L11 the win screen shows "par N" and a ✓ +
+  30-coin bonus for `moves <= par`. A soft skill target under the stars.
 - **Tidy pour** — a couple of jars start with a lid; clear the rest first to pop
-  them (a soft "locked jar").
+  them (a soft "locked jar"). *Deferred — needs a new board mechanic.*
 - **No spares** — a level with zero empty jars to start (the deferred
-  1-spare/"challenge" idea from `DESIGN.md`, but framed as an occasional
-  special rather than the default).
+  1-spare/"challenge" idea from `DESIGN.md`). *Deferred — safe now that LevelGen
+  verifies solvability; just a knob + label.*
 - **Colour rush** — sort one *highlighted* colour first for an early bonus.
+  *Deferred — needs highlight + tracking.*
 
 Keep it rare and cosy — variety, not difficulty spikes.
 

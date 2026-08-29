@@ -439,14 +439,19 @@ func pulse_cottage() -> void:
 	tw.tween_property(_win_cottage_btn, "scale", Vector2(1.08, 1.08), 0.35).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(_win_cottage_btn, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_SINE)
 
-func show_win(text: String, best: int, current: int, earned: int, stars: int, flawless := false) -> void:
+func show_win(text: String, best: int, current: int, earned: int, stars: int, flawless := false, par := 0, under_par := false) -> void:
 	_win_label.text = text
 	_win_stars.text = _stars_str(stars)
 	_win_flaw.text = "✦  flawless  —  no undo, no hint  ✦" if flawless else ""
+	var line := ""
 	if best > 0 and current > best:
-		_win_best.text = "Solved in %d moves  (best %d)" % [current, best]
+		line = "Solved in %d moves  (best %d)" % [current, best]
 	else:
-		_win_best.text = "Solved in %d moves  -  new best!" % current
+		line = "Solved in %d moves  -  new best!" % current
+	if par > 0:
+		line += "     ·     par %d%s" % [par, "  ✓" if under_par else ""]
+	_win_best.text = line
+	_win_best.add_theme_color_override("font_color", Color("d99a4a") if under_par else Color("5b4636"))
 	_win_earned = earned
 	_win_coins.text = "+%d coins" % earned
 	_double_btn.disabled = false

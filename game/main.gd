@@ -39,6 +39,7 @@ const COIN_BASE := 20
 const COIN_FIRST_CLEAR := 30
 const MOVES_PER_REFILL := 5
 const MOVES_COIN_COST := 100
+const PAR_BONUS := 30
 
 var _board: SortBoard
 var _hud: GameHUD
@@ -643,7 +644,10 @@ func _on_solved() -> void:
 	var flawless := stars == 3 and _undos_used == 0 and _hints_used == 0
 	if flawless:
 		SaveData.data["stat_flawless"] = int(SaveData.data.get("stat_flawless", 0)) + 1
-	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5
+	# Beat par: a soft skill target under the stars, from L11 on.
+	var par := Levels.par_for(_stage) if _stage >= Levels.FLOW_STAGES else 0
+	var under_par := par > 0 and _board.moves <= par
+	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5 + (PAR_BONUS if under_par else 0)
 	_last_earned = earned
 	_economy.add_coins(earned)
 	var prev_best := SaveData.best_moves(_stage)
@@ -677,7 +681,9 @@ func _on_solved() -> void:
 			_hud.set_next_hint("Next: Level %d" % (_stage + 2))
 
 	var win_title := "You did it!" if was_ftue else "Cottage corner tidied!"
-	_hud.show_win(win_title, prev_best, _board.moves, earned, stars, flawless and not was_ftue)
+	_hud.show_win(win_title, prev_best, _board.moves, earned, stars, flawless and not was_ftue, par, under_par)
+	if under_par:
+		_analytics.log_event("under_par", {"stage": _stage, "moves": _board.moves, "par": par})
 	if was_ftue:
 		_hud.pulse_cottage()
 

@@ -672,6 +672,9 @@ func _draw_jar(i: int) -> void:
 		_draw_item(p, COLORS[jar[s]], sc)
 
 func _draw_item(p: Vector2, col: Color, sc: float) -> void:
+	var tint: Color = realm.get("bead_tint", Color(0, 0, 0, 0))
+	if tint.a > 0.0:
+		col = col.lerp(Color(tint.r, tint.g, tint.b), 0.12)
 	var rad := ITEM_R * sc
 	# contact shadow under the bead
 	draw_circle(p + Vector2(0, rad * 0.18), rad * 0.98, col.darkened(0.34))

@@ -16,9 +16,14 @@ func _mix(dull: Color, warm: Color, t: int, maxt: int) -> Color:
 		return dull
 	return dull.lerp(warm, clampf(float(t) / float(maxt) + 0.18, 0.0, 1.0))
 
+func _kitchen_shown() -> bool:
+	if economy == null:
+		return false
+	return _t("stove") + _t("table") + _t("dresser") + _t("floor") > 0
+
 func _draw() -> void:
 	var w := size.x
-	var h := size.y
+	var h := size.y * (0.60 if _kitchen_shown() else 1.0)
 	var ground_y := h * 0.84
 	var restored := economy.restored_fraction() if economy != null else 0.0
 	var rng := RandomNumberGenerator.new()
@@ -93,6 +98,96 @@ func _draw() -> void:
 	Art.bird(self, Vector2(w * 0.40, h * 0.09), 5.0)
 
 	_draw_decor(w, ground_y)
+
+	if _kitchen_shown():
+		_draw_kitchen(0.0, size.y * 0.62, w, size.y * 0.38)
+
+## A cross-section of the Kitchen along the bottom strip. Each fitting gains
+## detail and warmth with its tier so buying them has a visible payoff.
+func _draw_kitchen(x: float, y: float, w: float, kh: float) -> void:
+	var restored := economy.restored_fraction() if economy != null else 0.0
+	var wall := Color("d9c6ac").lerp(Color("ecdcc1"), restored)
+	var floor_c := _mix(Color("b6a37f"), Color("cdae82"), _t("floor"), 2)
+	draw_rect(Rect2(x, y, w, kh), wall)
+	Art.paper(self, Rect2(x, y, w, kh), 0.8)
+	var fy := y + kh * 0.60
+	draw_rect(Rect2(x, fy, w, kh * 0.40), floor_c)
+	draw_line(Vector2(x, fy), Vector2(x + w, fy), floor_c.darkened(0.22), 3.0)
+	if _t("floor") >= 2:
+		var bx := x + 10.0
+		while bx < x + w:
+			draw_line(Vector2(bx, fy), Vector2(bx, y + kh), floor_c.darkened(0.12), 1.0)
+			bx += 34.0
+	# warm ceiling glow once anything's restored in here
+	Art.glow(self, Vector2(x + w * 0.5, y + 6.0), w * 0.5, Color("ffe6b0"))
+
+	_kitchen_stove(x + w * 0.14, fy, kh)
+	_kitchen_table(x + w * 0.5, fy, kh)
+	_kitchen_dresser(x + w * 0.84, y + kh * 0.14, fy, kh)
+
+func _kitchen_stove(cx: float, fy: float, kh: float) -> void:
+	var t := _t("stove")
+	var bw := 78.0
+	var bh := kh * 0.42
+	var col := _mix(Color("8b8377"), Color("c7c1b6"), t, 3)
+	draw_rect(Rect2(cx - bw * 0.5, fy - bh, bw, bh), col)
+	draw_rect(Rect2(cx - bw * 0.5, fy - bh, bw, bh), col.darkened(0.3), false, 2.0)
+	# burners on top
+	for s in [-1.0, 1.0]:
+		draw_circle(Vector2(cx + s * bw * 0.24, fy - bh - 3.0), 9.0, col.darkened(0.25))
+	if t == 0:
+		draw_line(Vector2(cx - bw * 0.4, fy - bh * 0.3), Vector2(cx + bw * 0.4, fy - bh * 0.7), Color("6a6258"), 3.0)
+	if t >= 1:
+		draw_rect(Rect2(cx - bw * 0.34, fy - bh * 0.66, bw * 0.68, bh * 0.42), Color("2f2a24"))  # oven window
+		if t >= 2:
+			draw_arc(Vector2(cx, fy - bh * 0.45), bw * 0.28, PI, TAU, 16, Color("ffb85e"), 3.0)  # a warm glow inside
+	if t >= 2:
+		draw_rect(Rect2(cx - bw * 0.6, fy - bh - 22.0, bw * 1.2, 10.0), col.lightened(0.1))  # extractor hood
+	if t >= 3:
+		Art.potted(self, Vector2(cx + bw * 0.5 + 14.0, fy), 0.6, Color("8fae7d"))
+		draw_circle(Vector2(cx - bw * 0.3, fy - bh - 30.0), 4.0, Color("c98f6b"))  # a hanging cup
+
+func _kitchen_table(cx: float, fy: float, kh: float) -> void:
+	var t := _t("table")
+	var tw := 96.0
+	var th := 8.0
+	var top_y := fy - kh * 0.34
+	var col := _mix(Color("9a8768"), Color("caa878"), t, 2)
+	draw_rect(Rect2(cx - tw * 0.5, top_y, tw, th), col)
+	for s in [-1.0, 1.0]:
+		draw_rect(Rect2(cx + s * tw * 0.4 - 3.0, top_y + th, 6.0, fy - top_y - th), col.darkened(0.15))
+	if t == 0:
+		draw_line(Vector2(cx - tw * 0.4, top_y - 4.0), Vector2(cx + tw * 0.1, top_y - 1.0), Color("6a5c45"), 2.0)  # a crack
+	if t >= 1:
+		draw_circle(Vector2(cx - tw * 0.2, top_y - 6.0), 6.0, Color("e6b45e"))  # a bowl
+		draw_circle(Vector2(cx + tw * 0.16, top_y - 5.0), 5.0, Color("d97a6c"))
+	if t >= 2:
+		# a little vase of flowers
+		draw_rect(Rect2(cx - 4.0, top_y - 20.0, 8.0, 14.0), Color("9fc7e0"))
+		for i in 3:
+			draw_circle(Vector2(cx - 6.0 + i * 6.0, top_y - 22.0), 3.5, [Color("e8899b"), Color("f2c14e"), Color("cf9ad4")][i])
+
+func _kitchen_dresser(cx: float, top_y: float, fy: float, _kh: float) -> void:
+	var t := _t("dresser")
+	var dw := 92.0
+	var dh := fy - top_y
+	var col := _mix(Color("8f8069"), Color("bf9d74"), t, 3)
+	draw_rect(Rect2(cx - dw * 0.5, top_y, dw, dh), col)
+	draw_rect(Rect2(cx - dw * 0.5, top_y, dw, dh), col.darkened(0.3), false, 2.0)
+	for i in 3:
+		var sy := top_y + dh * (0.2 + i * 0.28)
+		draw_line(Vector2(cx - dw * 0.5, sy), Vector2(cx + dw * 0.5, sy), col.darkened(0.22), 2.0)
+		if t >= 1:
+			for k in 3:
+				var px := cx - dw * 0.34 + k * dw * 0.34
+				var pcol: Color = Palette.BEADS[(i + k) % Palette.BEADS.size()]
+				if t == 1 and (i + k) % 2 == 1:
+					continue
+				draw_arc(Vector2(px, sy - 4.0), 6.0, PI, TAU, 10, pcol.darkened(0.05), 3.0)  # plates on edge
+	if t >= 2:
+		draw_rect(Rect2(cx - dw * 0.5, top_y - 10.0, dw, 10.0), col.lightened(0.12))  # cornice
+	if t >= 3:
+		Art.potted(self, Vector2(cx, top_y - 12.0), 0.5, Color("8fae7d"))
 
 func _draw_hill(w: float, base_y: float, amp: float, col: Color, phase: float) -> void:
 	var pts := PackedVector2Array()

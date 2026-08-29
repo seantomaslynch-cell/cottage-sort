@@ -44,6 +44,9 @@ func _run() -> void:
 		if main and main.has_method("_on_stage_picked"):
 			main._on_stage_picked(arg_stage)
 			await create_timer(0.5).timeout
+			var cc := _find(get_root(), "ChapterCard")
+			if cc:
+				cc.visible = false
 
 	var cottage := _find(get_root(), "CottageScreen")
 	var daily := _find(get_root(), "DailyPanel")
@@ -65,8 +68,9 @@ func _run() -> void:
 	match mode:
 		"cottage":
 			if economy:
-				economy.add_coins(400)
-				for slot in ["roof", "walls", "garden", "window", "door"]:
+				economy.add_coins(4000)
+				for slot in ["roof", "walls", "garden", "window", "door", "stove", "table", "dresser", "floor"]:
+					economy.buy(slot)
 					economy.buy(slot)
 			if cottage:
 				cottage.open()
