@@ -1,9 +1,14 @@
 # Apple App Store submission — checklist
 
-**Hard requirement: you need a Mac.** Xcode (macOS only) builds and uploads iOS
-apps. You also need an **Apple Developer Program** membership ($99/year). Nothing
-below can be done from Windows except the Godot-side prep, which is already in
-the repo.
+**Building via Codemagic** — see `store/CODEMAGIC.md`. Codemagic runs the macOS
+build machines, does code signing, and uploads to App Store Connect / TestFlight,
+so **no local Mac is needed**. You still need an **Apple Developer Program**
+membership ($99/year) and an App Store Connect API key (added as a Codemagic
+integration).
+
+The store-side, one-time setup below (app record, bundle id, IAPs, metadata,
+privacy policy, screenshots) is still done by hand in App Store Connect. Once
+that's in place, `git push` → Codemagic build → TestFlight is the loop.
 
 ## 0. Accounts & IDs
 
@@ -16,19 +21,19 @@ the repo.
 - [ ] Capabilities on the App ID: In-App Purchase. (No Push, no Sign in with
       Apple, no iCloud — the game uses none.)
 
-## 1. Godot iOS export (needs a Mac with Xcode)
+## 1. Godot iOS export — handled by Codemagic
 
-- [ ] Install the iOS export templates in Godot 4.7.2.
-- [ ] `export_presets.cfg` already has an **iOS** preset — set:
-      - `application/bundle_identifier` = your bundle ID
-      - `application/short_version` / `version`
-      - Team ID + signing (auto-manage is easiest for a first submit)
-- [ ] Add the native plugins under the iOS export (ads / billing / analytics /
-      notifications — see `store/INTEGRATION.md`). Each ships as an
-      `.a`/`.xcframework` + a `.gdip` config.
-- [ ] Export → produces an Xcode project. Open it, set the deployment target
-      (iOS 13+ is a safe floor for Godot 4), build to a device to smoke-test.
-- [ ] Archive → Distribute App → App Store Connect → upload.
+`codemagic.yaml`'s `ios-release` workflow installs Godot 4.7.2 + templates,
+runs `godot --headless --export-release "iOS"`, signs with the App Store Connect
+API key, and uploads to TestFlight. You only need to:
+
+- [ ] Set `application/bundle_identifier` in `export_presets.cfg` (currently
+      `com.example.cottagesort`) and register it in App Store Connect.
+- [ ] Add the native plugins (ads / billing / analytics / notifications — see
+      `store/INTEGRATION.md`) and commit them so the CI export picks them up.
+- [ ] Configure the Codemagic env groups + integrations per `store/CODEMAGIC.md`.
+
+To build locally instead you'd need a Mac with Xcode + the iOS templates.
 
 ## 2. App icon & assets
 
@@ -116,8 +121,9 @@ In App Store Connect → your app → **In-App Purchases**, create one per SKU i
 
 ## Blocking items to resolve before any of this
 
-1. A Mac + Apple Developer account.
-2. Real ad/IAP SDK plugins wired (`store/INTEGRATION.md`).
-3. Placeholder art / SFX / music replaced (`store/ASO.md`).
-4. A hosted privacy policy page.
-5. The App Tracking Transparency prompt implemented (ties into the ad SDK).
+1. Apple Developer account + App Store Connect API key (Codemagic provides the Mac).
+2. Codemagic env groups + signing set up (`store/CODEMAGIC.md`).
+3. Real ad/IAP SDK plugins wired and committed (`store/INTEGRATION.md`).
+4. Placeholder art / SFX / music replaced (`store/ASO.md`).
+5. A hosted privacy policy page (`store/PRIVACY.md`).
+6. The App Tracking Transparency prompt implemented (ties into the ad SDK).

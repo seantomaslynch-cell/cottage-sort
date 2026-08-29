@@ -1,0 +1,151 @@
+# Codemagic CI/CD — Cottage Sort
+#
+# Codemagic provides the macOS build machines, code signing, and store upload,
+# so no local Mac is needed. Three workflows: iOS (App Store / TestFlight),
+# Android (Google Play), Web (artifact only).
+#
+# Each workflow: install Godot 4.7.2 + export templates -> godot --export-release
+# -> Codemagic signs + publishes.
+#
+# SET UP FIRST (Codemagic UI -> your app):
+#   * Environment variable groups (see `groups:` below):
+#       - godot        : GODOT_VERSION (e.g. 4.7.2-stable)
+#       - appstore     : APP_STORE_APP_ID (numeric App Store Connect app id), BUNDLE_ID
+#                        (iOS signing + the API key come from the CodemagicAppStoreKey
+#                         integration, not from env vars)
+#       - googleplay   : GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (Play service-account JSON),
+#                        PACKAGE_NAME
+#       - android_keys : CM_KEYSTORE (base64), CM_KEYSTORE_PASSWORD,
+#                        CM_KEY_ALIAS, CM_KEY_PASSWORD
+#   * iOS: add an App Store Connect API key integration; enable "automatic code signing".
+#   * Register the bundle id `com.example.cottagesort` and the IAPs (store/METADATA.md)
+#     in App Store Connect / Play Console before the first publish.
+#   * Replace the placeholder art/audio and host the privacy policy (store/PRIVACY.md).
+
+definitions:
+  fetch_godot: &fetch_godot
+    name: Install Godot + export templates
+    script: |
+      set -e
+      GV="${GODOT_VERSION:-4.7.2-stable}"
+      BASE="https://github.com/godotengine/godot-builds/releases/download/${GV}"
+      case "$(uname -s)" in
+        Darwin) BIN_ZIP="Godot_v${GV}_macos.universal.zip"; BIN="Godot.app/Contents/MacOS/Godot" ;;
+        *)      BIN_ZIP="Godot_v${GV}_linux.x86_64.zip";     BIN="Godot_v${GV}_linux.x86_64" ;;
+      esac
+      curl -sSL -o godot.zip  "${BASE}/${BIN_ZIP}"
+      curl -sSL -o templates.tpz "${BASE}/Godot_v${GV}_export_templates.tpz"
+      unzip -q godot.zip
+      TPL_DIR="$HOME/.local/share/godot/export_templates/${GV/-/.}"
+      mkdir -p "$TPL_DIR"
+      unzip -q templates.tpz
+      mv templates/* "$TPL_DIR/"
+      echo "GODOT_BIN=$PWD/$BIN" >> "$CM_ENV"
+      chmod +x "$PWD/$BIN" 2>/dev/null || true
+      "$PWD/$BIN" --headless --version
+
+workflows:
+
+  # ---------------------------------------------------------------- iOS ------
+  ios-release:
+    name: iOS — App Store / TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: CodemagicAppStoreKey   # name your App Store Connect API key integration
+    environment:
+      groups:
+        - godot
+        - appstore
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.example.cottagesort
+      xcode: latest
+    scripts:
+      - *fetch_godot
+      - name: Set signing + version in the iOS preset
+        script: |
+          set -e
+          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo 0) + 1))
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$CM_ENV"
+      - name: Godot export (iOS)
+        script: |
+          set -e
+          mkdir -p build/ios
+          "$GODOT_BIN" --headless --path . --import
+          "$GODOT_BIN" --headless --path . \
+            --export-release "iOS" build/ios/CottageSort.ipa
+      - name: Verify the .ipa
+        script: ls -lh build/ios/*.ipa
+    artifacts:
+      - build/ios/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # submit_to_app_store: false   # flip to true for a full App Store submission
+        beta_groups:
+          - Internal
+
+  # -------------------------------------------------------------- Android ----
+  android-release:
+    name: Android — Google Play
+    instance_type: linux_x2
+    max_build_duration: 45
+    environment:
+      groups:
+        - godot
+        - googleplay
+        - android_keys
+      java: 17
+    scripts:
+      - *fetch_godot
+      - name: Android SDK + Godot build template
+        script: |
+          set -e
+          yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null || true
+          "$GODOT_BIN" --headless --path . --install-android-build-template || true
+      - name: Decode the keystore
+        script: |
+          echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/release.keystore"
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$CM_BUILD_DIR/release.keystore" >> "$CM_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$CM_KEY_ALIAS" >> "$CM_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$CM_KEY_PASSWORD" >> "$CM_ENV"
+      - name: Godot export (Android AAB)
+        script: |
+          set -e
+          mkdir -p build/android
+          "$GODOT_BIN" --headless --path . --import
+          "$GODOT_BIN" --headless --path . \
+            --export-release "Android" build/android/CottageSort.aab
+      - name: Verify the AAB
+        script: ls -lh build/android/*.aab
+    artifacts:
+      - build/android/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal          # internal -> alpha -> beta -> production
+        submit_as_draft: true
+
+  # ---------------------------------------------------------------- Web ------
+  web-release:
+    name: Web — itch / Playables artifact
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      groups:
+        - godot
+    scripts:
+      - *fetch_godot
+      - name: Godot export (Web)
+        script: |
+          set -e
+          mkdir -p build/web
+          "$GODOT_BIN" --headless --path . --import
+          "$GODOT_BIN" --headless --path . \
+            --export-release "Web" build/web/index.html
+      - name: Zip it
+        script: cd build/web && zip -r ../cottage-sort-web.zip .
+    artifacts:
+      - build/cottage-sort-web.zip
