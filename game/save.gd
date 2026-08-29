@@ -7,7 +7,10 @@ const PATH := "user://save.json"
 
 static var data: Dictionary = {
 	"completed": {},   # str(stage_index) -> best move count
-	"muted": false,
+	"muted": false,    # legacy; migrated to sfx_on on load
+	"sfx_on": true,
+	"music_on": true,
+	"haptics_on": true,
 	"coins": 0,
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
 	"stars": {},       # str(stage_index) -> best star count (1..3)
@@ -69,4 +72,14 @@ static func total_stars() -> int:
 
 static func set_muted(m: bool) -> void:
 	data["muted"] = m
+	data["sfx_on"] = not m
 	save_now()
+
+static func set_flag(key: String, v: bool) -> void:
+	data[key] = v
+	save_now()
+
+## Fold the legacy `muted` key into sfx_on for saves made before settings existed.
+static func migrate_audio_flags() -> void:
+	if bool(data.get("muted", false)) and bool(data.get("sfx_on", true)):
+		data["sfx_on"] = false

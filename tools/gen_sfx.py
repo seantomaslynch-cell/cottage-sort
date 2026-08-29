@@ -69,9 +69,33 @@ def write(name, samples):
     print("wrote", path, f"({len(samples)/SR*1000:.0f} ms)")
 
 
+def music(dur=12.0):
+    """A very quiet, slow ambient pad loop — soft sine chords with a gentle drift."""
+    n = int(SR * dur)
+    # C major-ish: C3 E3 G3 C4 A3, rolled in and out so the loop seam is soft
+    voices = [130.81, 164.81, 196.00, 261.63, 220.00]
+    out = [0.0] * n
+    for vi, f in enumerate(voices):
+        detune = 1.0 + (vi - 2) * 0.0006
+        phase = vi * 1.7
+        for i in range(n):
+            t = i / SR
+            # slow amplitude drift per voice + a global fade at the loop seam
+            drift = 0.55 + 0.45 * math.sin(2 * math.pi * (0.03 + vi * 0.008) * t + phase)
+            seam = min(1.0, t / 1.5, (dur - t) / 1.5)
+            s = math.sin(2 * math.pi * f * detune * t)
+            s += 0.3 * math.sin(4 * math.pi * f * detune * t)
+            out[i] += s * drift * seam * 0.05
+    peak = max(1e-9, max(abs(v) for v in out))
+    if peak > 0.6:
+        out = [v * (0.6 / peak) for v in out]
+    return out
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
 
+    write("music.wav", music())
     write("tap.wav", tone(520, 0.05, tau=0.025, gain=0.20, sweep_to=380))
     write("place.wav", seq([
         (0.0, tone(300, 0.09, tau=0.045, gain=0.18)),

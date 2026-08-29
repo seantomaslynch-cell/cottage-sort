@@ -16,6 +16,7 @@ signal double_pressed
 signal add_moves_pressed
 signal buy_moves_pressed
 signal skip_pressed
+signal settings_pressed
 signal mute_toggled(muted: bool)
 
 const BOARD_UNLIMITED := 999
@@ -25,7 +26,6 @@ var _lv := 1
 var _mv := 0
 var _co := 0
 var _budget := BOARD_UNLIMITED
-var _mute_btn: Button
 var _undo_btn: Button
 var _addjar_btn: Button
 var _toast: Label
@@ -39,7 +39,6 @@ var _win_earned := 0
 var _fail_root: Control
 var _fail_buy_btn: Button
 var _fail_skip_btn: Button
-var _muted := false
 
 func _ready() -> void:
 	layer = 10
@@ -68,9 +67,9 @@ func _ready() -> void:
 	shop_btn.pressed.connect(func() -> void: shop_pressed.emit())
 	top.add_child(shop_btn)
 
-	_mute_btn = _button("Vol on")
-	_mute_btn.pressed.connect(_on_mute)
-	top.add_child(_mute_btn)
+	var settings_btn := _button("Settings")
+	settings_btn.pressed.connect(func() -> void: settings_pressed.emit())
+	top.add_child(settings_btn)
 
 	var restart_btn := _button("Restart")
 	restart_btn.pressed.connect(func() -> void: restart_pressed.emit())
@@ -256,14 +255,8 @@ func _button(t: String) -> Button:
 	b.add_theme_font_size_override("font_size", 26)
 	return b
 
-func _on_mute() -> void:
-	_muted = not _muted
-	set_muted(_muted)
-	mute_toggled.emit(_muted)
-
-func set_muted(m: bool) -> void:
-	_muted = m
-	_mute_btn.text = "Vol off" if m else "Vol on"
+func set_muted(_m: bool) -> void:
+	pass  # sound is toggled from the Settings screen now; kept for the M-key path
 
 func _sync_status() -> void:
 	var mv_txt := "%d moves" % _mv

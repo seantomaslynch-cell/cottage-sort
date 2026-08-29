@@ -18,6 +18,7 @@ const Solver := preload("res://game/solver.gd")
 const IapScene := preload("res://game/iap.gd")
 const ShopPanelScene := preload("res://game/shop_panel.gd")
 const CoachScene := preload("res://game/coach.gd")
+const SettingsPanelScene := preload("res://game/settings_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -39,6 +40,7 @@ var _daily_panel: DailyPanel
 var _iap: GameIap
 var _shop: ShopPanel
 var _coach: Coach
+var _settings: SettingsPanel
 var _new_player := false
 var _stage := 0
 var _last_earned := 0
@@ -55,9 +57,13 @@ func _ready() -> void:
 	SaveData.load_now()
 	_new_player = not bool(SaveData.data.get("intro_seen", false))
 
+	SaveData.migrate_audio_flags()
 	_audio = AudioScene.new()
 	add_child(_audio)
-	_audio.muted = bool(SaveData.data.get("muted", false))
+	_audio.sfx_on = bool(SaveData.data.get("sfx_on", true))
+	_audio.music_on = bool(SaveData.data.get("music_on", true))
+	_audio.haptics_on = bool(SaveData.data.get("haptics_on", true))
+	_audio.apply_music()
 
 	_ads = AdsScene.new()
 	add_child(_ads)
@@ -99,6 +105,10 @@ func _ready() -> void:
 	_coach = CoachScene.new()
 	add_child(_coach)
 
+	_settings = SettingsPanelScene.new()
+	add_child(_settings)
+	_settings.set_flags(_audio.sfx_on, _audio.music_on, _audio.haptics_on)
+
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
 		if n >= 2:
@@ -134,6 +144,14 @@ func _ready() -> void:
 
 	_hud.daily_pressed.connect(_open_daily)
 	_hud.shop_pressed.connect(func() -> void: _shop.open())
+	_hud.settings_pressed.connect(func() -> void: _settings.open())
+
+	_settings.closed.connect(func() -> void: _settings.visible = false)
+	_settings.restore_pressed.connect(func() -> void:
+		_iap.restore()
+		_ads.remove_ads = _iap.has_remove_ads()
+		_settings.note("Restore complete"))
+	_settings.flag_toggled.connect(_on_setting_toggled)
 	_daily_panel.closed.connect(func() -> void: _daily_panel.visible = false)
 
 	_shop.closed.connect(func() -> void: _shop.visible = false)
@@ -160,7 +178,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings]:
 		_apply_theme(scr)
 
 	_load_current()
@@ -263,8 +281,21 @@ func _on_add_jar() -> void:
 			_hud.flash("Extra jar added"))
 
 func _on_mute_toggled(muted: bool) -> void:
-	_audio.muted = muted
+	_audio.sfx_on = not muted
 	SaveData.set_muted(muted)
+	_settings.set_flags(_audio.sfx_on, _audio.music_on, _audio.haptics_on)
+
+func _on_setting_toggled(key: String, value: bool) -> void:
+	match key:
+		"sfx_on": _audio.sfx_on = value
+		"music_on":
+			_audio.music_on = value
+			_audio.apply_music()
+		"haptics_on":
+			_audio.haptics_on = value
+			if value:
+				_audio.haptic_for("place")
+	SaveData.set_flag(key, value)
 
 func _on_solved() -> void:
 	_coach.clear()
@@ -346,7 +377,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _hud.fail_open():
 		return  # resolve the out-of-moves prompt with the buttons
-	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
 		if not (_shop.visible and event.keycode == KEY_S) \

@@ -493,3 +493,4 @@ func _ease_out(x: float) -> float:
 func _sfx(name: String, pitch := 1.0) -> void:
 	if audio != null:
 		audio.play(name, pitch)
+		audio.haptic_for(name)

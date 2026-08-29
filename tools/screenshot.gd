@@ -25,10 +25,11 @@ func _run() -> void:
 	var cottage := _find(get_root(), "CottageScreen")
 	var daily := _find(get_root(), "DailyPanel")
 	var shop := _find(get_root(), "ShopPanel")
+	var settings := _find(get_root(), "SettingsPanel")
 	var levelsel := _find(get_root(), "LevelSelect")
 	var economy := _find(get_root(), "Economy")
 
-	for o in [cottage, daily, shop, levelsel]:
+	for o in [cottage, daily, shop, settings, levelsel]:
 		if o:
 			o.visible = false
 
@@ -46,6 +47,9 @@ func _run() -> void:
 		"shop":
 			if shop:
 				shop.open()
+		"settings":
+			if settings:
+				settings.open()
 
 	await create_timer(0.7).timeout
 
