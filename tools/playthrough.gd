@@ -9,12 +9,16 @@ extends SceneTree
 var _backup := ""
 var _had_save := false
 var _levels := 5
+var _start := 0
+var _budget := 200000
 var _prefix := "res://play"
 
 func _initialize() -> void:
 	var a := OS.get_cmdline_user_args()
 	if a.size() > 0: _levels = int(a[0])
-	if a.size() > 1: _prefix = a[1]
+	if a.size() > 1: _start = int(a[1])
+	if a.size() > 2: _budget = int(a[2])
+	if a.size() > 3: _prefix = a[3]
 	_had_save = FileAccess.file_exists(SaveData.PATH)
 	if _had_save:
 		_backup = FileAccess.open(SaveData.PATH, FileAccess.READ).get_as_text()
@@ -35,38 +39,49 @@ func _run() -> void:
 		if o: o.visible = false
 
 	var totals: Array = []
-	for stage in _levels:
+	for i in _levels:
+		var stage: int = _start + i
 		main._on_stage_picked(stage)
 		await create_timer(0.35).timeout
 
-		var guard := 0
-		while not board._is_solved() and guard < 200:
-			guard += 1
-			var s: Dictionary = SortSolver.solve(board.jars, 20000)
-			var mv: Array = s.get("move", [])
-			if mv.is_empty():
-				push_warning("stage %d: solver stuck after %d moves" % [stage, board.moves])
+		var budget: int = board.move_budget
+		var path: Array = SortSolver.solve_full(board.jars, _budget)
+		var par: int = path.size()
+
+		var stuck := false
+		for mv in path:
+			if board._is_solved():
 				break
 			_play_move(board, mv[0], mv[1])
 			while board._busy:
 				await process_frame
-			await create_timer(0.06).timeout
+			await create_timer(0.05).timeout
+			if board._is_failed():
+				stuck = true
+				break
+		if par == 0:
+			stuck = true
 
-		await create_timer(0.5).timeout   # let the win juice settle
+		await create_timer(0.5).timeout   # let the win juice / fail panel settle
 		var out := "%s_%02d.png" % [_prefix, stage + 1]
-		var img := get_root().get_texture().get_image()
-		img.save_png(ProjectSettings.globalize_path(out))
+		get_root().get_texture().get_image().save_png(ProjectSettings.globalize_path(out))
 		var solved: bool = board._is_solved()
-		totals.append({"lvl": stage + 1, "moves": board.moves, "solved": solved})
-		print("  level %d  moves=%d  solved=%s  -> %s" % [stage + 1, board.moves, solved, out])
+		var bstr := ("%d" % budget) if budget < board.UNLIMITED else "-"
+		totals.append({"lvl": stage + 1, "moves": board.moves, "par": par,
+			"budget": bstr, "solved": solved, "stuck": stuck})
+		print("  L%d  played=%d  par=%d  budget=%s  solved=%s%s  -> %s"
+			% [stage + 1, board.moves, par, bstr, solved,
+			("  <<< STUCK" if stuck and not solved else ""), out])
 
 		if solved:
 			main._next()
 			await create_timer(0.4).timeout
 
-	print("\nplaythrough summary:")
+	print("\nplaythrough summary  (played / par / budget):")
 	for r in totals:
-		print("  L%-2d  %2d moves  %s" % [r["lvl"], r["moves"], "OK" if r["solved"] else "STUCK"])
+		print("  L%-3d %2d / %2d / %-4s  %s"
+			% [r["lvl"], r["moves"], r["par"], r["budget"],
+			"OK" if r["solved"] else "STUCK"])
 
 	_restore()
 	quit(0)

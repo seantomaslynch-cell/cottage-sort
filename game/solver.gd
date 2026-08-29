@@ -47,7 +47,13 @@ static func _reconstruct(parent: Dictionary, goal_key: String) -> Dictionary:
 		var step: Dictionary = parent[k]
 		moves.push_front(step["mv"])
 		k = step["prev"]
-	return {"move": moves[0] if not moves.is_empty() else [], "par": moves.size()}
+	return {"move": moves[0] if not moves.is_empty() else [], "par": moves.size(), "path": moves}
+
+## Full shortest move list [[from, to], ...] for a solution, or [] if none found
+## within `budget`. Used by tools/playthrough.gd.
+static func solve_full(start: Array, budget := 120000) -> Array:
+	var s := solve(start, budget)
+	return s.get("path", [])
 
 static func _moves(jars: Array) -> Array:
 	var out: Array = []
