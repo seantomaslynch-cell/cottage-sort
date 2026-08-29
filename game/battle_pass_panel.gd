@@ -6,6 +6,7 @@ class_name BattlePassPanel
 signal claim_free_pressed
 signal claim_premium_pressed
 signal unlock_pressed
+signal skip_pressed
 signal closed
 
 var bp: BattlePass = null
@@ -17,6 +18,8 @@ var _list: VBoxContainer
 var _claim_free_btn: Button
 var _claim_prem_btn: Button
 var _unlock_btn: Button
+var _skip_btn: Button
+var _toast: Label
 
 func _ready() -> void:
 	layer = 22
@@ -85,6 +88,10 @@ func _ready() -> void:
 	_claim_prem_btn.custom_minimum_size = Vector2(230, 56)
 	_claim_prem_btn.pressed.connect(func() -> void: claim_premium_pressed.emit())
 	claim_row.add_child(_claim_prem_btn)
+	_skip_btn = _button("Skip tier", 22)
+	_skip_btn.custom_minimum_size = Vector2(190, 56)
+	_skip_btn.pressed.connect(func() -> void: skip_pressed.emit())
+	claim_row.add_child(_skip_btn)
 
 	var bottom := HBoxContainer.new()
 	bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
@@ -103,6 +110,21 @@ func _ready() -> void:
 	close.custom_minimum_size = Vector2(240, 64)
 	close.pressed.connect(func() -> void: closed.emit())
 	bottom.add_child(close)
+
+	_toast = _label("", 26)
+	_toast.add_theme_color_override("font_color", Palette.ACCENT_WARM)
+	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_toast.offset_top = 100.0
+	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast.modulate.a = 0.0
+	add_child(_toast)
+
+func flash(text: String) -> void:
+	_toast.text = text
+	_toast.modulate.a = 1.0
+	var tw := create_tween()
+	tw.tween_interval(0.9)
+	tw.tween_property(_toast, "modulate:a", 0.0, 0.5)
 
 func set_pass(b: BattlePass) -> void:
 	bp = b
@@ -124,6 +146,12 @@ func refresh() -> void:
 	_claim_free_btn.disabled = reached <= bp.free_claimed()
 	_claim_prem_btn.disabled = not owned or reached <= bp.prem_claimed()
 	_unlock_btn.visible = not owned
+	if reached >= BattlePass.TIERS:
+		_skip_btn.text = "Max tier"
+		_skip_btn.disabled = true
+	else:
+		_skip_btn.text = "Skip tier  ·  %dg" % bp.skip_cost()
+		_skip_btn.disabled = false
 
 	for c in _list.get_children():
 		_list.remove_child(c)

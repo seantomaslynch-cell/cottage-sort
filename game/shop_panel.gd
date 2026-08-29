@@ -110,6 +110,15 @@ func refresh() -> void:
 		_list.remove_child(c)
 		c.queue_free()
 
+	# Today's rotating deal — a reason to open the shop daily
+	var deal := DealData.today()
+	var dp := _iap.product(deal["id"])
+	var taken := DealData.claimed_today()
+	_list.add_child(_offer_card(
+		"Today's deal   ·   %s" % ("claimed — back tomorrow" if taken else "one per day"),
+		"%s   +%d%% bonus   —   %s" % [dp["name"], int(float(deal["bonus"]) * 100.0), dp["price"]],
+		deal["id"], not taken))
+
 	# Starter pack — value-heavy, time-boxed, one-time
 	if _starter_secs >= 0 and not _iap.owns("starter_pack"):
 		var sp := _iap.product("starter_pack")
@@ -133,7 +142,10 @@ func refresh() -> void:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 
-		var name_lbl := _label("%s\n%s" % [p["name"], p["price"]], 24)
+		var tag := ""
+		if str(p.get("kind")) == "gems" and not bool(SaveData.data.get("first_gem_buy", false)):
+			tag = "   ·   2× first buy!"
+		var name_lbl := _label("%s%s\n%s" % [p["name"], tag, p["price"]], 24)
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(name_lbl)
 

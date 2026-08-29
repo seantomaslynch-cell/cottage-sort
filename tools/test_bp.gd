@@ -39,6 +39,14 @@ func _initialize() -> void:
 	_ok(int(BattlePass.reward(10, true).get("gems", 0)) >= int(BattlePass.reward(3, true).get("gems", 0)),
 		"premium gems don't shrink with tier")
 
+	# tier skip jumps to the next whole tier boundary
+	SaveData.data["bp"] = {}
+	var bp2: BattlePass = BpS.new()
+	bp2.add_xp(130)   # tier 1, 30 into tier 2
+	_ok(bp2.skip_cost() > 0, "skip_cost is positive")
+	_ok(bp2.buy_skip() and bp2.tier_reached() == 2 and bp2.xp() == 200, "buy_skip -> exactly tier 2")
+	bp2.free()
+
 	# season rollover clears state
 	bp.debug_day_offset = BattlePass.SEASON_DAYS + 1
 	_ok(bp.xp() == 0 and not bp.pass_owned(), "a new season resets xp and ownership")

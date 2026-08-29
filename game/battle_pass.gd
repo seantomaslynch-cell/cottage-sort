@@ -46,6 +46,22 @@ func add_xp(n: int) -> void:
 	SaveData.save_now()
 	changed.emit()
 
+## Gems to skip one tier — cheaper as the season winds down (catch-up).
+func skip_cost() -> int:
+	return maxi(20, 55 - days_left())
+
+## Buy a tier: jump the XP to the next whole tier boundary. No-op at max.
+func buy_skip() -> bool:
+	if tier_reached() >= TIERS:
+		return false
+	var d := _bp()
+	var cur := int(d.get("xp", 0))
+	d["xp"] = (cur / XP_PER_TIER + 1) * XP_PER_TIER
+	SaveData.data["bp"] = d
+	SaveData.save_now()
+	changed.emit()
+	return true
+
 func pass_owned() -> bool:
 	return bool(_bp().get("owned", false))
 

@@ -269,6 +269,7 @@ func _ready() -> void:
 	_bp_panel.unlock_pressed.connect(func() -> void: _iap.purchase("battle_pass"))
 	_bp_panel.claim_free_pressed.connect(func() -> void: _grant_bp(_bp.claim_free()))
 	_bp_panel.claim_premium_pressed.connect(func() -> void: _grant_bp(_bp.claim_premium()))
+	_bp_panel.skip_pressed.connect(_on_bp_skip)
 	_bp.changed.connect(func() -> void:
 		if _bp_panel.visible:
 			_bp_panel.refresh())
@@ -768,10 +769,45 @@ func _on_purchased(id: String) -> void:
 			_bp.set_owned(true)
 			_bp_panel.refresh()
 			msg = "Season pass unlocked!"
+	# First gem pack is doubled — converts non-payers.
+	if str(p.get("kind")) == "gems" and not bool(SaveData.data.get("first_gem_buy", false)):
+		SaveData.data["first_gem_buy"] = true
+		SaveData.save_now()
+		_economy.add_gems(int(p["amount"]))
+		msg = "First purchase — doubled!  +%d gems" % int(p["amount"])
+
+	# Rotating daily deal — a bonus on today's featured product, once per day.
+	var deal := DealData.today()
+	if id == str(deal["id"]) and not DealData.claimed_today():
+		DealData.mark_claimed()
+		var bonus := float(deal["bonus"])
+		match str(p.get("kind")):
+			"gems":  _economy.add_gems(int(round(float(p["amount"]) * bonus)))
+			"coins": _economy.add_coins(int(round(float(p["amount"]) * bonus)))
+			"boosters":
+				var extra := int(ceil(float(p.get("each", 0)) * bonus))
+				for bid in Boosters.LIST:
+					_economy.add_booster(bid, extra)
+				_booster.refresh()
+		msg = "Daily deal bonus applied!"
+		_analytics.log_event("daily_deal", {"id": id})
+
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
 	if msg != "":
 		_shop.flash(msg)
+
+func _on_bp_skip() -> void:
+	if _bp.tier_reached() >= BattlePass.TIERS:
+		return
+	var cost := _bp.skip_cost()
+	if _economy.spend_gems(cost):
+		_bp.buy_skip()
+		_analytics.log_event("bp_skip", {"cost": cost, "tier": _bp.tier_reached()})
+		_bp_panel.flash("Tier %d!" % _bp.tier_reached())
+	else:
+		_bp_panel.flash("Not enough gems")
+	_bp_panel.refresh()
 
 func _open_daily() -> void:
 	_daily_panel.open()

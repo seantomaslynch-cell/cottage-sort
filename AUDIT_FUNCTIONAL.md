@@ -81,16 +81,20 @@ Ranked by impact ÷ effort. Anything marked *(external)* needs a plugin/asset.
 9. **A cosmetic gem sink** — sell exclusive premium decor sets for gems (not
    just coins). Right now gems only buy boosters + continues; give them a
    vanity outlet.
-10. **Battle-pass "tier skip"** — buy 3–5 tiers for gems near season end. A
-    standard, well-liked pass monetiser.
+10. **Battle-pass "tier skip"** — *done (M41)*: a "Skip tier · N gems" button
+    in the season panel; cost eases toward season end (`maxi(20, 55 - days_left)`).
 11. **Piggy-bank tiers** — a bigger bank (500 gems, $9.99) that unlocks after
     the first crack; whales fill and crack it repeatedly.
 12. **Remove-ads should also grant a small daily gem stipend** — makes the
     $2.99 feel like a subscription-lite and lifts its conversion.
 13. **Seasonal event storefront** — bundle the current seasonal decor set at a
     discount for gems during its 28-day window; expires with the season.
-14. **First-purchase doubler** — "your first gem pack, doubled." Converts
-    non-payers; one-time.
+14. **First-purchase doubler** — *done (M41)*: first gem pack is doubled
+    (`SaveData.first_gem_buy`), flagged with a "2× first buy!" tag in the Shop.
+
+*Also new in M41:* a **rotating daily deal** — one featured product a day
+(`game/deal_data.gd`, deterministic by local date) with a +20–50% bonus on the
+granted amount, once per day.
 
 ### Content cadence (needed for a live game)
 

@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M40 endless milestones + depth board
+**Updated:** 2026-08-29 · +M41 monetization depth
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -52,6 +52,7 @@ file map in [README.md](README.md).
 | M38 feel polish — flawless badge, per-colour pour pitch, last-jar glow, near-miss pulse, chapter-progress hint, first-time flourishes | ✅ done |
 | M39 realm bead skins + beat-par goal + Kitchen visual payoff (locked-jar / colour-rush variants deferred) | ✅ done |
 | M40 endless milestone chests (L50/75/100/…) + all-time "furthest level" leaderboard tab + Homesteader badge | ✅ done |
+| M41 monetization depth — BP tier skip, first-gem-pack doubler, rotating daily shop deal | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
