@@ -30,6 +30,8 @@ static var data: Dictionary = {
 	"ftue_done": false,        # L1 guided tutorial completed
 	"ftue_budget_seen": false, # shown the "moves are limited now" heads-up
 	"ftue_stars_seen": false,  # shown the star-rating explainer
+	"story_seen": false,       # shown the one-paragraph intro
+	"cat_gift_day": -1,        # last day the cottage cat left a gift
 	"achievements": {},        # id -> true once earned
 	"stat_deepest": 0,         # furthest stage index reached
 	"stat_flawless": 0,        # 3-star clears with no undo/hint

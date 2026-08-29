@@ -29,6 +29,8 @@ const HomeScreenScene := preload("res://game/home_screen.gd")
 const ChapterCardScene := preload("res://game/chapter_card.gd")
 const AchievementsScene := preload("res://game/achievements.gd")
 const ProgressPanelScene := preload("res://game/progress_panel.gd")
+const IntroStoryScene := preload("res://game/intro_story.gd")
+const CottageCatScene := preload("res://game/cottage_cat.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -61,6 +63,8 @@ var _home: HomeScreen
 var _chapter_card: ChapterCard
 var _ach: Achievements
 var _progress: ProgressPanel
+var _story: IntroStory
+var _cat: CottageCat
 var _session_popups_done := false
 var _new_player := false
 var _stage := 0
@@ -105,6 +109,13 @@ func _ready() -> void:
 	_board = BoardScene.new()
 	_board.audio = _audio
 	add_child(_board)
+
+	_cat = CottageCatScene.new()
+	_cat.position = Vector2(158, 1060)
+	_cat.scale = Vector2(1.2, 1.2)
+	_cat._base_scale = 1.2
+	_cat.visible = false
+	add_child(_cat)
 
 	_hud = HudScene.new()
 	add_child(_hud)
@@ -174,10 +185,19 @@ func _ready() -> void:
 	_daily.changed.connect(func() -> void: _ach.scan())
 	_bp.changed.connect(func() -> void: _ach.scan())
 
+	_story = IntroStoryScene.new()
+	add_child(_story)
+	_story.begun.connect(func() -> void: _enter_game())
+
 	_home = HomeScreenScene.new()
 	add_child(_home)
 	_home.set_economy(_economy)
-	_home.play_pressed.connect(func() -> void: _enter_game())
+	_home.play_pressed.connect(func() -> void:
+		if _new_player and not bool(SaveData.data.get("story_seen", false)):
+			_home.close()
+			_story.show_story()
+		else:
+			_enter_game())
 	_home.cottage_pressed.connect(func() -> void: _enter_game(_show_cottage))
 	_home.daily_pressed.connect(func() -> void: _enter_game(_open_daily))
 	_home.shop_pressed.connect(func() -> void: _enter_game(_open_shop))
@@ -311,7 +331,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card, _progress]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card, _progress, _story]:
 		_apply_theme(scr)
 
 	_last_chapter = Realms.index_for(_stage)   # so the card only fires on a real change
@@ -604,6 +624,15 @@ func _on_solved() -> void:
 		return
 	var was_ftue := _ftue_active
 	_ftue_finish()
+	_cat.celebrate()
+	# The cat leaves a little gift on the first level cleared each day (not the
+	# tutorial level, so it isn't the very first thing a new player sees).
+	if not was_ftue and _daily.today() != int(SaveData.data.get("cat_gift_day", -1)):
+		SaveData.data["cat_gift_day"] = _daily.today()
+		var gift := randi_range(30, 55)
+		_economy.add_coins(gift)
+		_hud.flash("The cat left you something  —  +%d coins" % gift)
+		_analytics.log_event("cat_gift", {"coins": gift})
 	var first := not SaveData.is_complete(_stage)
 	var stars := Levels.stars_for(_stage, _board.moves)
 	if stars == 3 and _undos_used == 0 and _hints_used == 0:
@@ -797,16 +826,19 @@ func _next() -> void:
 func _show_cottage() -> void:
 	_board.visible = false
 	_hud.visible = false
+	_cat.visible = false
 	_cottage.open()
 
 func _show_puzzle() -> void:
 	_cottage.visible = false
 	_board.visible = true
 	_hud.visible = true
+	_cat.visible = not _jackpot_active
 
 func _show_home() -> void:
 	_board.visible = false
 	_hud.visible = false
+	_cat.visible = false
 	for o in [_cottage, _daily_panel, _shop, _settings, _bp_panel, _lb_panel, _select, _booster, _progress]:
 		o.visible = false
 	_home.configure(_stage, SaveData.data["completed"].size(),
@@ -834,7 +866,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _hud.fail_open() or _hud.nav_open() or _booster.visible:
 		return
-	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible or _progress.visible or _home.visible
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible or _lb_panel.visible or _progress.visible or _home.visible or _story.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
 		if not (_shop.visible and event.keycode == KEY_S) \

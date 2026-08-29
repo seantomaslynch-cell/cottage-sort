@@ -24,7 +24,12 @@ func _run() -> void:
 	var arg_stage: int = int(args[2]) if args.size() > 2 else -1
 
 	var main := _find_by_script(get_root(), "res://game/main.gd")
-	if mode == "home":
+	if mode == "story":
+		var st := _find(get_root(), "IntroStory")
+		if st:
+			st.show_story()
+		await create_timer(0.6).timeout
+	elif mode == "home":
 		if main and main.has_method("_show_home"):
 			main._show_home()
 		await create_timer(0.6).timeout
