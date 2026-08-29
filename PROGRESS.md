@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29
+**Updated:** 2026-08-29 · Codemagic CI added
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -39,6 +39,7 @@ file map in [README.md](README.md).
 | M25 functional audit + bug fixes (5 fixed — see AUDIT_FUNCTIONAL.md) | ✅ done |
 | M26 config layer + App Store submission prep (store/*, iOS+Android presets) | ✅ done |
 | M27 combo callouts + functional audit report | ✅ done |
+| M28 Codemagic CI (iOS/Android/Web) — no local Mac needed | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
@@ -51,9 +52,14 @@ Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
 The seams are all in place. Config placeholders in `game/config.gd`; wiring
 guide in [store/INTEGRATION.md](store/INTEGRATION.md).
 
-1. **A Mac + Apple Developer account** — required for any iOS build. Full
-   checklist in [store/APP_STORE_SUBMISSION.md](store/APP_STORE_SUBMISSION.md);
-   paste-ready listing copy + rating/privacy answers in
+1. **Apple Developer account + Codemagic setup** — the iOS/Android/Web builds
+   run on Codemagic (`codemagic.yaml`), so **no local Mac is needed**. Still
+   required: an Apple Developer Program membership + App Store Connect API key,
+   the Codemagic env var groups / signing (see
+   [store/CODEMAGIC.md](store/CODEMAGIC.md)), and the one-time store-side setup
+   (app record, bundle id, IAPs, metadata, hosted privacy policy) —
+   checklist in [store/APP_STORE_SUBMISSION.md](store/APP_STORE_SUBMISSION.md),
+   paste-ready copy + rating/privacy answers in
    [store/METADATA.md](store/METADATA.md).
 2. **Real ad / IAP / analytics SDKs** — swap the bodies of `game/ads.gd`,
    `game/iap.gd`, `game/analytics.gd`. Needs plugins + developer accounts.
@@ -79,6 +85,7 @@ Ranked fun/retention/money ideas: see the bottom of
 - **Real art / font / music** — replace the procedural `_draw()` art and the
   generated placeholder SFX (`tools/gen_sfx.py`).
 - **Web templates** on a fresh machine (editor → *Manage Export Templates*).
+  On Codemagic the `&fetch_godot` step pulls them automatically.
 
 **Deferred:** explicit 1-spare-jar "challenge" mode (too harsh for the cozy
 default; verifier couldn't confirm solvability in budget).
