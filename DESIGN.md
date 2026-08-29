@@ -77,10 +77,13 @@ seasonal decor bundle. No pay-to-win.
   cooldown + remove_ads), interstitial on "Next" between levels, IAP stub
   (remove_ads entitlement + 3 coin packs) with a Shop screen. Still todo:
   drop in a real ad SDK + real store bindings (native plugins, per-platform).
-- [~] **M6 — Web build:** `export_presets.cfg` (Web, no threads, GL compat,
-  cream head_include), `tools/export_web.ps1` / `.sh`, `web/README.md`. Still
-  todo: install export templates and run an actual export; optional custom
-  loading shell; size trim for Playables.
+- [x] **M6 — Web build:** `export_presets.cfg` (Web, no threads, GL compat,
+  cream head_include), `tools/export_web.ps1` / `.sh`, `web/README.md`.
+  Verified: `web_nothreads` templates installed and `--export-release "Web"`
+  produces a working `build/web/` (~40 MB, mostly `index.wasm`) that boots and
+  plays in a plain static server. Optional later: custom loading shell, wasm
+  size trim for Playables. (Templates are per-machine; other machines still run
+  the one-time install.)
 - [x] **M7 — Art pass:** shared `palette.gd` (one colour source), runtime
   `ui_theme.gd` Theme (rounded honey buttons with hover/pressed/disabled, soft
   cards) applied to the Window; glass jars (rounded belly, rim, sheen, shadow),

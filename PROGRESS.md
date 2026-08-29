@@ -17,17 +17,18 @@ file map in [README.md](README.md).
 | M3 cottage meta (coins, restore screen, 5 upgrade slots) | ✅ done |
 | M4 retention (login cycle, spin wheel, ad-watch streak) | ✅ done |
 | M5 monetization scaffolding (ad provider + interstitial, IAP stub, Shop) | ✅ done — stubs |
-| M6 web export config (`export_presets.cfg`, build scripts) | ✅ done — templates not installed |
+| M6 web export | ✅ done — builds & runs (`build/web/`, ~40 MB); templates are per-machine |
 | M7 first art pass (palette, UI theme, glass jars, cottage scene, icon) | ✅ done |
 
 Playable end to end. Three headless test suites pass (see below).
 
 ## What's next (external / asset work)
 
-1. **Real web build** — install Godot Web export templates (editor →
-   *Manage Export Templates*), then `pwsh tools/export_web.ps1`
-   (or `GODOT=… tools/export_web.sh`). Output → `build/web/`. See
-   [web/README.md](web/README.md).
+1. **Web build** — works. `pwsh tools/export_web.ps1` (or `GODOT=… tools/export_web.sh`)
+   → `build/web/`. On a fresh machine, first install the Web export templates
+   (editor → *Manage Export Templates*). Serve with any static host:
+   `python -m http.server 8060 --directory build/web`. See [web/README.md](web/README.md).
+   Possible follow-ups: shrink `index.wasm` (~39 MB), custom loading shell.
 2. **Real ads + IAP** — swap the bodies of `game/ads.gd` and `game/iap.gd` for a
    native SDK / platform store. Interfaces are stable; nothing else changes.
 3. **Real art / font / music** — replace the procedural `_draw()` art and the
