@@ -120,7 +120,7 @@ func _ready() -> void:
 		_iap.restore()
 		_ads.remove_ads = _iap.has_remove_ads()
 		_shop.refresh()
-		_hud.flash("Restore complete"))
+		_shop.flash("Restore complete"))
 	_iap.purchased.connect(_on_purchased)
 	_ads.interstitial_shown.connect(func() -> void: _hud.flash("Ad"))
 	_daily_panel.claim_login_pressed.connect(_on_claim_login)
@@ -212,7 +212,7 @@ func _on_purchased(id: String) -> void:
 		_economy.add_coins(int(p["amount"]))
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
-	_hud.flash("Purchased: %s" % p.get("name", id))
+	_shop.flash("Purchased: %s" % p.get("name", id))
 
 func _open_daily() -> void:
 	_daily_panel.open()
