@@ -240,11 +240,16 @@ func _ready() -> void:
 
 	_cottage.closed.connect(_show_puzzle)
 	_cottage.buy_pressed.connect(func(id: String) -> void:
-		_economy.buy(id)
+		if _economy.buy(id):
+			_first_time_flourish()
 		_cottage.refresh())
 	_cottage.decor_buy_pressed.connect(func(id: String) -> void:
 		if _economy.buy_decor(id):
 			_analytics.log_event("decor_buy", {"id": id})
+			if not bool(SaveData.data.get("ft_decor", false)):
+				SaveData.data["ft_decor"] = true
+				SaveData.save_now()
+				_cottage.flash("Your first touch of home  ♥")
 		_cottage.refresh())
 	_economy.set_completed.connect(func(set_name: String, bonus: int) -> void:
 		_economy.add_coins(bonus)
@@ -635,7 +640,8 @@ func _on_solved() -> void:
 		_analytics.log_event("cat_gift", {"coins": gift})
 	var first := not SaveData.is_complete(_stage)
 	var stars := Levels.stars_for(_stage, _board.moves)
-	if stars == 3 and _undos_used == 0 and _hints_used == 0:
+	var flawless := stars == 3 and _undos_used == 0 and _hints_used == 0
+	if flawless:
 		SaveData.data["stat_flawless"] = int(SaveData.data.get("stat_flawless", 0)) + 1
 	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5
 	_last_earned = earned
@@ -663,10 +669,15 @@ func _on_solved() -> void:
 	elif left > 0 and left <= 5 and not _daily.week_claimed():
 		_hud.set_next_hint("%d more this week for a %d-coin chest" % [left, Daily.WEEK_CHEST])
 	else:
-		_hud.set_next_hint("Next: Level %d" % (_stage + 2))
+		var ni := Realms.index_for(_stage) + 1
+		var togo := (int(Realms.CHAPTERS[ni]["from"]) - _stage - 1) if ni < Realms.CHAPTERS.size() else 0
+		if togo > 0:
+			_hud.set_next_hint("%d corner%s to the %s" % [togo, "" if togo == 1 else "s", Realms.CHAPTERS[ni]["name"]])
+		else:
+			_hud.set_next_hint("Next: Level %d" % (_stage + 2))
 
 	var win_title := "You did it!" if was_ftue else "Cottage corner tidied!"
-	_hud.show_win(win_title, prev_best, _board.moves, earned, stars)
+	_hud.show_win(win_title, prev_best, _board.moves, earned, stars, flawless and not was_ftue)
 	if was_ftue:
 		_hud.pulse_cottage()
 
@@ -822,6 +833,25 @@ func _next() -> void:
 	_ads.maybe_show_interstitial()
 	_stage += 1   # unbounded — past the authored list, build() runs endless mode
 	_load_current()
+
+## One-time little celebrations for cottage milestones.
+func _first_time_flourish() -> void:
+	if not bool(SaveData.data.get("ft_upgrade", false)):
+		SaveData.data["ft_upgrade"] = true
+		SaveData.save_now()
+		_cottage.flash("The cottage remembers this.")
+	for room in CottageData.ROOMS:
+		var full := true
+		for s in room["slots"]:
+			if _economy.tier(s["id"]) < CottageData.max_tier(s["id"]):
+				full = false
+				break
+		var key := "ft_room_" + str(room["name"])
+		if full and not bool(SaveData.data.get(key, false)):
+			SaveData.data[key] = true
+			SaveData.save_now()
+			_cottage.flash("The %s is fully restored!" % room["name"])
+			_analytics.log_event("room_restored", {"room": room["name"]})
 
 func _show_cottage() -> void:
 	_board.visible = false

@@ -41,6 +41,7 @@ var _win_root: Control
 var _win_label: Label
 var _win_stars: Label
 var _win_best: Label
+var _win_flaw: Label
 var _win_coins: Label
 var _win_next: Label
 var _double_btn: Button
@@ -276,6 +277,12 @@ func _build_win_overlay() -> void:
 	_win_stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_win_stars)
 
+	_win_flaw = _label("")
+	_win_flaw.add_theme_font_size_override("font_size", 24)
+	_win_flaw.add_theme_color_override("font_color", Color("d99a4a"))
+	_win_flaw.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_win_flaw)
+
 	_win_best = _label("")
 	_win_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_win_best)
@@ -389,8 +396,14 @@ func set_chapter(name: String) -> void:
 	_sync_status()
 
 func set_moves(n: int) -> void:
+	var tight := _budget < BOARD_UNLIMITED and (_budget - n) <= 3 and n > _mv
 	_mv = n
 	_sync_status()
+	if tight:
+		_status.pivot_offset = Vector2.ZERO
+		var tw := create_tween()
+		tw.tween_property(_status, "scale", Vector2(1.06, 1.06), 0.1)
+		tw.tween_property(_status, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_SINE)
 
 func set_budget(n: int) -> void:
 	_budget = n
@@ -426,9 +439,10 @@ func pulse_cottage() -> void:
 	tw.tween_property(_win_cottage_btn, "scale", Vector2(1.08, 1.08), 0.35).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(_win_cottage_btn, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_SINE)
 
-func show_win(text: String, best: int, current: int, earned: int, stars: int) -> void:
+func show_win(text: String, best: int, current: int, earned: int, stars: int, flawless := false) -> void:
 	_win_label.text = text
 	_win_stars.text = _stars_str(stars)
+	_win_flaw.text = "✦  flawless  —  no undo, no hint  ✦" if flawless else ""
 	if best > 0 and current > best:
 		_win_best.text = "Solved in %d moves  (best %d)" % [current, best]
 	else:

@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M37 story + cat
+**Updated:** 2026-08-29 · +M38 feel polish
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -49,6 +49,7 @@ file map in [README.md](README.md).
 | M35 achievements — 24 badges (Progress/Skill/Cottage/Habit), auto-granted with rewards, gallery panel + lifetime stat counters | ✅ done |
 | M36 progress hub — Stats / Collection / Badges tabs (folds in M35 panel); decor flavour text | ✅ done |
 | M37 story + cat companion — one-time intro card, drawn cat on the board (stretches on win), daily cat gift | ✅ done |
+| M38 feel polish — flawless badge, per-colour pour pitch, last-jar glow, near-miss pulse, chapter-progress hint, first-time flourishes | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·

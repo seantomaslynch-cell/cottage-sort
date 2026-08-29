@@ -58,6 +58,9 @@ var _hint_time := 0.0
 var _completed := 0        # jars full+uniform after the last move
 var _combo_n := 0
 var _combo_ms := -100000
+var _last_pour_col := -1    # colour of the most recent pour (for per-colour pitch)
+var _last_jar := -1         # the sole remaining unsorted jar, or -1
+var _anim_t := 0.0
 
 const HINT_TIME := 2.6
 const COMBO_WINDOW_MS := 2200
@@ -80,6 +83,8 @@ func load_level(data: Dictionary) -> void:
 	_confetti.clear()
 	_completed = _jars_complete()
 	_combo_n = 0
+	_last_jar = -1
+	_last_pour_col = -1
 	_recv_jar = -1
 	_recv_count = 0
 	_pops = PackedFloat32Array()
@@ -278,7 +283,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_history.append({"from": selected, "to": hit, "count": n})
 			moves += 1
 			moved.emit(moves)
-			_sfx("pour")
+			_last_pour_col = (jars[hit] as Array)[-1]
+			_sfx("pour", _pitch_for(_last_pour_col))
 			_begin_flight(selected, hit, n)
 			selected = -1
 			changed.emit()
@@ -314,8 +320,28 @@ func _begin_flight(from_idx: int, to_idx: int, n: int) -> void:
 		_flying.append({"color": col, "from": start, "to": endp, "t": 0.0, "dur": 0.16, "delay": 0.04 * k})
 	queue_redraw()
 
+## A gentle chromatic spread on the pour/place sounds — sorting becomes musical.
+func _pitch_for(col: int) -> float:
+	if col < 0:
+		return 1.0
+	return 1.0 + (float(col) - 3.5) * 0.035
+
+## Jars that still need work: non-empty and not already one full colour.
+func _unsorted_jars() -> Array:
+	var out: Array = []
+	for i in jars.size():
+		var a: Array = jars[i]
+		if a.is_empty():
+			continue
+		if not (a.size() == CAP and _top_run_len(a) == CAP):
+			out.append(i)
+	return out
+
 func _process(delta: float) -> void:
 	var redraw := false
+	_anim_t += delta
+	if _last_jar >= 0 and not _locked:
+		redraw = true
 
 	if _busy:
 		var all_done := true
@@ -333,7 +359,7 @@ func _process(delta: float) -> void:
 			_flying.clear()
 			_recv_jar = -1
 			_recv_count = 0
-			_sfx("place")
+			_sfx("place", _pitch_for(_last_pour_col) + 0.1)
 			_post_move()
 
 	for i in _pops.size():
@@ -365,6 +391,11 @@ func _process(delta: float) -> void:
 
 func _post_move() -> void:
 	_check_combo()
+	var u := _unsorted_jars()
+	var new_last: int = u[0] if u.size() == 1 else -1
+	if new_last != -1 and _last_jar == -1 and not _is_solved():
+		_sfx("tap", 1.5)          # "one to go" tick
+	_last_jar = new_last
 	if _is_solved():
 		_locked = true
 		_start_win_juice()
@@ -596,6 +627,9 @@ func _draw_jar(i: int) -> void:
 
 	if lifted:
 		_glow(rr, Palette.ACCENT, 0.9)
+	elif i == _last_jar and not _locked and not _busy:
+		# "one jar to go" — a soft breathing glow to draw the eye
+		_glow(rr, Palette.ACCENT_WARM, 0.35 + 0.28 * (0.5 + 0.5 * sin(_anim_t * 4.2)))
 
 	# soft ground shadow
 	_round_rect(Rect2(rr.position + Vector2(0, 8), rr.size), Color(0, 0, 0, 0.06), Color(0, 0, 0, 0), 0, 28)
