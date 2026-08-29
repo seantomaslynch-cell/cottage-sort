@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M31 level solvability verification
+**Updated:** 2026-08-29 · +M32 endless colour-tier ramp
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -43,6 +43,7 @@ file map in [README.md](README.md).
 | M29 free-asset pack (Fredoka font, Kenney SFX, FreePD music, AdMob+ATT plugins) | ✅ fetched + committed |
 | M30 procedural art pass — `game/art.gd` shared helpers; cottage scene rebuild, board dressing, tactile UI | ✅ done (jars/beads kept procedural; Kenney sprites rejected — style clash) |
 | M31 level solvability verification — fixes the unsolvable L20; frozen `level_data.gd`; budget floored at par | ✅ done |
+| M32 endless ramp — 9th bead colour + 12-level colour tiers so difficulty keeps climbing past L40 | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
