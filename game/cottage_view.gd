@@ -21,38 +21,90 @@ func _draw() -> void:
 	var h := size.y
 	var ground_y := h * 0.84
 	var restored := economy.restored_fraction() if economy != null else 0.0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20260829   # stable scenery layout
 
-	# sky gradient (greyer when run-down, bluer as restored)
-	var sky_top := Color("aeb7bd").lerp(Color("bfe0f2"), restored)
-	var sky_bot := Color("d9d2c4").lerp(Color("eaf6fb"), restored)
-	var bands := 14
+	# sky gradient (greyer when run-down, warm blue as restored)
+	var sky_top := Color("aeb7bd").lerp(Color("bcdcf0"), restored)
+	var sky_bot := Color("dcd6c8").lerp(Color("f3ead6"), restored)
+	var bands := 20
 	for b in bands:
 		var tt := float(b) / float(bands - 1)
 		draw_rect(Rect2(0, h * float(b) / bands, w, h / bands + 1.0), sky_top.lerp(sky_bot, tt))
+	Art.paper(self, Rect2(0, 0, w, h), 0.6)
 
-	# sun, brighter as the place comes back to life
-	draw_circle(Vector2(w * 0.82, h * 0.16), 30.0, Color("f4d98a").lerp(Color("ffe9a8"), restored))
-	_cloud(w * 0.22, h * 0.14, 1.0)
-	_cloud(w * 0.6, h * 0.24, 0.7)
+	# sun with a soft glow, warmer as the place comes back to life
+	var sun := Vector2(w * 0.80, h * 0.15)
+	var sun_col := Color("f4d98a").lerp(Color("ffe6a0"), restored)
+	Art.glow(self, sun, 90.0, sun_col)
+	draw_circle(sun, 30.0, sun_col)
+	Art.cloud(self, w * 0.24, h * 0.13, 1.0, 0.8)
+	Art.cloud(self, w * 0.58, h * 0.22, 0.7, 0.7)
+	Art.cloud(self, w * 0.9, h * 0.30, 0.55, 0.6)
+
+	# rolling hills behind the house (two layers, greener as restored)
+	var hill_far := Color("9fb0a6").lerp(Color("a9c58f"), restored)
+	var hill_near := Color("8ea583").lerp(Color("8fb06b"), restored)
+	_draw_hill(w, ground_y - 74.0, 120.0, hill_far, 0.35)
+	_draw_hill(w, ground_y - 30.0, 90.0, hill_near, 0.75)
+	# distant tree line
+	for i in 9:
+		var tx := w * (0.05 + 0.11 * i) + rng.randf_range(-16, 16)
+		Art.tree(self, Vector2(tx, ground_y - 36.0), rng.randf_range(70, 104),
+			hill_near.darkened(0.12), rng.randf_range(-0.2, 0.2))
 
 	# ground
-	draw_rect(Rect2(0, ground_y, w, h - ground_y), Color("8a8577").lerp(Color("7fa663"), restored))
+	var grass_col := Color("8a8577").lerp(Color("83ac5f"), restored)
+	draw_rect(Rect2(0, ground_y, w, h - ground_y), grass_col)
 	draw_rect(Rect2(0, ground_y, w, 4.0), Color(0, 0, 0, 0.08))
+	Art.grass(self, 0, w, ground_y + 2.0, grass_col.lightened(0.10), rng)
 
 	var house_w := minf(w * 0.60, 400.0)
 	var house_h := h * 0.40
 	var hx := (w - house_w) * 0.5
 	var hy := ground_y - house_h
 
+	# flanking trees (behind the house, palette greens)
+	Art.tree(self, Vector2(hx - 24.0, ground_y + 4.0), house_h * 0.86, Color("7fa06a").lerp(Color("6f9a55"), restored), -0.15)
+	Art.tree(self, Vector2(hx + house_w + 24.0, ground_y + 4.0), house_h * 0.72, Color("86a774").lerp(Color("79a35e"), restored), 0.15)
+
 	_draw_garden(hx, house_w, ground_y, h)
-	# house drop shadow
-	draw_rect(Rect2(hx + 8, hy + 10, house_w, house_h), Color(0, 0, 0, 0.07))
+	# house contact shadow
+	Art.ground_shadow(self, Vector2(hx + house_w * 0.5, hy + house_h + 4.0), house_w * 0.52, 10.0, 0.11)
 	_draw_walls(hx, hy, house_w, house_h)
 	_draw_roof(hx, hy, house_w, h)
 	_draw_door(hx, hy, house_w, house_h)
 	_draw_window(hx, hy, house_w, house_h)
+	# warm light spilling from the window once it's glazed
+	if _t("window") >= 1:
+		Art.glow(self, Vector2(hx + house_w * 0.56 + house_w * 0.10, hy + house_h * 0.20 + house_w * 0.10),
+			70.0 * (0.6 + 0.2 * restored), Color("ffdf9e"))
 	_draw_fence(ground_y, w)
+
+	# foreground details
+	Art.bush(self, Vector2(w * 0.10, ground_y + 26.0), 26.0, Color("7ea061"))
+	Art.bush(self, Vector2(w * 0.92, ground_y + 30.0), 30.0, Color("789a5c"))
+	if restored > 0.15:
+		var petals := [Color("e8899b"), Color("f2c14e"), Color("cf9ad4"), Color("f0a6b4")]
+		for i in 7:
+			Art.flower(self, Vector2(w * (0.06 + 0.13 * i) + rng.randf_range(-10, 10), ground_y + rng.randf_range(24, 46)),
+				petals[i % petals.size()], rng.randf_range(4.0, 6.0))
+	Art.bird(self, Vector2(w * 0.30, h * 0.12), 7.0)
+	Art.bird(self, Vector2(w * 0.40, h * 0.09), 5.0)
+
 	_draw_decor(w, ground_y)
+
+func _draw_hill(w: float, base_y: float, amp: float, col: Color, phase: float) -> void:
+	var pts := PackedVector2Array()
+	pts.append(Vector2(0, base_y + amp))
+	var steps := 24
+	for i in steps + 1:
+		var x := w * float(i) / steps
+		var y := base_y - sin(float(i) / steps * PI + phase * PI) * amp * 0.5 - amp * 0.2
+		pts.append(Vector2(x, y))
+	pts.append(Vector2(w, base_y + amp))
+	draw_colored_polygon(pts, col)
+
 
 func _draw_decor(w: float, ground_y: float) -> void:
 	if economy == null:
@@ -85,11 +137,6 @@ func _draw_decor(w: float, ground_y: float) -> void:
 				draw_rect(Rect2(cx - 11, y - 8, 22, 10), col)
 				draw_rect(Rect2(cx - 11, y - 8, 22, 10), col.darkened(0.25), false, 2.0)
 
-func _cloud(cx: float, cy: float, s: float) -> void:
-	var col := Color(1, 1, 1, 0.75)
-	draw_circle(Vector2(cx, cy), 20.0 * s, col)
-	draw_circle(Vector2(cx + 22.0 * s, cy + 4.0 * s), 16.0 * s, col)
-	draw_circle(Vector2(cx - 20.0 * s, cy + 5.0 * s), 14.0 * s, col)
 
 func _draw_fence(ground_y: float, w: float) -> void:
 	var t := _t("garden")

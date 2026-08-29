@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · Codemagic CI + free-asset pack
+**Updated:** 2026-08-29 · Codemagic CI + assets + procedural art pass
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -40,7 +40,8 @@ file map in [README.md](README.md).
 | M26 config layer + App Store submission prep (store/*, iOS+Android presets) | ✅ done |
 | M27 combo callouts + functional audit report | ✅ done |
 | M28 Codemagic CI (iOS/Android/Web) — no local Mac needed | ✅ done |
-| M29 free-asset pack (Fredoka font, Kenney SFX, FreePD music, AdMob+ATT plugins) | ✅ wired — run `tools/fetch_assets.*` to pull the files |
+| M29 free-asset pack (Fredoka font, Kenney SFX, FreePD music, AdMob+ATT plugins) | ✅ fetched + committed |
+| M30 procedural art pass — `game/art.gd` shared helpers; cottage scene rebuild, board dressing, tactile UI | ✅ done (jars/beads kept procedural; Kenney sprites rejected — style clash) |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
@@ -89,8 +90,11 @@ Ranked fun/retention/money ideas: see the bottom of
   to `user://events.log`.
 - **Local push notifications + OS review prompt** — fill in `game/platform.gd`
   with a native plugin (Android / iOS).
-- **Sprite art** — the procedural `_draw()` jars/beads/cottage still stand; font,
-  music and UI SFX are covered by the CC0/OFL pack (`store/ASSETS.md`).
+- **Sprite art** — jars/beads stay procedural (best-looking + realm-tinted).
+  Cottage scene, board dressing and UI got a procedural upgrade in M30
+  (`game/art.gd`). Bitmap CC0 sprites (Kenney) were tried and rejected — the
+  bright flat platformer style clashes with the pastel palette. Font, music and
+  UI SFX are the CC0/OFL pack (`store/ASSETS.md`).
 - **Web templates** on a fresh machine (editor → *Manage Export Templates*).
   On Codemagic the `&fetch_godot` step pulls them automatically.
 

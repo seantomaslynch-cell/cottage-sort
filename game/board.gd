@@ -513,6 +513,20 @@ func _draw_background() -> void:
 		var y := VIEW_H * float(b) / bands
 		draw_rect(Rect2(0, y, VIEW_W, VIEW_H / bands + 1.0), top.lerp(bot, t))
 
+	Art.paper(self, Rect2(0, 0, VIEW_W, VIEW_H), 0.7)
+
+	# soft corner vignette
+	for c in [Vector2(0, 0), Vector2(VIEW_W, 0), Vector2(0, VIEW_H), Vector2(VIEW_W, VIEW_H)]:
+		for i in 3:
+			draw_circle(c, 240.0 - i * 70.0, Color(0, 0, 0, 0.016))
+
+	# potted plants standing on the floor either side of the shelf
+	if not _rows.is_empty():
+		var rl: Dictionary = _rows[_rows.size() - 1]
+		var floor_y := VIEW_H - 116.0
+		Art.potted(self, Vector2(maxf(rl["x0"] - 70.0, 70.0), floor_y), 1.8, Palette.BEADS[2])
+		Art.potted(self, Vector2(minf(rl["x1"] + 70.0, VIEW_W - 66.0), floor_y + 6.0), 1.5, Color("8fae7d").darkened(0.05))
+
 func _draw_shelf(row: Dictionary) -> void:
 	var y: float = row["y"] - 6.0
 	var x0: float = row["x0"]
@@ -522,6 +536,13 @@ func _draw_shelf(row: Dictionary) -> void:
 	draw_rect(Rect2(x0, y + 20.0, x1 - x0, 10.0), Color(0, 0, 0, 0.06))
 	_round_rect(Rect2(x0, y, x1 - x0, 22.0), sh, shd, 0, 7)
 	draw_rect(Rect2(x0 + 3.0, y + 15.0, x1 - x0 - 6.0, 5.0), shd)
+	# wood grain streaks
+	var gx := x0 + 12.0
+	while gx < x1 - 12.0:
+		draw_line(Vector2(gx, y + 5.0), Vector2(gx + 26.0, y + 5.0), shd * Color(1, 1, 1, 0.35), 1.0)
+		gx += 46.0
+	# front edge highlight
+	draw_line(Vector2(x0 + 4.0, y + 1.0), Vector2(x1 - 4.0, y + 1.0), sh.lightened(0.18), 2.0)
 
 func _draw_confetti(c: Dictionary) -> void:
 	var life: float = c["life"]
