@@ -25,6 +25,8 @@ const BoosterPanelScene := preload("res://game/booster_panel.gd")
 const BattlePassScene := preload("res://game/battle_pass.gd")
 const BattlePassPanelScene := preload("res://game/battle_pass_panel.gd")
 const LeaderboardPanelScene := preload("res://game/leaderboard_panel.gd")
+const HomeScreenScene := preload("res://game/home_screen.gd")
+const ChapterCardScene := preload("res://game/chapter_card.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -53,6 +55,9 @@ var _booster: BoosterPanel
 var _bp: BattlePass
 var _bp_panel: BattlePassPanel
 var _lb_panel: LeaderboardPanel
+var _home: HomeScreen
+var _chapter_card: ChapterCard
+var _session_popups_done := false
 var _new_player := false
 var _stage := 0
 var _last_earned := 0
@@ -70,6 +75,7 @@ func _ready() -> void:
 	_theme = UiTheme.build()
 	get_window().theme = _theme
 	SaveData.load_now()
+	_stage = maxi(0, int(SaveData.data.get("last_stage", 0)))
 	_new_player = not bool(SaveData.data.get("intro_seen", false))
 	if int(SaveData.data.get("starter_seen_at", 0)) == 0:
 		SaveData.data["starter_seen_at"] = int(Time.get_unix_time_from_system())
@@ -149,6 +155,19 @@ func _ready() -> void:
 	_lb_panel = LeaderboardPanelScene.new()
 	add_child(_lb_panel)
 
+	_chapter_card = ChapterCardScene.new()
+	add_child(_chapter_card)
+
+	_home = HomeScreenScene.new()
+	add_child(_home)
+	_home.set_economy(_economy)
+	_home.play_pressed.connect(func() -> void: _enter_game())
+	_home.cottage_pressed.connect(func() -> void: _enter_game(_show_cottage))
+	_home.daily_pressed.connect(func() -> void: _enter_game(_open_daily))
+	_home.shop_pressed.connect(func() -> void: _enter_game(_open_shop))
+	_home.season_pressed.connect(func() -> void: _enter_game(func() -> void: _bp_panel.open()))
+	_home.settings_pressed.connect(func() -> void: _enter_game(func() -> void: _settings.open()))
+
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
 		if _ftue_active:
@@ -201,6 +220,7 @@ func _ready() -> void:
 	_hud.daily_pressed.connect(_open_daily)
 	_hud.season_pressed.connect(func() -> void: _bp_panel.open())
 	_hud.shop_pressed.connect(_open_shop)
+	_hud.home_pressed.connect(_show_home)
 
 	_bp_panel.closed.connect(func() -> void: _bp_panel.visible = false)
 	_bp_panel.unlock_pressed.connect(func() -> void: _iap.purchase("battle_pass"))
@@ -274,26 +294,23 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel, _lb_panel, _home, _chapter_card]:
 		_apply_theme(scr)
 
+	_last_chapter = Realms.index_for(_stage)   # so the card only fires on a real change
 	_load_current()
 
 	_analytics.log_event("session_start", {"new_player": _new_player})
 	_platform.schedule_daily_reminder(24)
 	_platform.schedule_streak_warning(20)
-
-	# A brand-new player gets a clean first session: no daily pop-up over an
-	# unexplained board. It opens from the next launch on.
-	if _daily.login_pending() and not _new_player:
-		_open_daily()
 	if _new_player:
 		SaveData.data["intro_seen"] = true
 		SaveData.save_now()
-	elif _starter_secs_left() > 0 and not bool(SaveData.data.get("starter_shown_once", false)):
-		SaveData.data["starter_shown_once"] = true
-		SaveData.save_now()
-		_hud.flash("Starter pack in the Shop — %dh left" % int(ceil(_starter_secs_left() / 3600.0)))
+
+	# Boot into the Home screen; the board waits behind Play.
+	_board.visible = false
+	_hud.visible = false
+	_show_home()
 
 func _apply_theme(n: Node) -> void:
 	if n is Control:
@@ -304,6 +321,9 @@ func _apply_theme(n: Node) -> void:
 
 func _load_current() -> void:
 	_jackpot_active = false
+	if int(SaveData.data.get("last_stage", 0)) != _stage:
+		SaveData.data["last_stage"] = _stage
+		SaveData.save_now()
 	var realm := Realms.for_stage(_stage)
 	_board.realm = realm
 	RenderingServer.set_default_clear_color(realm["bg_top"])
@@ -322,8 +342,8 @@ func _load_current() -> void:
 	if not _ftue_active:
 		_coach_for_stage()
 	var ch := Realms.index_for(_stage)
-	if _stage >= 4 and ch != _last_chapter:
-		_coach.show_tip("Chapter %d  —  %s" % [ch + 1, realm["name"]])
+	if _stage >= 4 and ch != _last_chapter and not _home.visible:
+		_chapter_card.show_card(ch, realm)
 	_last_chapter = ch
 	# One-time heads-up the first time moves become limited.
 	if not _ftue_active and _stage == Levels.FLOW_STAGES \
@@ -735,6 +755,31 @@ func _show_puzzle() -> void:
 	_cottage.visible = false
 	_board.visible = true
 	_hud.visible = true
+
+func _show_home() -> void:
+	_board.visible = false
+	_hud.visible = false
+	for o in [_cottage, _daily_panel, _shop, _settings, _bp_panel, _lb_panel, _select, _booster]:
+		o.visible = false
+	_home.configure(_stage, SaveData.data["completed"].size(),
+		SaveData.total_stars(), _daily.login_pending())
+	_home.open()
+
+## Leave Home for the puzzle; optionally open a meta screen once there. Runs the
+## once-per-session pop-ups (daily / starter) the first time.
+func _enter_game(then_open := Callable()) -> void:
+	_home.close()
+	_show_puzzle()
+	if not _session_popups_done:
+		_session_popups_done = true
+		if _daily.login_pending() and not _new_player:
+			_open_daily()
+		elif _starter_secs_left() > 0 and not bool(SaveData.data.get("starter_shown_once", false)):
+			SaveData.data["starter_shown_once"] = true
+			SaveData.save_now()
+			_hud.flash("Starter pack in the Shop — %dh left" % int(ceil(_starter_secs_left() / 3600.0)))
+	if then_open.is_valid():
+		then_open.call()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):

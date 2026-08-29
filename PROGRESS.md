@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-29 · +M33 interactive FTUE
+**Updated:** 2026-08-29 · +M34 home screen
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -45,6 +45,7 @@ file map in [README.md](README.md).
 | M31 level solvability verification — fixes the unsolvable L20; frozen `level_data.gd`; budget floored at par | ✅ done |
 | M32 endless ramp — 9th bead colour + 12-level colour tiers so difficulty keeps climbing past L40 | ✅ done |
 | M33 interactive FTUE — L1 guided pours + pointer, first-pour juice, coins→cottage explainer, L11 budget heads-up, star teach | ✅ done |
+| M34 home screen (title, living cottage backdrop, Play/stats/shortcuts) + resume last stage + full-bleed chapter cards | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
@@ -123,7 +124,7 @@ done
 
 # screenshot a screen (no --headless; restores save.json after)
 godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage]
-#   modes: board | cottage | cottage_decor | daily | shop | settings | booster | season | fail
+#   modes: home | board | chapter | cottage | cottage_decor | daily | shop | settings | booster | season | fail
 
 # summarise the analytics log to tune the difficulty curve
 python tools/analyze_events.py

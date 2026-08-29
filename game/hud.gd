@@ -12,6 +12,7 @@ signal cottage_pressed
 signal daily_pressed
 signal season_pressed
 signal shop_pressed
+signal home_pressed
 signal hint_pressed
 signal double_pressed
 signal add_moves_pressed
@@ -155,7 +156,7 @@ func _build_nav() -> void:
 	center.add_child(box)
 
 	var items := [
-		["Cottage", cottage_pressed], ["Daily", daily_pressed],
+		["Home", home_pressed], ["Cottage", cottage_pressed], ["Daily", daily_pressed],
 		["Season", season_pressed], ["Shop", shop_pressed],
 		["Levels", levels_pressed], ["Settings", settings_pressed],
 	]

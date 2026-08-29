@@ -22,8 +22,20 @@ func _run() -> void:
 	var out: String = args[0] if args.size() > 0 else "res://shot.png"
 	var mode: String = args[1] if args.size() > 1 else "board"
 	var arg_stage: int = int(args[2]) if args.size() > 2 else -1
-	if arg_stage >= 0:
-		var main := _find_by_script(get_root(), "res://game/main.gd")
+
+	var main := _find_by_script(get_root(), "res://game/main.gd")
+	if mode == "home":
+		if main and main.has_method("_show_home"):
+			main._show_home()
+		await create_timer(0.6).timeout
+	elif main and main.has_method("_enter_game"):
+		main._enter_game()          # leave the Home screen for the board
+		await create_timer(0.3).timeout
+
+	if mode == "chapter" and main:
+		main._on_stage_picked(8)          # first Garden level -> chapter card
+		await create_timer(0.7).timeout
+	elif arg_stage >= 0:
 		if main and main.has_method("_on_stage_picked"):
 			main._on_stage_picked(arg_stage)
 			await create_timer(0.5).timeout
@@ -38,9 +50,12 @@ func _run() -> void:
 	var hud := _find(get_root(), "GameHUD")
 	var economy := _find(get_root(), "Economy")
 
+	var home := _find(get_root(), "HomeScreen")
 	for o in [cottage, daily, shop, settings, levelsel, booster, bp]:
-		if o:
+		if o and mode != "home":
 			o.visible = false
+	if home and mode != "home":
+		home.visible = false
 
 	match mode:
 		"cottage":

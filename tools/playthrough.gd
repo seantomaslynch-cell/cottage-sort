@@ -32,6 +32,9 @@ func _run() -> void:
 	var main := _find_by_script(get_root(), "res://game/main.gd")
 	var board := _find(get_root(), "SortBoard")
 	assert(main != null and board != null)
+	if main.has_method("_enter_game"):
+		main._enter_game()          # dismiss the Home screen
+		await create_timer(0.2).timeout
 
 	# keep any auto-opened overlay (daily login) out of the way
 	for cls in ["DailyPanel", "CottageScreen", "ShopPanel", "SettingsPanel"]:

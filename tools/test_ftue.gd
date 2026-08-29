@@ -21,6 +21,8 @@ func _run() -> void:
 	var board := _find(get_root(), "SortBoard")
 	if main == null or board == null:
 		_fail("main/board not found"); return
+	main._enter_game()          # leave Home so the board takes input
+	await create_timer(0.2).timeout
 
 	if not board.tutorial_lock:
 		fails += 1; push_error("FTUE: board not locked on L1")
