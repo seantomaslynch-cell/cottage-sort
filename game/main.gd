@@ -22,6 +22,8 @@ const SettingsPanelScene := preload("res://game/settings_panel.gd")
 const AnalyticsScene := preload("res://game/analytics.gd")
 const PlatformScene := preload("res://game/platform.gd")
 const BoosterPanelScene := preload("res://game/booster_panel.gd")
+const BattlePassScene := preload("res://game/battle_pass.gd")
+const BattlePassPanelScene := preload("res://game/battle_pass_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
@@ -47,6 +49,8 @@ var _settings: SettingsPanel
 var _analytics: Analytics
 var _platform: Platform
 var _booster: BoosterPanel
+var _bp: BattlePass
+var _bp_panel: BattlePassPanel
 var _new_player := false
 var _stage := 0
 var _last_earned := 0
@@ -128,6 +132,12 @@ func _ready() -> void:
 	add_child(_booster)
 	_booster.set_economy(_economy)
 
+	_bp = BattlePassScene.new()
+	add_child(_bp)
+	_bp_panel = BattlePassPanelScene.new()
+	add_child(_bp_panel)
+	_bp_panel.set_pass(_bp)
+
 	_board.moved.connect(func(n: int) -> void:
 		_hud.set_moves(n)
 		if n >= 2:
@@ -175,7 +185,16 @@ func _ready() -> void:
 	_cottage.mystery_pressed.connect(_on_mystery)
 
 	_hud.daily_pressed.connect(_open_daily)
+	_hud.season_pressed.connect(func() -> void: _bp_panel.open())
 	_hud.shop_pressed.connect(_open_shop)
+
+	_bp_panel.closed.connect(func() -> void: _bp_panel.visible = false)
+	_bp_panel.unlock_pressed.connect(func() -> void: _iap.purchase("battle_pass"))
+	_bp_panel.claim_free_pressed.connect(func() -> void: _grant_bp(_bp.claim_free()))
+	_bp_panel.claim_premium_pressed.connect(func() -> void: _grant_bp(_bp.claim_premium()))
+	_bp.changed.connect(func() -> void:
+		if _bp_panel.visible:
+			_bp_panel.refresh())
 	_hud.settings_pressed.connect(func() -> void: _settings.open())
 	_hud.boost_pressed.connect(func() -> void:
 		if _board.visible and not _hud.fail_open():
@@ -237,7 +256,7 @@ func _ready() -> void:
 
 	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
 	# the top Control of every screen explicitly.
-	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster]:
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select, _settings, _booster, _bp_panel]:
 		_apply_theme(scr)
 
 	_load_current()
@@ -343,6 +362,7 @@ func _on_claim_week() -> void:
 	if amt > 0:
 		_economy.add_coins(amt)
 		_economy.add_booster(Boosters.LIST[randi() % Boosters.LIST.size()], 1)
+		_bp.add_xp(50)
 		_daily_panel.flash("Weekly chest!  +%d coins  +1 booster" % amt)
 		_daily_panel.refresh()
 		_analytics.log_event("week_chest", {"amount": amt})
@@ -420,6 +440,7 @@ func _on_solved() -> void:
 	SaveData.set_stars(_stage, stars)
 	_daily.note_level_cleared()
 	_economy.piggy_add(2)
+	_bp.add_xp(10 + (stars - 1) * 5)
 	if first and stars == 3:
 		_economy.add_gems(1)   # a taste of the premium currency for skilful play
 	_analytics.log_event("level_complete",
@@ -493,6 +514,10 @@ func _on_purchased(id: String) -> void:
 				_economy.add_booster(bid, int(p.get("each", 0)))
 			_booster.refresh()
 			msg = "Booster bundle — %d of each" % int(p.get("each", 0))
+		"pass":
+			_bp.set_owned(true)
+			_bp_panel.refresh()
+			msg = "Season pass unlocked!"
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
 	if msg != "":
@@ -501,10 +526,23 @@ func _on_purchased(id: String) -> void:
 func _open_daily() -> void:
 	_daily_panel.open()
 
+func _grant_bp(r: Dictionary) -> void:
+	if r.is_empty():
+		return
+	if int(r.get("coins", 0)) > 0:
+		_economy.add_coins(int(r["coins"]))
+	if int(r.get("gems", 0)) > 0:
+		_economy.add_gems(int(r["gems"]))
+	for bid in r.get("boosters", []):
+		_economy.add_booster(bid, 1)
+	_bp_panel.refresh()
+	_analytics.log_event("bp_claim", {"coins": int(r.get("coins", 0)), "gems": int(r.get("gems", 0))})
+
 func _on_claim_login() -> void:
 	var amt := _daily.claim_login()
 	if amt > 0:
 		_economy.add_coins(amt)
+		_bp.add_xp(10)
 		_daily_panel.flash("+%d coins" % amt)
 		_daily_panel.refresh()
 
@@ -546,7 +584,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _hud.fail_open() or _hud.nav_open() or _booster.visible:
 		return
-	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible
+	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible or _settings.visible or _bp_panel.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
 		if not (_shop.visible and event.keycode == KEY_S) \

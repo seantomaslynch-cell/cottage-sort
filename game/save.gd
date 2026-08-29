@@ -19,6 +19,7 @@ static var data: Dictionary = {
 	"starter_shown_once": false,
 	"struggle_bought_day": -1, # day the struggle pack was last bought (once/day cap)
 	"boosters": {},    # booster id -> owned count
+	"bp": {},          # battle pass: season_id, xp, owned, free_claimed, prem_claimed
 	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
 	"decor": [],       # owned decor ids (incl. "sundry_N")
 	"decor_sets_done": [],  # authored decor sets already bonused

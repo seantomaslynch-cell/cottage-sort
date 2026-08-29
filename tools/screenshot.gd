@@ -28,10 +28,11 @@ func _run() -> void:
 	var settings := _find(get_root(), "SettingsPanel")
 	var levelsel := _find(get_root(), "LevelSelect")
 	var booster := _find(get_root(), "BoosterPanel")
+	var bp := _find(get_root(), "BattlePassPanel")
 	var hud := _find(get_root(), "GameHUD")
 	var economy := _find(get_root(), "Economy")
 
-	for o in [cottage, daily, shop, settings, levelsel, booster]:
+	for o in [cottage, daily, shop, settings, levelsel, booster, bp]:
 		if o:
 			o.visible = false
 
@@ -75,6 +76,10 @@ func _run() -> void:
 		"fail":
 			if hud:
 				hud.show_fail(100, 50, true, true)
+		"season":
+			if bp and bp.bp:
+				bp.bp.add_xp(340)
+				bp.open()
 
 	await create_timer(0.7).timeout
 

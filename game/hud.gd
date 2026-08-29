@@ -10,6 +10,7 @@ signal add_jar_pressed
 signal levels_pressed
 signal cottage_pressed
 signal daily_pressed
+signal season_pressed
 signal shop_pressed
 signal hint_pressed
 signal double_pressed
@@ -152,8 +153,8 @@ func _build_nav() -> void:
 
 	var items := [
 		["Cottage", cottage_pressed], ["Daily", daily_pressed],
-		["Shop", shop_pressed], ["Levels", levels_pressed],
-		["Settings", settings_pressed],
+		["Season", season_pressed], ["Shop", shop_pressed],
+		["Levels", levels_pressed], ["Settings", settings_pressed],
 	]
 	for it in items:
 		var b := _button(it[0])
