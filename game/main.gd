@@ -20,8 +20,11 @@ const ShopPanelScene := preload("res://game/shop_panel.gd")
 
 const FREE_EXTRA_JARS := 1
 const FREE_HINTS := 2
+const FREE_UNDOS := 3
 const COIN_BASE := 20
 const COIN_FIRST_CLEAR := 30
+const MOVES_PER_REFILL := 5
+const MOVES_COIN_COST := 100
 
 var _board: SortBoard
 var _hud: GameHUD
@@ -37,6 +40,8 @@ var _shop: ShopPanel
 var _stage := 0
 var _last_earned := 0
 var _hints_used := 0
+var _undos_used := 0
+var _stage_fails := 0
 
 var _theme: Theme
 
@@ -89,11 +94,15 @@ func _ready() -> void:
 
 	_board.moved.connect(func(n: int) -> void: _hud.set_moves(n))
 	_board.solved.connect(_on_solved)
+	_board.failed.connect(_on_failed)
 	_board.changed.connect(_refresh_buttons)
 
 	_hud.restart_pressed.connect(_load_current)
 	_hud.next_pressed.connect(_next)
-	_hud.undo_pressed.connect(func() -> void: _board.undo())
+	_hud.undo_pressed.connect(_on_undo)
+	_hud.add_moves_pressed.connect(_on_add_moves)
+	_hud.buy_moves_pressed.connect(_on_buy_moves)
+	_hud.skip_pressed.connect(func() -> void: _ads.watch_rewarded(_next))
 	_hud.add_jar_pressed.connect(_on_add_jar)
 	_hud.levels_pressed.connect(func() -> void: _select.open(Levels.count()))
 	_hud.cottage_pressed.connect(_show_cottage)
@@ -146,6 +155,9 @@ func _ready() -> void:
 
 	_load_current()
 
+	if _daily.login_pending():
+		_open_daily()
+
 func _apply_theme(n: Node) -> void:
 	if n is Control:
 		n.theme = _theme
@@ -153,16 +165,45 @@ func _apply_theme(n: Node) -> void:
 	for c in n.get_children():
 		_apply_theme(c)
 
-	if _daily.login_pending():
-		_open_daily()
-
 func _load_current() -> void:
 	_board.load_level(Levels.build(_stage))
+	_board.move_budget = Levels.move_budget(_stage)
 	_hud.set_level(_stage + 1)
+	_hud.set_budget(_board.move_budget)
 	_hud.set_moves(0)
 	_hud.hide_win()
+	_hud.hide_fail()
 	_hints_used = 0
+	_undos_used = 0
+	_stage_fails = 0
 	_refresh_buttons()
+
+func _on_undo() -> void:
+	if not _board.can_undo():
+		return
+	if _undos_used < FREE_UNDOS:
+		_undos_used += 1
+		_board.undo()
+	else:
+		_ads.watch_rewarded(func() -> void: _board.undo())
+
+func _on_failed() -> void:
+	_stage_fails += 1
+	_hud.show_fail(MOVES_COIN_COST, _economy.coins(), _stage_fails >= 2)
+
+func _on_add_moves() -> void:
+	_ads.watch_rewarded(func() -> void:
+		_board.add_moves(MOVES_PER_REFILL)
+		_hud.set_budget(_board.move_budget)
+		_hud.hide_fail())
+
+func _on_buy_moves() -> void:
+	if _economy.coins() < MOVES_COIN_COST:
+		return
+	_economy.add_coins(-MOVES_COIN_COST)
+	_board.add_moves(MOVES_PER_REFILL)
+	_hud.set_budget(_board.move_budget)
+	_hud.hide_fail()
 
 func _on_hint() -> void:
 	if _board.visible == false or _daily_panel.visible or _cottage.visible:
@@ -275,6 +316,8 @@ func _show_puzzle() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
+	if _hud.fail_open():
+		return  # resolve the out-of-moves prompt with the buttons
 	var overlay := _cottage.visible or _daily_panel.visible or _shop.visible
 	if overlay and event.keycode != KEY_M:
 		# let the matching toggle key still close its own overlay
@@ -288,7 +331,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_N:
 			_next()
 		KEY_U:
-			_board.undo()
+			_on_undo()
 		KEY_L:
 			_select.open(Levels.count())
 		KEY_H:

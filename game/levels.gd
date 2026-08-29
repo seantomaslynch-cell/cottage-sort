@@ -50,3 +50,14 @@ static func stars_for(stage_index: int, moves: int) -> int:
 	if moves <= int(cut[1]):
 		return 2
 	return 1
+
+## Move budget for a stage. The first TUTORIAL_STAGES have no limit; after that
+## the budget is generous (~1.5-2x a clean solve) so only a flailing player
+## hits it. Tuned later from analytics.
+const TUTORIAL_STAGES := 5
+
+static func move_budget(stage_index: int) -> int:
+	if stage_index < TUTORIAL_STAGES:
+		return 999
+	var s: Dictionary = STAGES[clampi(stage_index, 0, STAGES.size() - 1)]
+	return int(s["colors"]) * 4 + 10

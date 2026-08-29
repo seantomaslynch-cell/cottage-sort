@@ -67,6 +67,28 @@ func _initialize() -> void:
 	mb.free()
 	print("move-logic checks OK")
 
+	# fail-state / move-budget checks
+	var fb = Board.new()
+	fb.jars = [[0, 1], [1, 0], []]
+	fb.move_budget = Board.UNLIMITED
+	assert(not fb._is_failed())                 # unlimited -> never fails
+	fb.move_budget = 2
+	fb.moves = 1
+	assert(not fb._is_failed())                 # under budget
+	fb.moves = 2
+	fb._history = [{"from": 0, "to": 2, "count": 1}]
+	assert(fb._is_failed())                     # at budget -> failed
+	fb.add_moves(5)
+	assert(fb.move_budget == 7 and not fb._is_failed())  # refill clears it
+	assert(fb.moves_left() == 5)
+	fb.free()
+	print("fail-state checks OK")
+
+	# move budget curve: tutorial unlimited, later stages finite and sane
+	assert(Levels.move_budget(0) >= 999 and Levels.move_budget(4) >= 999)
+	assert(Levels.move_budget(5) < 999 and Levels.move_budget(23) < 999)
+	print("move-budget curve OK  (L6=%d, L24=%d)" % [Levels.move_budget(5), Levels.move_budget(23)])
+
 	if fails == 0:
 		print("\nALL PASS")
 		quit(0)

@@ -8,7 +8,10 @@ class_name SortBoard
 
 signal moved(count: int)
 signal solved
+signal failed             # ran out of the move budget (or wedged the board)
 signal changed            # selection / history / jar count changed -> refresh HUD
+
+const UNLIMITED := 999
 
 const CAP := 4
 const MAX_EXTRA_JARS := 3
@@ -29,6 +32,7 @@ var audio: GameAudio = null
 var jars: Array = []              # Array of Array[int], bottom -> top
 var selected: int = -1
 var moves: int = 0
+var move_budget: int = UNLIMITED  # set by main per stage; UNLIMITED = no fail
 
 var _rects: Array[Rect2] = []
 var _base_jar_count := 0
@@ -105,6 +109,18 @@ func add_jar() -> bool:
 	changed.emit()
 	_sfx("place", 1.1)
 	return true
+
+func moves_left() -> int:
+	if move_budget >= UNLIMITED:
+		return UNLIMITED
+	return maxi(0, move_budget - moves)
+
+func add_moves(n: int) -> void:
+	move_budget += n
+	if _locked and not _is_solved():
+		_locked = false
+	queue_redraw()
+	changed.emit()
 
 func undo() -> void:
 	if not can_undo():
@@ -245,7 +261,21 @@ func _post_move() -> void:
 		_locked = true
 		_start_win_juice()
 		solved.emit()
+	elif _is_failed():
+		_locked = true
+		_sfx("buzz", 0.8)
+		failed.emit()
 	changed.emit()
+
+func _is_failed() -> bool:
+	if move_budget >= UNLIMITED:
+		return false
+	if moves >= move_budget:
+		return true
+	# wedged: pieces on the board but no legal move left
+	if not _history.is_empty() and SortSolver._moves(jars).is_empty():
+		return true
+	return false
 
 func _start_win_juice() -> void:
 	_sfx("win")

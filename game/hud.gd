@@ -13,12 +13,18 @@ signal daily_pressed
 signal shop_pressed
 signal hint_pressed
 signal double_pressed
+signal add_moves_pressed
+signal buy_moves_pressed
+signal skip_pressed
 signal mute_toggled(muted: bool)
+
+const BOARD_UNLIMITED := 999
 
 var _status: Label
 var _lv := 1
 var _mv := 0
 var _co := 0
+var _budget := BOARD_UNLIMITED
 var _mute_btn: Button
 var _undo_btn: Button
 var _addjar_btn: Button
@@ -30,6 +36,9 @@ var _win_best: Label
 var _win_coins: Label
 var _double_btn: Button
 var _win_earned := 0
+var _fail_root: Control
+var _fail_buy_btn: Button
+var _fail_skip_btn: Button
 var _muted := false
 
 func _ready() -> void:
@@ -111,6 +120,61 @@ func _ready() -> void:
 	add_child(_toast)
 
 	_build_win_overlay()
+	_build_fail_overlay()
+
+func _build_fail_overlay() -> void:
+	_fail_root = Control.new()
+	_fail_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fail_root.visible = false
+	add_child(_fail_root)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.36, 0.27, 0.21, 0.55)
+	_fail_root.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fail_root.add_child(center)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 14)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_child(box)
+
+	var title := _label("Out of moves")
+	title.add_theme_font_size_override("font_size", 40)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+
+	var sub := _label("Need a hand with this one?")
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(sub)
+
+	var watch := _button("+5 moves   (Watch)")
+	watch.custom_minimum_size = Vector2(320, 70)
+	watch.pressed.connect(func() -> void: add_moves_pressed.emit())
+	box.add_child(watch)
+
+	_fail_buy_btn = _button("+5 moves   (100 coins)")
+	_fail_buy_btn.custom_minimum_size = Vector2(320, 70)
+	_fail_buy_btn.pressed.connect(func() -> void: buy_moves_pressed.emit())
+	box.add_child(_fail_buy_btn)
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 14)
+	box.add_child(row)
+
+	var restart := _button("Restart")
+	restart.custom_minimum_size = Vector2(150, 64)
+	restart.pressed.connect(func() -> void: restart_pressed.emit())
+	row.add_child(restart)
+
+	_fail_skip_btn = _button("Skip   (Watch)")
+	_fail_skip_btn.custom_minimum_size = Vector2(180, 64)
+	_fail_skip_btn.pressed.connect(func() -> void: skip_pressed.emit())
+	row.add_child(_fail_skip_btn)
 
 func _build_win_overlay() -> void:
 	_win_root = Control.new()
@@ -202,7 +266,14 @@ func set_muted(m: bool) -> void:
 	_mute_btn.text = "Vol off" if m else "Vol on"
 
 func _sync_status() -> void:
-	_status.text = "Lv %d    %d moves    %dc" % [_lv, _mv, _co]
+	var mv_txt := "%d moves" % _mv
+	var warn := false
+	if _budget < BOARD_UNLIMITED:
+		var left := maxi(0, _budget - _mv)
+		mv_txt = "%d / %d moves" % [_mv, _budget]
+		warn = left <= 5
+	_status.text = "Lv %d    %s    %dc" % [_lv, mv_txt, _co]
+	_status.add_theme_color_override("font_color", Color("b0553c") if warn else Color("5b4636"))
 
 func set_level(n: int) -> void:
 	_lv = n
@@ -210,6 +281,10 @@ func set_level(n: int) -> void:
 
 func set_moves(n: int) -> void:
 	_mv = n
+	_sync_status()
+
+func set_budget(n: int) -> void:
+	_budget = n
 	_sync_status()
 
 func set_coins(n: int) -> void:
@@ -249,6 +324,18 @@ func mark_doubled() -> void:
 
 func hide_win() -> void:
 	_win_root.visible = false
+
+func show_fail(coin_cost: int, coins_have: int, show_skip: bool) -> void:
+	_fail_buy_btn.text = "+5 moves   (%d coins)" % coin_cost
+	_fail_buy_btn.disabled = coins_have < coin_cost
+	_fail_skip_btn.visible = show_skip
+	_fail_root.visible = true
+
+func hide_fail() -> void:
+	_fail_root.visible = false
+
+func fail_open() -> bool:
+	return _fail_root.visible
 
 func _stars_str(n: int) -> String:
 	var s := ""
