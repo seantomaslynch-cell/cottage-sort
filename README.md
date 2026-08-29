@@ -22,6 +22,7 @@ Shortcuts while playing: `R` restart, `N` next, `U` undo, `H` hint, `L` levels,
 godot --headless --path . --script res://tools/test_logic.gd
 godot --headless --path . --script res://tools/test_daily.gd
 godot --headless --path . --script res://tools/test_shop.gd
+godot --headless --path . --script res://tools/test_decor.gd
 ```
 
 `test_logic` checks colour counts, that generated levels aren't pre-solved,
@@ -70,6 +71,7 @@ tools/
   test_logic.gd    headless sanity checks (sort logic + generator + solver)
   test_daily.gd    headless sanity checks (retention logic)
   test_shop.gd     headless sanity checks (IAP + interstitial gating)
+  test_decor.gd    headless sanity checks (endless decor meta)
 web/
   README.md        how to build for web
 ```

@@ -108,10 +108,16 @@ seasonal decor bundle. No pay-to-win.
   local JSON event log (`user://events.log`); `platform.gd` stubs for local
   push notifications + OS review prompt (call sites wired, need a native
   plugin); review requested after 5 cleared levels.
-- [ ] **M12+ — Monetization depth:** authored curve past L4, endless cottage
-  meta + decor sets + collection album, gems, a 6+ booster set + bundles, piggy
-  bank, starter pack, then battle pass / daily jackpot / leaderboards / themed
-  realms.
+- [x] **M12 — Endless cottage meta:** `decor_data.gd` — 3 authored decor sets
+  (Garden / Kitchen / Cozy Nook, 4 items each, 150-coin completion bonus) + an
+  endless "Sundries" set whose next item always costs more (quadratic), so
+  coins never run out of a sink. `cottage_screen.gd` gains Restore | Decorate
+  tabs; `cottage_view.gd` draws owned decor as tokens along the front.
+  `economy.gd` + `SaveData` track `decor` / `decor_sets_done`. Tests:
+  `tools/test_decor.gd`.
+- [ ] **M13+ — Monetization depth:** authored curve past L4, gems (premium
+  currency), a 6+ booster set + bundles, piggy bank, starter pack, then battle
+  pass / daily jackpot / leaderboards / themed realms / more cottage rooms.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
 

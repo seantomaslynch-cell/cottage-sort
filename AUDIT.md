@@ -130,12 +130,13 @@ Done:
 - [x] **Session-end hook** — win screen shows the next goal  *(M11)*
 - [x] **Analytics** — local JSON event log (session/level/ad/iap); swap for an SDK  *(M11)*
 - [x] **Review prompt** trigger after 5 cleared levels *(stub — needs a plugin)*  *(M11)*
+- [x] **Endless cottage meta** — 3 collection sets + completion bonuses + an
+  infinite "Sundries" set whose next item always costs more; coins can't run dry  *(M12)*
 
 Open:
 
 - [ ] Authored difficulty curve beyond the first 4 levels (deliberate first peak, spike after ~L20)
 - [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
-- [ ] Endless cottage meta / rotating decor sets / collection album  *(dead coin sink today)*
 - [ ] Gems (premium currency) + a 6+ booster set + shop bundles
 - [ ] Piggy bank
 - [ ] Starter pack + struggle-triggered offers

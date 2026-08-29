@@ -23,9 +23,10 @@ file map in [README.md](README.md).
 | M9 onboarding (4 authored teaching levels, coach tips, clean first session) | ✅ done |
 | M10 haptics + settings screen + ambient music | ✅ done |
 | M11 weekly event + session-end hook + local analytics + platform seams | ✅ done |
+| M12 endless cottage meta (decor sets + infinite Sundries; coins always have a sink) | ✅ done |
 
 See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
-Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop` — all pass.
+Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`, `test_decor` — all pass.
 
 ## What's next
 
@@ -33,12 +34,11 @@ Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop` — al
 
 1. **Authored difficulty curve** past the first 4 levels — a deliberate first
    peak, a spike after ~L20. Keep the generator for an endless mode after.
-2. **Endless cottage meta** — more rooms + rotating decor sets + a collection
-   album, so coins never run out of a sink (finite today: ~13 buys then done).
-3. **Monetization depth** — gems (premium currency), a 6+ booster set with a
+2. **Monetization depth** — gems (premium currency), a 6+ booster set with a
    shop + bundles, a piggy bank, a starter pack + struggle-triggered offers.
-4. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
+3. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
    content cadence and, for leaderboards, a small backend.
+4. **More cottage rooms** and seasonal decor drops on top of the M12 catalog.
 
 **Needs an external piece (seam is in place):**
 
