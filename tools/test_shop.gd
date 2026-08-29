@@ -41,6 +41,15 @@ func _initialize() -> void:
 	_ok(sp.get("kind") == "bundle" and int(sp.get("gems", 0)) == 120 and bool(sp.get("remove_ads", false)),
 		"starter_pack bundle shape")
 	_ok(iap.product("piggy_crack").get("kind") == "piggy", "piggy_crack product shape")
+	var st := iap.product("struggle_pack")
+	_ok(st.get("kind") == "struggle" and int(st.get("gems", 0)) == 40 and int(st.get("moves", 0)) == 8,
+		"struggle_pack product shape")
+	SaveData.data["struggle_bought_day"] = -1
+	var got2 := [""]
+	iap.purchased.connect(func(id: String) -> void: got2[0] = id)
+	iap.purchase("struggle_pack")
+	_ok(got2[0] == "struggle_pack", "struggle_pack purchase fires")
+	_ok(not iap.owns("struggle_pack"), "struggle_pack is repeatable (never 'owned')")
 	SaveData.data["starter_bought"] = false
 	_ok(not iap.owns("starter_pack"), "starter_pack not owned initially")
 	iap.purchase("starter_pack")

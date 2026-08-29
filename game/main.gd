@@ -142,6 +142,7 @@ func _ready() -> void:
 	_hud.add_moves_pressed.connect(_on_add_moves)
 	_hud.buy_moves_pressed.connect(_on_buy_moves)
 	_hud.skip_pressed.connect(func() -> void: _ads.watch_rewarded(_next))
+	_hud.struggle_pressed.connect(func() -> void: _iap.purchase("struggle_pack"))
 	_hud.add_jar_pressed.connect(_on_add_jar)
 	_hud.levels_pressed.connect(func() -> void: _select.open(Levels.count()))
 	_hud.cottage_pressed.connect(_show_cottage)
@@ -284,8 +285,17 @@ func _on_undo() -> void:
 func _on_failed() -> void:
 	_coach.clear()
 	_stage_fails += 1
-	_analytics.log_event("level_fail", {"stage": _stage, "moves": _board.moves, "n": _stage_fails})
-	_hud.show_fail(MOVES_COIN_COST, _economy.coins(), _stage_fails >= 2)
+	var struggle := _struggle_available()
+	_analytics.log_event("level_fail",
+		{"stage": _stage, "moves": _board.moves, "n": _stage_fails, "offer": struggle})
+	_hud.show_fail(MOVES_COIN_COST, _economy.coins(), _stage_fails >= 2, struggle)
+
+## The struggle pack: shown on the fail screen from the 2nd (through 4th) fail
+## on a stage, at most once per day.
+func _struggle_available() -> bool:
+	if _stage_fails < 2 or _stage_fails > 4:
+		return false
+	return int(SaveData.data.get("struggle_bought_day", -1)) != _daily.today()
 
 func _on_use_booster(id: String) -> void:
 	var cost: int = Boosters.COST.get(id, 0)
@@ -451,9 +461,20 @@ func _on_purchased(id: String) -> void:
 			_economy.add_gems(int(p.get("gems", 0)))
 			_economy.add_coins(int(p.get("coins", 0)))
 			msg = "Starter pack unlocked!"
+		"struggle":
+			_economy.add_gems(int(p.get("gems", 0)))
+			_economy.add_coins(int(p.get("coins", 0)))
+			_board.add_moves(int(p.get("moves", 0)))
+			_hud.set_budget(_board.move_budget)
+			_hud.hide_fail()
+			SaveData.data["struggle_bought_day"] = _daily.today()
+			SaveData.save_now()
+			_hud.flash("Struggle pack — +%d gems, +%d coins" % [int(p.get("gems", 0)), int(p.get("coins", 0))])
+			msg = ""
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
-	_shop.flash(msg)
+	if msg != "":
+		_shop.flash(msg)
 
 func _open_daily() -> void:
 	_daily_panel.open()

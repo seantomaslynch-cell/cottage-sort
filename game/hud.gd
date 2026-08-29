@@ -18,6 +18,7 @@ signal buy_moves_pressed
 signal skip_pressed
 signal settings_pressed
 signal boost_pressed
+signal struggle_pressed
 signal mute_toggled(muted: bool)
 
 const BOARD_UNLIMITED := 999
@@ -42,6 +43,7 @@ var _win_earned := 0
 var _fail_root: Control
 var _fail_buy_btn: Button
 var _fail_skip_btn: Button
+var _fail_struggle_btn: Button
 var _nav: Control
 
 func _ready() -> void:
@@ -205,6 +207,22 @@ func _build_fail_overlay() -> void:
 	_fail_buy_btn.custom_minimum_size = Vector2(320, 70)
 	_fail_buy_btn.pressed.connect(func() -> void: buy_moves_pressed.emit())
 	box.add_child(_fail_buy_btn)
+
+	_fail_struggle_btn = _button("Struggle pack   40 gems + 300c + 8 moves   $0.99")
+	_fail_struggle_btn.custom_minimum_size = Vector2(320, 64)
+	_fail_struggle_btn.add_theme_font_size_override("font_size", 20)
+	var ssb := StyleBoxFlat.new()
+	ssb.bg_color = Color("f8eed9")
+	ssb.border_color = Color("b0553c")
+	ssb.set_border_width_all(2)
+	ssb.set_corner_radius_all(14)
+	ssb.content_margin_left = 14
+	ssb.content_margin_right = 14
+	ssb.content_margin_top = 10
+	ssb.content_margin_bottom = 10
+	_fail_struggle_btn.add_theme_stylebox_override("normal", ssb)
+	_fail_struggle_btn.pressed.connect(func() -> void: struggle_pressed.emit())
+	box.add_child(_fail_struggle_btn)
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -377,10 +395,11 @@ func mark_doubled() -> void:
 func hide_win() -> void:
 	_win_root.visible = false
 
-func show_fail(coin_cost: int, coins_have: int, show_skip: bool) -> void:
+func show_fail(coin_cost: int, coins_have: int, show_skip: bool, show_struggle := false) -> void:
 	_fail_buy_btn.text = "+5 moves   (%d coins)" % coin_cost
 	_fail_buy_btn.disabled = coins_have < coin_cost
 	_fail_skip_btn.visible = show_skip
+	_fail_struggle_btn.visible = show_struggle
 	_fail_root.visible = true
 
 func hide_fail() -> void:

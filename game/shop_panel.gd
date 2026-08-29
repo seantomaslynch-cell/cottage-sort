@@ -126,9 +126,9 @@ func refresh() -> void:
 		"Cracks open for %s — fuller = better value" % _iap.product("piggy_crack")["price"],
 		"piggy_crack", pg >= 20))
 
-	# Regular products
+	# Regular products (contextual offers are surfaced elsewhere)
 	for p in GameIap.PRODUCTS:
-		if p["id"] == "starter_pack" or p["id"] == "piggy_crack":
+		if p["id"] in ["starter_pack", "piggy_crack", "struggle_pack"]:
 			continue
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)

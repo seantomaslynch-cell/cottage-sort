@@ -28,6 +28,7 @@ func _run() -> void:
 	var settings := _find(get_root(), "SettingsPanel")
 	var levelsel := _find(get_root(), "LevelSelect")
 	var booster := _find(get_root(), "BoosterPanel")
+	var hud := _find(get_root(), "GameHUD")
 	var economy := _find(get_root(), "Economy")
 
 	for o in [cottage, daily, shop, settings, levelsel, booster]:
@@ -71,6 +72,9 @@ func _run() -> void:
 				economy.add_gems(12)
 			if booster:
 				booster.open()
+		"fail":
+			if hud:
+				hud.show_fail(100, 50, true, true)
 
 	await create_timer(0.7).timeout
 

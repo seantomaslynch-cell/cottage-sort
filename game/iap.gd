@@ -9,9 +9,11 @@ signal purchased(product_id: String)
 signal restored
 
 const PRODUCTS: Array[Dictionary] = [
-	{"id": "starter_pack", "name": "Starter pack", "price": "$2.99", "kind": "bundle",
+	{"id": "starter_pack",  "name": "Starter pack", "price": "$2.99", "kind": "bundle",
 		"gems": 120, "coins": 800, "remove_ads": true},
-	{"id": "piggy_crack",  "name": "Crack the piggy bank",   "price": "$4.99", "kind": "piggy"},
+	{"id": "struggle_pack", "name": "Struggle pack", "price": "$0.99", "kind": "struggle",
+		"gems": 40, "coins": 300, "moves": 8},
+	{"id": "piggy_crack",   "name": "Crack the piggy bank",   "price": "$4.99", "kind": "piggy"},
 	{"id": "remove_ads",   "name": "Remove interstitial ads", "price": "$2.99", "kind": "entitlement"},
 	{"id": "gems_small",   "name": "Handful of gems (80)",    "price": "$1.99", "kind": "gems",  "amount": 80},
 	{"id": "gems_medium",  "name": "Pouch of gems (250)",     "price": "$4.99", "kind": "gems",  "amount": 250},
