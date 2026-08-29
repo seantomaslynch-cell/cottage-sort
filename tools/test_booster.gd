@@ -30,6 +30,18 @@ func _initialize() -> void:
 	_ok(not e.spend_gems(100) and e.gems() == 7, "spend_gems refuses when short")
 	e.free()
 
+	print("inventory:")
+	SaveData.data["boosters"] = {}
+	var inv: Economy = EconomyS.new()
+	_ok(inv.booster_count("magnet") == 0, "starts empty")
+	inv.add_booster("magnet", 3)
+	_ok(inv.booster_count("magnet") == 3, "add_booster")
+	_ok(inv.use_booster("magnet") and inv.booster_count("magnet") == 2, "use_booster decrements")
+	inv.add_booster("magnet", -5)
+	_ok(inv.booster_count("magnet") == 0, "count clamps at 0")
+	_ok(not inv.use_booster("magnet"), "use_booster fails when empty")
+	inv.free()
+
 	print("booster data:")
 	_ok(Boosters.LIST.size() >= 6, "at least 6 boosters")
 	for id in Boosters.LIST:

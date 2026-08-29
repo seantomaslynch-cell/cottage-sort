@@ -57,6 +57,24 @@ func piggy_crack() -> int:
 	changed.emit()
 	return amt
 
+# --- booster inventory -------------------------------------------------------
+
+func booster_count(id: String) -> int:
+	return int((SaveData.data.get("boosters", {}) as Dictionary).get(id, 0))
+
+func add_booster(id: String, n: int) -> void:
+	var b: Dictionary = SaveData.data.get("boosters", {})
+	b[id] = maxi(0, int(b.get(id, 0)) + n)
+	SaveData.data["boosters"] = b
+	SaveData.save_now()
+	changed.emit()
+
+func use_booster(id: String) -> bool:
+	if booster_count(id) <= 0:
+		return false
+	add_booster(id, -1)
+	return true
+
 func add_coins(n: int) -> void:
 	if n == 0:
 		return

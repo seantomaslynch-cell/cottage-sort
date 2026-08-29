@@ -1,14 +1,19 @@
 extends CanvasLayer
 class_name BoosterPanel
-## Quick in-level popup: the six boosters, bought-and-used instantly for gems.
+## In-level popup: your booster inventory. Use what you own, or buy more with
+## gems (singly or a "stock up" pack). Bundles are also sold via IAP in the Shop.
 
 signal use_pressed(id: String)
+signal buy_pressed(id: String)
+signal stock_pressed
 signal closed
 
 var economy: Economy = null
 
 var _gems_lbl: Label
-var _rows: Dictionary = {}   # id -> Button
+var _use_btns: Dictionary = {}   # id -> Button
+var _buy_btns: Dictionary = {}   # id -> Button
+var _stock_btn: Button
 var _note_lbl: Label
 
 func _ready() -> void:
@@ -41,7 +46,7 @@ func _ready() -> void:
 	center.add_child(card)
 
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 10)
+	box.add_theme_constant_override("separation", 9)
 	card.add_child(box)
 
 	var head := HBoxContainer.new()
@@ -56,19 +61,32 @@ func _ready() -> void:
 
 	for id in Boosters.LIST:
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 14)
+		row.add_theme_constant_override("separation", 12)
 
-		var txt := _label("%s\n%s" % [Boosters.NAME[id], Boosters.DESC[id]], 22)
-		txt.custom_minimum_size = Vector2(360, 0)
+		var txt := _label("%s\n%s" % [Boosters.NAME[id], Boosters.DESC[id]], 21)
+		txt.custom_minimum_size = Vector2(320, 0)
+		txt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(txt)
 
-		var btn := _button("%d gems" % Boosters.COST[id], 22)
-		btn.custom_minimum_size = Vector2(150, 58)
 		var bid: String = id
-		btn.pressed.connect(func() -> void: use_pressed.emit(bid))
-		_rows[id] = btn
-		row.add_child(btn)
+		var use := _button("Use", 21)
+		use.custom_minimum_size = Vector2(120, 56)
+		use.pressed.connect(func() -> void: use_pressed.emit(bid))
+		_use_btns[id] = use
+		row.add_child(use)
+
+		var buy := _button("+ %dg" % Boosters.COST[id], 21)
+		buy.custom_minimum_size = Vector2(90, 56)
+		buy.pressed.connect(func() -> void: buy_pressed.emit(bid))
+		_buy_btns[id] = buy
+		row.add_child(buy)
+
 		box.add_child(row)
+
+	_stock_btn = _button("Stock up  —  one of each for %d gems" % Boosters.STOCK_ALL_COST, 21)
+	_stock_btn.custom_minimum_size = Vector2(0, 54)
+	_stock_btn.pressed.connect(func() -> void: stock_pressed.emit())
+	box.add_child(_stock_btn)
 
 	_note_lbl = _label("", 22)
 	_note_lbl.add_theme_color_override("font_color", Palette.ACCENT_WARM)
@@ -77,7 +95,7 @@ func _ready() -> void:
 	box.add_child(_note_lbl)
 
 	var close := _button("Close", 24)
-	close.custom_minimum_size = Vector2(0, 56)
+	close.custom_minimum_size = Vector2(0, 54)
 	close.pressed.connect(func() -> void: closed.emit())
 	box.add_child(close)
 
@@ -94,7 +112,11 @@ func refresh() -> void:
 	var g := economy.gems()
 	_gems_lbl.text = "%d gems" % g
 	for id in Boosters.LIST:
-		_rows[id].disabled = g < int(Boosters.COST[id])
+		var n := economy.booster_count(id)
+		_use_btns[id].text = "Use  x%d" % n
+		_use_btns[id].disabled = n <= 0
+		_buy_btns[id].disabled = g < int(Boosters.COST[id])
+	_stock_btn.disabled = g < Boosters.STOCK_ALL_COST
 
 func note(text: String) -> void:
 	_note_lbl.text = text

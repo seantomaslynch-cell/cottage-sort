@@ -23,7 +23,7 @@ const DESC := {
 	"headstart": "Auto-play the best 3 moves",
 }
 
-const COST := {   # gems
+const COST := {   # gems, to buy one for the inventory
 	"moves8": 3,
 	"undos3": 2,
 	"jar1": 2,
@@ -31,3 +31,5 @@ const COST := {   # gems
 	"magnet": 4,
 	"headstart": 5,
 }
+
+const STOCK_ALL_COST := 12   # one of each (vs 18 singly)

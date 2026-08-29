@@ -183,6 +183,22 @@ func _ready() -> void:
 
 	_booster.closed.connect(func() -> void: _booster.visible = false)
 	_booster.use_pressed.connect(_on_use_booster)
+	_booster.buy_pressed.connect(func(id: String) -> void:
+		var cost: int = Boosters.COST.get(id, 0)
+		if _economy.spend_gems(cost):
+			_economy.add_booster(id, 1)
+			_economy.piggy_add(1 + cost / 2)
+			_booster.refresh()
+		else:
+			_booster.note("Not enough gems"))
+	_booster.stock_pressed.connect(func() -> void:
+		if _economy.spend_gems(Boosters.STOCK_ALL_COST):
+			for bid in Boosters.LIST:
+				_economy.add_booster(bid, 1)
+			_economy.piggy_add(6)
+			_booster.refresh()
+		else:
+			_booster.note("Not enough gems"))
 
 	_settings.closed.connect(func() -> void: _settings.visible = false)
 	_settings.restore_pressed.connect(func() -> void:
@@ -211,8 +227,9 @@ func _ready() -> void:
 		_economy.add_coins(amount)
 		_economy.add_gems(1)
 		_economy.piggy_add(3)
-		_daily_panel.flash("Ad-streak chest!  +%d  +1 gem" % amount)
-		_hud.flash("Ad-streak chest!  +%d coins, +1 gem" % amount))
+		_economy.add_booster(Boosters.LIST[randi() % Boosters.LIST.size()], 1)
+		_daily_panel.flash("Ad-streak chest!  +%d  +1 gem  +1 booster" % amount)
+		_hud.flash("Ad-streak chest!  +%d coins, +1 gem, +1 booster" % amount))
 	_ads.rewarded_finished.connect(func(granted: bool) -> void:
 		if granted:
 			_daily.note_ad_watched()
@@ -298,9 +315,9 @@ func _struggle_available() -> bool:
 	return int(SaveData.data.get("struggle_bought_day", -1)) != _daily.today()
 
 func _on_use_booster(id: String) -> void:
-	var cost: int = Boosters.COST.get(id, 0)
-	if not _economy.spend_gems(cost):
-		_booster.note("Not enough gems")
+	if not _economy.use_booster(id):
+		_booster.note("None left — buy one below")
+		_booster.refresh()
 		return
 	match id:
 		"moves8":
@@ -316,8 +333,7 @@ func _on_use_booster(id: String) -> void:
 			_board.magnet()
 		"headstart":
 			_board.autoplay(3)
-	_economy.piggy_add(1 + cost / 2)   # using boosters feeds the piggy bank
-	_analytics.log_event("booster", {"id": id, "cost": cost})
+	_analytics.log_event("booster_used", {"id": id})
 	_booster.visible = false
 	_hud.flash("%s" % Boosters.NAME.get(id, id))
 	_refresh_buttons()
@@ -326,7 +342,8 @@ func _on_claim_week() -> void:
 	var amt := _daily.claim_week()
 	if amt > 0:
 		_economy.add_coins(amt)
-		_daily_panel.flash("Weekly chest!  +%d" % amt)
+		_economy.add_booster(Boosters.LIST[randi() % Boosters.LIST.size()], 1)
+		_daily_panel.flash("Weekly chest!  +%d coins  +1 booster" % amt)
 		_daily_panel.refresh()
 		_analytics.log_event("week_chest", {"amount": amt})
 
@@ -471,6 +488,11 @@ func _on_purchased(id: String) -> void:
 			SaveData.save_now()
 			_hud.flash("Struggle pack — +%d gems, +%d coins" % [int(p.get("gems", 0)), int(p.get("coins", 0))])
 			msg = ""
+		"boosters":
+			for bid in Boosters.LIST:
+				_economy.add_booster(bid, int(p.get("each", 0)))
+			_booster.refresh()
+			msg = "Booster bundle — %d of each" % int(p.get("each", 0))
 	_ads.remove_ads = _iap.has_remove_ads()
 	_shop.refresh()
 	if msg != "":
