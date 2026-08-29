@@ -62,6 +62,12 @@ func _test_weekly() -> void:
 	_ok(d.claim_week() == 0 and d.week_claimed(), "second claim pays nothing")
 	d.debug_day_offset = 7  # next week
 	_ok(d.week_progress() == 0 and not d.week_claimed(), "resets on a new week")
+
+	_ok(d.jackpot_available(), "jackpot available on a fresh day")
+	d.consume_jackpot()
+	_ok(not d.jackpot_available(), "jackpot consumed for the day")
+	d.debug_day_offset = 8
+	_ok(d.jackpot_available(), "jackpot back the next day")
 	d.free()
 
 func _test_login() -> void:

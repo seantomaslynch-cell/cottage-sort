@@ -128,6 +128,25 @@ func advance_debug_day() -> void:
 	debug_day_offset += 1
 	changed.emit()
 
+# --- daily jackpot ----------------------------------------------------------
+# One special board a day. You must WIN it to claim the prize (audit: reinforces
+# the core loop instead of a passive login bonus).
+
+const JACKPOT_COINS := 150
+const JACKPOT_GEMS := 3
+
+func jackpot_available() -> bool:
+	return today() != int(_d().get("last_jackpot_day", -1))
+
+func jackpot_seed() -> int:
+	return 77000 + today()
+
+## Consume the day's attempt (call when the board is started).
+func consume_jackpot() -> void:
+	var d := _d()
+	d["last_jackpot_day"] = today()
+	_commit(d)
+
 # --- weekly event -----------------------------------------------------------
 
 const WEEK_GOAL := 15

@@ -6,6 +6,7 @@ class_name DailyPanel
 signal claim_login_pressed
 signal spin_pressed
 signal week_claim_pressed
+signal jackpot_pressed
 signal closed
 signal debug_day_pressed
 
@@ -21,6 +22,7 @@ var _spin_btn: Button
 var _adstreak_lbl: Label
 var _week_lbl: Label
 var _week_btn: Button
+var _jackpot_btn: Button
 var _toast: Label
 
 func _ready() -> void:
@@ -61,6 +63,11 @@ func _ready() -> void:
 	_streak_lbl = _label("Login streak: 0 days", 24, Palette.INK)
 	_streak_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	login_box.add_child(_streak_lbl)
+
+	_jackpot_btn = _button("", 24)
+	_jackpot_btn.custom_minimum_size = Vector2(360, 60)
+	_jackpot_btn.pressed.connect(func() -> void: jackpot_pressed.emit())
+	login_box.add_child(_jackpot_btn)
 
 	_wheel = SpinWheelScene.new()
 	_wheel.position = Vector2(360, 486)
@@ -162,6 +169,13 @@ func refresh() -> void:
 
 	var ls := _daily.login_streak()
 	_streak_lbl.text = "Login streak: %d day%s" % [ls, "" if ls == 1 else "s"]
+
+	if _daily.jackpot_available():
+		_jackpot_btn.disabled = false
+		_jackpot_btn.text = "Play daily jackpot   %dc + %dg" % [Daily.JACKPOT_COINS, Daily.JACKPOT_GEMS]
+	else:
+		_jackpot_btn.disabled = true
+		_jackpot_btn.text = "Daily jackpot  -  done for today"
 
 	_spin_btn.disabled = _wheel.is_spinning()
 	_spin_btn.text = "Spin  (free)" if _daily.free_spin_available() else "Spin  (Watch)"

@@ -57,6 +57,7 @@ var _last_earned := 0
 var _hints_used := 0
 var _undos_used := 0
 var _stage_fails := 0
+var _jackpot_active := false
 
 var _theme: Theme
 
@@ -239,6 +240,7 @@ func _ready() -> void:
 	_daily_panel.claim_login_pressed.connect(_on_claim_login)
 	_daily_panel.spin_pressed.connect(_on_spin)
 	_daily_panel.week_claim_pressed.connect(_on_claim_week)
+	_daily_panel.jackpot_pressed.connect(_start_jackpot)
 	_daily_panel.debug_day_pressed.connect(func() -> void:
 		_daily.advance_debug_day()
 		_daily_panel.refresh())
@@ -285,6 +287,7 @@ func _apply_theme(n: Node) -> void:
 		_apply_theme(c)
 
 func _load_current() -> void:
+	_jackpot_active = false
 	_board.load_level(Levels.build(_stage))
 	_board.move_budget = Levels.move_budget(_stage)
 	_hud.set_level(_stage + 1)
@@ -430,6 +433,9 @@ func _on_setting_toggled(key: String, value: bool) -> void:
 
 func _on_solved() -> void:
 	_coach.clear()
+	if _jackpot_active:
+		_finish_jackpot()
+		return
 	var first := not SaveData.is_complete(_stage)
 	var stars := Levels.stars_for(_stage, _board.moves)
 	var earned := COIN_BASE + (COIN_FIRST_CLEAR if first else 0) + stars * 5
@@ -525,6 +531,34 @@ func _on_purchased(id: String) -> void:
 
 func _open_daily() -> void:
 	_daily_panel.open()
+
+func _start_jackpot() -> void:
+	if not _daily.jackpot_available():
+		return
+	_daily.consume_jackpot()
+	_jackpot_active = true
+	_daily_panel.visible = false
+	_coach.clear()
+	_hud.hide_win()
+	_hud.hide_fail()
+	_hints_used = 0
+	_undos_used = 0
+	_stage_fails = 0
+	_board.load_level(LevelGen.generate(4, 3, _daily.jackpot_seed(), 0.7))
+	_board.move_budget = _board.UNLIMITED
+	_hud.set_title_override("Daily Jackpot")
+	_hud.set_budget(_board.UNLIMITED)
+	_hud.set_moves(0)
+	_analytics.log_event("jackpot_start")
+	_refresh_buttons()
+
+func _finish_jackpot() -> void:
+	_jackpot_active = false
+	_economy.add_coins(Daily.JACKPOT_COINS)
+	_economy.add_gems(Daily.JACKPOT_GEMS)
+	_analytics.log_event("jackpot_win")
+	_hud.flash("Daily jackpot!  +%d coins, +%d gems" % [Daily.JACKPOT_COINS, Daily.JACKPOT_GEMS])
+	_load_current()
 
 func _grant_bp(r: Dictionary) -> void:
 	if r.is_empty():
