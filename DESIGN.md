@@ -58,8 +58,11 @@ seasonal decor bundle. No pay-to-win.
   add-jar (1st free then rewarded-ad stub), level select, save/load, mute.
   Solvable-by-construction level generator (`level_gen.gd`) + headless tests
   (`tools/test_logic.gd`). 12-stage colour ramp (3 -> 8), 2 spare jars each.
-- [ ] **M2 — Content:** wider difficulty curve, more stages, "challenge" 1-spare
-  mode, per-stage star ratings by move count, hint system.
+- [x] **M2 — Content:** 24 stages (colour ramp 3-8 with periodic 3-spare
+  breathers), per-stage star ratings by move count (win screen + level grid,
+  saved best-of, small coin bonus), hint button (2 free per level, then a
+  rewarded ad) backed by a BFS solver with heuristic fallback. Still todo:
+  explicit 1-spare "challenge" mode.
 - [x] **M3 — Meta:** coins earned on solve (base + first-clear bonus), Cottage
   restore screen with a first room of 5 upgrade slots (roof / walls / window /
   door / garden), each 2-3 tiers; cottage drawing warms up + gains detail as
@@ -70,9 +73,29 @@ seasonal decor bundle. No pay-to-win.
   prizes), 3-day "watched a rewarded ad" streak -> 150-coin chest. Daily panel
   auto-opens on the first launch of a new day. Debug "+1 day" button in debug
   builds. Headless tests in `tools/test_daily.gd`.
-- [ ] **M5 — Ads + IAP:** real rewarded-ad SDK behind the stub, remove-ads, coin packs.
-- [ ] **M6 — Web build:** itch.io / YouTube Playables export, size budget, load screen.
+- [~] **M5 — Ads + IAP:** ad provider interface (rewarded + interstitial +
+  cooldown + remove_ads), interstitial on "Next" between levels, IAP stub
+  (remove_ads entitlement + 3 coin packs) with a Shop screen. Still todo:
+  drop in a real ad SDK + real store bindings (native plugins, per-platform).
+- [~] **M6 — Web build:** `export_presets.cfg` (Web, no threads, GL compat,
+  cream head_include), `tools/export_web.ps1` / `.sh`, `web/README.md`. Still
+  todo: install export templates and run an actual export; optional custom
+  loading shell; size trim for Playables.
 - [ ] **M7 — Art pass:** cozy jar/item art, cottage isometric art, UI theme, icon, real sfx/music.
+
+Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
+
+## Files added in M5 / M6
+
+- `game/solver.gd` (M2) — `SortSolver`: BFS shortest-solution first move for
+  hints; heuristic fallback.
+- `game/iap.gd` — `GameIap` stub store (remove_ads + coin packs).
+- `game/shop_panel.gd` — `ShopPanel` CanvasLayer (layer 18).
+- `game/ads.gd` — now a provider: rewarded + `maybe_show_interstitial()` with a
+  90s cooldown and a `remove_ads` flag.
+- `export_presets.cfg` — Web preset (no threads, GL compat).
+- `tools/export_web.ps1` / `tools/export_web.sh`, `web/README.md`.
+- `tools/test_shop.gd` — headless IAP + interstitial-gating checks.
 
 ## Files added in M4
 
