@@ -190,7 +190,7 @@ func _build_fail_overlay() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	center.add_child(box)
+	_overlay_card(center).add_child(box)
 
 	var title := _label("Out of moves")
 	title.add_theme_font_size_override("font_size", 40)
@@ -260,7 +260,7 @@ func _build_win_overlay() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 18)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	center.add_child(box)
+	_overlay_card(center).add_child(box)
 
 	_win_label = _label("Cottage corner tidied!")
 	_win_label.add_theme_font_size_override("font_size", 44)
@@ -313,6 +313,30 @@ func _build_win_overlay() -> void:
 	next_btn.custom_minimum_size = Vector2(160, 72)
 	next_btn.pressed.connect(func() -> void: next_pressed.emit())
 	row.add_child(next_btn)
+
+## A solid rounded card for the win / fail overlays so their text never has to
+## fight the board behind the dim. Returns the MarginContainer to add content to.
+func _overlay_card(parent: Node) -> MarginContainer:
+	var panel := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Palette.CARD
+	sb.border_color = Palette.CARD_BORDER.lerp(Palette.ACCENT_WARM, 0.15)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(26)
+	sb.shadow_color = Color(Palette.INK_DARK.r, Palette.INK_DARK.g, Palette.INK_DARK.b, 0.22)
+	sb.shadow_size = 16
+	sb.shadow_offset = Vector2(0, 6)
+	sb.anti_aliasing = true
+	panel.add_theme_stylebox_override("panel", sb)
+	parent.add_child(panel)
+
+	var margin := MarginContainer.new()
+	for m in ["margin_left", "margin_right"]:
+		margin.add_theme_constant_override(m, 40)
+	for m in ["margin_top", "margin_bottom"]:
+		margin.add_theme_constant_override(m, 34)
+	panel.add_child(margin)
+	return margin
 
 func _label(t: String) -> Label:
 	var l := Label.new()
