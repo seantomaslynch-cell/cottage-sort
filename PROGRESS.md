@@ -70,10 +70,10 @@ guide in [store/INTEGRATION.md](store/INTEGRATION.md).
    analytics still need plugins + accounts.
 3. **Local push notifications + OS review prompt** — fill in `game/platform.gd`
    with a native plugin (Android / iOS). Copy is in `config.gd`.
-4. **Real bitmap art** — font + music + UI SFX are now covered by the CC0/OFL
-   pack (`store/ASSETS.md`). Sprite art for jars/beads/cottage is deliberately
-   deferred (procedural `_draw()` art is already polished; swapping is its own
-   milestone — see `store/ASSETS.md`).
+4. **Art** — font + music + UI SFX are the CC0/OFL pack; all screens got a
+   procedural upgrade in M30 (`game/art.gd`). Optional next step if you want a
+   distinct look: commission hand-drawn bitmap art for jars/beads/cottage (CC0
+   sprite packs were tried and don't fit the palette).
 5. **Localization** (strings → a translation table), **crash reporting**, a
    **low-end device pass**.
 6. **Content cadence** — hand-author L41–80, rotate the weekly event type.
