@@ -91,6 +91,27 @@ seasonal decor bundle. No pay-to-win.
   gradient, selected-jar glow, win confetti; cottage gets a sky gradient, sun,
   clouds, drop shadows and a picket fence; new themed `icon.svg`. Still todo:
   real bitmap art + custom font + music (needs an artist / assets).
+- [x] **M8 — Fail state (audit headline fix):** per-stage move budget
+  (`Levels.move_budget` — first 5 stages unlimited, then colours*4+10). Fail
+  overlay: +5 moves via rewarded ad or 100 coins, restart, and skip-via-ad
+  after the 2nd fail. Undo metered (3 free/stage then a rewarded ad).
+- [x] **M9 — Onboarding:** `HAND_LEVELS` — 4 authored teaching levels (2 colours
+  barely mixed then a slow ramp); `coach.gd` one-line tips per early stage; a
+  brand-new player's first session no longer pops the Daily panel
+  (`SaveData.intro_seen`).
+- [x] **M10 — Haptics / settings / music:** `Input.vibrate_handheld()` per
+  event; `settings_panel.gd` (SFX / music / haptics / restore / privacy);
+  generated 12s ambient loop; `SaveData` gains `sfx_on` / `music_on` /
+  `haptics_on` (legacy `muted` migrated).
+- [x] **M11 — Weekly event + instrumentation:** "clear 15 levels this week ->
+  200 coins" in the Daily panel; win screen shows the next goal; `analytics.gd`
+  local JSON event log (`user://events.log`); `platform.gd` stubs for local
+  push notifications + OS review prompt (call sites wired, need a native
+  plugin); review requested after 5 cleared levels.
+- [ ] **M12+ — Monetization depth:** authored curve past L4, endless cottage
+  meta + decor sets + collection album, gems, a 6+ booster set + bundles, piggy
+  bank, starter pack, then battle pass / daily jackpot / leaderboards / themed
+  realms.
 
 Legend: [x] done  [~] scaffolded, needs external step  [ ] not started
 

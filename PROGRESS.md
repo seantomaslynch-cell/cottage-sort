@@ -19,22 +19,40 @@ file map in [README.md](README.md).
 | M5 monetization scaffolding (ad provider + interstitial, IAP stub, Shop) | ✅ done — stubs |
 | M6 web export | ✅ done — builds & runs (`build/web/`, ~40 MB); templates are per-machine |
 | M7 first art pass (palette, UI theme, glass jars, cottage scene, icon) | ✅ done |
+| M8 fail state + fail offers (move budget, +moves ad/coins, metered undo) | ✅ done |
+| M9 onboarding (4 authored teaching levels, coach tips, clean first session) | ✅ done |
+| M10 haptics + settings screen + ambient music | ✅ done |
+| M11 weekly event + session-end hook + local analytics + platform seams | ✅ done |
 
-Playable end to end. Three headless test suites pass (see below).
+See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
+Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop` — all pass.
 
-## What's next (external / asset work)
+## What's next
 
-1. **Web build** — works. `pwsh tools/export_web.ps1` (or `GODOT=… tools/export_web.sh`)
-   → `build/web/`. On a fresh machine, first install the Web export templates
-   (editor → *Manage Export Templates*). Serve with any static host:
-   `python -m http.server 8060 --directory build/web`. See [web/README.md](web/README.md).
-   Possible follow-ups: shrink `index.wasm` (~39 MB), custom loading shell.
-2. **Real ads + IAP** — swap the bodies of `game/ads.gd` and `game/iap.gd` for a
-   native SDK / platform store. Interfaces are stable; nothing else changes.
-3. **Real art / font / music** — replace the procedural `_draw()` art and the
-   generated placeholder SFX (`tools/gen_sfx.py`).
-4. **Deferred:** explicit 1-spare-jar "challenge" mode (parked in M2 — too harsh
-   for the cozy default and the verifier couldn't confirm solvability in budget).
+**In-engine, high impact (do next):**
+
+1. **Authored difficulty curve** past the first 4 levels — a deliberate first
+   peak, a spike after ~L20. Keep the generator for an endless mode after.
+2. **Endless cottage meta** — more rooms + rotating decor sets + a collection
+   album, so coins never run out of a sink (finite today: ~13 buys then done).
+3. **Monetization depth** — gems (premium currency), a 6+ booster set with a
+   shop + bundles, a piggy bank, a starter pack + struggle-triggered offers.
+4. **Battle pass / daily jackpot / leaderboards / themed realms** — need a
+   content cadence and, for leaderboards, a small backend.
+
+**Needs an external piece (seam is in place):**
+
+- **Real ads + IAP** — swap the bodies of `game/ads.gd` / `game/iap.gd`.
+- **Real analytics** — swap `Analytics.flush()` for an SDK; events already logged
+  to `user://events.log`.
+- **Local push notifications + OS review prompt** — fill in `game/platform.gd`
+  with a native plugin (Android / iOS).
+- **Real art / font / music** — replace the procedural `_draw()` art and the
+  generated placeholder SFX (`tools/gen_sfx.py`).
+- **Web templates** on a fresh machine (editor → *Manage Export Templates*).
+
+**Deferred:** explicit 1-spare-jar "challenge" mode (too harsh for the cozy
+default; verifier couldn't confirm solvability in budget).
 
 ## Run / test / build
 
@@ -55,8 +73,9 @@ godot --path . --script res://tools/screenshot.gd -- res://shot.png board   # bo
 ```
 
 In-game keys: `R` restart · `N` next · `U` undo · `H` hint · `L` levels ·
-`C` cottage · `D` daily · `S` shop · `M` mute. Debug builds also get a
-"+1 day" button in the Daily panel.
+`C` cottage · `D` daily · `S` shop · `M` mute (SFX). Sound/music/haptics
+toggles live on the Settings screen. Debug builds get a "+1 day" button in
+the Daily panel and print `[evt]` / `[platform TODO]` lines.
 
 ## Gotchas
 

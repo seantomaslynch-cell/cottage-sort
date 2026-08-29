@@ -117,10 +117,28 @@ events), not volume. This audience walks at the first wall [2].
 
 ## Build status against this audit
 
-- [x] Headline fix — gentle fail state (move budget) + fail offers  *(M8)*
-- [ ] Onboarding + authored early levels  *(M9, in progress)*
-- [ ] Haptics + settings screen + music  *(M10)*
-- [ ] Weekly event + notification scheduling  *(M11)*
-- [ ] Endless cottage meta / decor shop  *(later)*
-- [ ] Gems + booster set + piggy bank + starter pack  *(later)*
-- [ ] Analytics, battle pass, leaderboards, themed realms  *(needs external pieces)*
+Done:
+
+- [x] **Headline fix** — gentle fail state (per-stage move budget) + fail offers
+  (+moves via ad/coins, restart, skip-after-2-fails); undo now metered  *(M8)*
+- [x] **Onboarding** — 4 hand-authored teaching levels + coach tips; brand-new
+  players skip the daily pop-up on session one  *(M9)*
+- [x] **Haptics** on pour/place/win + toggle  *(M10)*
+- [x] **Settings screen** — SFX / music / haptics / restore / privacy line  *(M10)*
+- [x] **Ambient music** — generated placeholder loop  *(M10)*
+- [x] **Weekly event** — "clear 15 this week → 200 coins", in the Daily panel  *(M11)*
+- [x] **Session-end hook** — win screen shows the next goal  *(M11)*
+- [x] **Analytics** — local JSON event log (session/level/ad/iap); swap for an SDK  *(M11)*
+- [x] **Review prompt** trigger after 5 cleared levels *(stub — needs a plugin)*  *(M11)*
+
+Open:
+
+- [ ] Authored difficulty curve beyond the first 4 levels (deliberate first peak, spike after ~L20)
+- [ ] Local push notifications *(seam in `platform.gd`; needs a native plugin)*
+- [ ] Endless cottage meta / rotating decor sets / collection album  *(dead coin sink today)*
+- [ ] Gems (premium currency) + a 6+ booster set + shop bundles
+- [ ] Piggy bank
+- [ ] Starter pack + struggle-triggered offers
+- [ ] Battle pass, leaderboards, daily jackpot, themed realms  *(need content cadence / a small backend)*
+- [ ] Real art / font / music, ASO, localization, crash reporting  *(Tier 4, pre-launch)*
+- [ ] Real ad SDK + real IAP bindings + real analytics SDK  *(one-file swaps at the seams)*
