@@ -11,8 +11,7 @@ static func build() -> Theme:
 	var normal := _sb(Palette.BTN, Palette.BTN_BORDER, 3)
 	var hover := _sb(Palette.BTN_HOVER, Palette.ACCENT, 3)
 	var pressed := _sb(Palette.BTN_PRESSED, Palette.ACCENT_WARM, 3)
-	var disabled := _sb(Palette.BTN_DISABLED, Palette.BTN_BORDER, 2)
-	disabled.bg_color.a = 0.7
+	var disabled := _sb(Color(Palette.BTN_DISABLED, 0.7), Palette.BTN_BORDER, 2)
 
 	t.set_stylebox("normal", "Button", normal)
 	t.set_stylebox("hover", "Button", hover)

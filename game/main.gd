@@ -38,9 +38,12 @@ var _stage := 0
 var _last_earned := 0
 var _hints_used := 0
 
+var _theme: Theme
+
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Palette.BG)
-	get_window().theme = UiTheme.build()
+	_theme = UiTheme.build()
+	get_window().theme = _theme
 	SaveData.load_now()
 
 	_audio = AudioScene.new()
@@ -136,7 +139,19 @@ func _ready() -> void:
 		if granted:
 			_daily.note_ad_watched())
 
+	# Window.theme doesn't reach Controls under a CanvasLayer, so push it onto
+	# the top Control of every screen explicitly.
+	for scr in [_hud, _cottage, _daily_panel, _shop, _select]:
+		_apply_theme(scr)
+
 	_load_current()
+
+func _apply_theme(n: Node) -> void:
+	if n is Control:
+		n.theme = _theme
+		return
+	for c in n.get_children():
+		_apply_theme(c)
 
 	if _daily.login_pending():
 		_open_daily()
