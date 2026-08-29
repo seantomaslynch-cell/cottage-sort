@@ -51,22 +51,22 @@ EOF
 echo "  ok  game/assets/music/*.mp3"
 
 echo "[4/4] AdMob + App Tracking Transparency plugins (cengiz-pz, MIT)"
-mkdir -p addons
-curl -fsSL --retry 3 -o "$root/_ios_admob.zip" \
+mkdir -p addons ios
+tmpp=$(mktemp -d)
+curl -fsSL --retry 3 -o "$tmpp/ios.zip" \
   "https://github.com/cengiz-pz/godot-ios-admob-plugin/releases/download/v4.0/AdmobPlugin-v4.0.zip"
-curl -fsSL --retry 3 -o "$root/_android_admob.zip" \
+curl -fsSL --retry 3 -o "$tmpp/android.zip" \
   "https://github.com/cengiz-pz/godot-android-admob-plugin/releases/download/v4.0/AdmobPlugin-4.0.zip"
-( cd "$root" && unzip -qo _ios_admob.zip -d _ios_admob && unzip -qo _android_admob.zip -d _android_admob )
-# both zips carry an addons/AdmobPlugin tree; merge them
-cp -r "$root"/_ios_admob/addons/*     addons/ 2>/dev/null || true
-cp -r "$root"/_android_admob/addons/* addons/ 2>/dev/null || true
-rm -rf "$root"/_ios_admob "$root"/_android_admob "$root"/_ios_admob.zip "$root"/_android_admob.zip
-cat > licenses/AdmobPlugin-MIT.txt <<'EOF'
-Godot iOS/Android AdMob plugins — github.com/cengiz-pz  (MIT licence)
-Release v4.0 (built/tested against Godot 4.4.1, addon interface v2).
-Bundled here for a CI export test; verify it loads on 4.7.x before shipping.
-EOF
-echo "  ok  addons/AdmobPlugin/"
+unzip -qo "$tmpp/ios.zip"     -d "$tmpp/ios"
+unzip -qo "$tmpp/android.zip" -d "$tmpp/android"
+# iOS zip: addons/AdmobPlugin + ios/{framework,plugins}
+cp -r "$tmpp/ios/addons/AdmobPlugin" addons/
+cp -r "$tmpp/ios/ios/." ios/
+# Android zip: AdmobPlugin-root/addons/AdmobPlugin (adds bin/*.aar)
+cp -r "$tmpp/android/AdmobPlugin-root/addons/AdmobPlugin/bin" addons/AdmobPlugin/
+cp "$tmpp/ios/addons/AdmobPlugin/LICENSE" licenses/AdmobPlugin-MIT.txt
+rm -rf "$tmpp"
+echo "  ok  addons/AdmobPlugin/ + ios/framework + ios/plugins"
 
 echo
 echo "Done. Next: godot --headless --path . --editor --quit   (imports the new assets)"

@@ -28,7 +28,8 @@ only forbids selling the font by itself. Licence texts are copied to `licenses/`
 | Kenney Interface Sounds (100 UI SFX) | `game/assets/kenney_interface_sounds/` | Calinou/kenney-interface-sounds | CC0 |
 | 5 game SFX (mapped from the pack) | `game/audio/{tap,place,pour,buzz,win}.wav` | ↑ | CC0 |
 | 2 cozy music beds | `game/assets/music/*.mp3` | FreePD.com (0lhi/FreePD mirror) | CC0 |
-| AdMob + ATT plugins (iOS + Android) | `addons/AdmobPlugin/` | cengiz-pz/godot-*-admob-plugin v4.0 | MIT |
+| AdMob + ATT plugin GDScript | `addons/AdmobPlugin/` (committed) | cengiz-pz/godot-*-admob-plugin v4.0 | MIT |
+| AdMob iOS binaries (27 MB Google SDK) | `ios/framework/`, `ios/plugins/*.a` (git-ignored, re-fetched) | ↑ | MIT / Google |
 
 ## What's already wired
 
