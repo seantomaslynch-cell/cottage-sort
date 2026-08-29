@@ -36,24 +36,38 @@ file map in [README.md](README.md).
 | M22 2nd cottage room (Kitchen) + rotating seasonal decor | ✅ done |
 | M23 ship kit — SDK integration guide, ASO kit, analytics tool | ✅ done |
 | M24 procedural art polish (jars + beads) | ✅ done |
+| M25 functional audit + bug fixes (5 fixed — see AUDIT_FUNCTIONAL.md) | ✅ done |
+| M26 config layer + App Store submission prep (store/*, iOS+Android presets) | ✅ done |
+| M27 combo callouts + functional audit report | ✅ done |
 
-See [AUDIT.md](AUDIT.md) for the competitive gap analysis these milestones close.
+[AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
+= code audit + fix log + a ranked fun/money upgrade list · `store/` = App Store
+submission kit.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
 `test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms` — all pass.
 
 ## What's left — all need an external piece
 
-The seams are all in place ([store/INTEGRATION.md](store/INTEGRATION.md)):
+The seams are all in place. Config placeholders in `game/config.gd`; wiring
+guide in [store/INTEGRATION.md](store/INTEGRATION.md).
 
-1. **Real ad / IAP / analytics SDKs** — swap the bodies of `game/ads.gd`,
+1. **A Mac + Apple Developer account** — required for any iOS build. Full
+   checklist in [store/APP_STORE_SUBMISSION.md](store/APP_STORE_SUBMISSION.md);
+   paste-ready listing copy + rating/privacy answers in
+   [store/METADATA.md](store/METADATA.md).
+2. **Real ad / IAP / analytics SDKs** — swap the bodies of `game/ads.gd`,
    `game/iap.gd`, `game/analytics.gd`. Needs plugins + developer accounts.
-2. **Local push notifications + OS review prompt** — fill in `game/platform.gd`
-   with a native plugin (Android / iOS).
-3. **Real bitmap art / custom font / licensed music** — needs an artist.
-4. **Localization** (strings → a translation table), **crash reporting**, a
+3. **Local push notifications + OS review prompt** — fill in `game/platform.gd`
+   with a native plugin (Android / iOS). Copy is in `config.gd`.
+4. **Real bitmap art / custom font / licensed music** — needs an artist.
+5. **Localization** (strings → a translation table), **crash reporting**, a
    **low-end device pass**.
-5. **Tune the M15 curve** — run `tools/analyze_events.py` on a real `events.log`
+6. **Content cadence** — hand-author L41–80, rotate the weekly event type.
+7. **Tune the M15 curve** — run `tools/analyze_events.py` on a real `events.log`
    and adjust the `scr` / `bm` knobs in `levels.gd`.
+
+Ranked fun/retention/money ideas: see the bottom of
+[AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md).
 
 **Needs an external piece (seam is in place):**
 
