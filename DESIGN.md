@@ -60,11 +60,25 @@ seasonal decor bundle. No pay-to-win.
   (`tools/test_logic.gd`). 12-stage colour ramp (3 -> 8), 2 spare jars each.
 - [ ] **M2 — Content:** wider difficulty curve, more stages, "challenge" 1-spare
   mode, per-stage star ratings by move count, hint system.
-- [ ] **M3 — Meta:** cottage restore screen, coins economy, first room with ~5 upgrade slots.
+- [x] **M3 — Meta:** coins earned on solve (base + first-clear bonus), Cottage
+  restore screen with a first room of 5 upgrade slots (roof / walls / window /
+  door / garden), each 2-3 tiers; cottage drawing warms up + gains detail as
+  tiers are bought. Rewarded-ad hooks: "Double coins" on the win screen,
+  "Mystery box" on the cottage screen. Economy persisted in save.
 - [ ] **M4 — Retention:** daily rewards (exponential curve), daily spin, streak loop.
 - [ ] **M5 — Ads + IAP:** real rewarded-ad SDK behind the stub, remove-ads, coin packs.
 - [ ] **M6 — Web build:** itch.io / YouTube Playables export, size budget, load screen.
 - [ ] **M7 — Art pass:** cozy jar/item art, cottage isometric art, UI theme, icon, real sfx/music.
+
+## Files added in M3
+
+- `game/cottage_data.gd` — the room's 5 slots and their tier costs.
+- `game/economy.gd` — `Economy` node: coin balance + upgrade ownership, signals,
+  persistence via SaveData; `restored_fraction()` drives the art.
+- `game/cottage_view.gd` — `CottageView` Control, draws the cottage from tiers.
+- `game/cottage_screen.gd` — `CottageScreen` CanvasLayer: view + slot rows +
+  coins + mystery box + back.
+- Coin tuning in `main.gd`: `COIN_BASE = 20`, `COIN_FIRST_CLEAR = 30`.
 
 ## Files added in M1
 

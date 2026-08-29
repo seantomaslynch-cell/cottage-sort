@@ -8,10 +8,13 @@ signal next_pressed
 signal undo_pressed
 signal add_jar_pressed
 signal levels_pressed
+signal cottage_pressed
+signal double_pressed
 signal mute_toggled(muted: bool)
 
 var _level_label: Label
 var _moves_label: Label
+var _coins_label: Label
 var _mute_btn: Button
 var _undo_btn: Button
 var _addjar_btn: Button
@@ -19,6 +22,9 @@ var _toast: Label
 var _win_root: Control
 var _win_label: Label
 var _win_best: Label
+var _win_coins: Label
+var _double_btn: Button
+var _win_earned := 0
 var _muted := false
 
 func _ready() -> void:
@@ -37,6 +43,8 @@ func _ready() -> void:
 	top.add_child(_level_label)
 	_moves_label = _label("Moves: 0")
 	top.add_child(_moves_label)
+	_coins_label = _label("Coins: 0")
+	top.add_child(_coins_label)
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -62,19 +70,24 @@ func _ready() -> void:
 	add_child(bottom)
 
 	_undo_btn = _button("Undo")
-	_undo_btn.custom_minimum_size = Vector2(150, 72)
+	_undo_btn.custom_minimum_size = Vector2(138, 68)
 	_undo_btn.pressed.connect(func() -> void: undo_pressed.emit())
 	bottom.add_child(_undo_btn)
 
 	_addjar_btn = _button("Add jar")
-	_addjar_btn.custom_minimum_size = Vector2(150, 72)
+	_addjar_btn.custom_minimum_size = Vector2(138, 68)
 	_addjar_btn.pressed.connect(func() -> void: add_jar_pressed.emit())
 	bottom.add_child(_addjar_btn)
 
 	var levels_btn := _button("Levels")
-	levels_btn.custom_minimum_size = Vector2(150, 72)
+	levels_btn.custom_minimum_size = Vector2(138, 68)
 	levels_btn.pressed.connect(func() -> void: levels_pressed.emit())
 	bottom.add_child(levels_btn)
+
+	var cottage_btn := _button("Cottage")
+	cottage_btn.custom_minimum_size = Vector2(138, 68)
+	cottage_btn.pressed.connect(func() -> void: cottage_pressed.emit())
+	bottom.add_child(cottage_btn)
 
 	_toast = _label("")
 	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -114,18 +127,34 @@ func _build_win_overlay() -> void:
 	_win_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_win_best)
 
+	_win_coins = _label("")
+	_win_coins.add_theme_font_size_override("font_size", 36)
+	_win_coins.add_theme_color_override("font_color", Color("b5654a"))
+	_win_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_win_coins)
+
+	_double_btn = _button("Double coins  (Watch)")
+	_double_btn.custom_minimum_size = Vector2(320, 68)
+	_double_btn.pressed.connect(func() -> void: double_pressed.emit())
+	box.add_child(_double_btn)
+
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
 	box.add_child(row)
 
+	var cottage_btn := _button("Cottage")
+	cottage_btn.custom_minimum_size = Vector2(160, 72)
+	cottage_btn.pressed.connect(func() -> void: cottage_pressed.emit())
+	row.add_child(cottage_btn)
+
 	var levels_btn := _button("Levels")
-	levels_btn.custom_minimum_size = Vector2(180, 72)
+	levels_btn.custom_minimum_size = Vector2(160, 72)
 	levels_btn.pressed.connect(func() -> void: levels_pressed.emit())
 	row.add_child(levels_btn)
 
 	var next_btn := _button("Next")
-	next_btn.custom_minimum_size = Vector2(180, 72)
+	next_btn.custom_minimum_size = Vector2(160, 72)
 	next_btn.pressed.connect(func() -> void: next_pressed.emit())
 	row.add_child(next_btn)
 
@@ -158,6 +187,9 @@ func set_level(n: int) -> void:
 func set_moves(n: int) -> void:
 	_moves_label.text = "Moves: %d" % n
 
+func set_coins(n: int) -> void:
+	_coins_label.text = "Coins: %d" % n
+
 func set_undo_enabled(v: bool) -> void:
 	_undo_btn.disabled = not v
 
@@ -171,13 +203,22 @@ func flash(text: String) -> void:
 	tw.tween_interval(0.9)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.5)
 
-func show_win(text: String, best: int, current: int) -> void:
+func show_win(text: String, best: int, current: int, earned: int) -> void:
 	_win_label.text = text
 	if best > 0 and current > best:
 		_win_best.text = "Solved in %d moves  (best %d)" % [current, best]
 	else:
 		_win_best.text = "Solved in %d moves  -  new best!" % current
+	_win_earned = earned
+	_win_coins.text = "+%d coins" % earned
+	_double_btn.disabled = false
+	_double_btn.text = "Double coins  (Watch)"
 	_win_root.visible = true
+
+func mark_doubled() -> void:
+	_double_btn.disabled = true
+	_double_btn.text = "Doubled!"
+	_win_coins.text = "+%d coins" % (_win_earned * 2)
 
 func hide_win() -> void:
 	_win_root.visible = false

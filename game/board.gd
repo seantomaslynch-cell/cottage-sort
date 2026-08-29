@@ -109,7 +109,7 @@ func undo() -> void:
 	changed.emit()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _locked or _busy:
+	if not visible or _locked or _busy:
 		return
 	var pos := Vector2.INF
 	if event is InputEventScreenTouch and event.pressed:

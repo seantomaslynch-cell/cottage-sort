@@ -8,6 +8,8 @@ const PATH := "user://save.json"
 static var data: Dictionary = {
 	"completed": {},   # str(stage_index) -> best move count
 	"muted": false,
+	"coins": 0,
+	"upgrades": {},    # cottage slot id -> owned tier (0 = none)
 }
 
 static func load_now() -> void:
