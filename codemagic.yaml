@@ -18,8 +18,9 @@
 #       - android_keys : CM_KEYSTORE (base64), CM_KEYSTORE_PASSWORD,
 #                        CM_KEY_ALIAS, CM_KEY_PASSWORD
 #   * iOS: add an App Store Connect API key integration; enable "automatic code signing".
-#   * Register the bundle id `com.example.cottagesort` and the IAPs (store/METADATA.md)
-#     in App Store Connect / Play Console before the first publish.
+#   * iOS identifiers (set): team U34G42XFT8, bundle com.seanlynch.cottagesort,
+#     App Store Connect app id 6806743872. Register the bundle id + the IAPs
+#     (store/METADATA.md) in App Store Connect before the first publish.
 #   * Replace the placeholder art/audio and host the privacy policy (store/PRIVACY.md).
 
 definitions:
@@ -72,7 +73,7 @@ workflows:
         - appstore
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.example.cottagesort
+        bundle_identifier: com.seanlynch.cottagesort
       xcode: latest
     scripts:
       - *fetch_godot

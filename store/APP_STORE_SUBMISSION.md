@@ -12,12 +12,13 @@ that's in place, `git push` → Codemagic build → TestFlight is the loop.
 
 ## 0. Accounts & IDs
 
-- [ ] Apple Developer Program membership active.
-- [ ] App Store Connect → **My Apps → +** → new app.
-      - Bundle ID: `com.example.cottagesort` (match `Config.BUNDLE_ID` and the
-        Godot iOS export preset). Register it under
-        Certificates, Identifiers & Profiles first.
-      - Primary language, name "Cottage Sort", SKU (any unique string).
+- [x] Apple Developer Program membership active. Team ID `U34G42XFT8`.
+- [x] App Store Connect app record created — Apple ID (adamId) `6806743872`,
+      name "Cottage Sort".
+- [ ] Register the Bundle ID **`com.seanlynch.cottagesort`** under
+      Certificates, Identifiers & Profiles (a plain `CottageSort` is not a valid
+      iOS bundle identifier — it must be reverse-DNS). Must match
+      `Config.BUNDLE_ID`, `codemagic.yaml`, and the Godot iOS export preset.
 - [ ] Capabilities on the App ID: In-App Purchase. (No Push, no Sign in with
       Apple, no iCloud — the game uses none.)
 
@@ -27,8 +28,9 @@ that's in place, `git push` → Codemagic build → TestFlight is the loop.
 runs `godot --headless --export-release "iOS"`, signs with the App Store Connect
 API key, and uploads to TestFlight. You only need to:
 
-- [ ] Set `application/bundle_identifier` in `export_presets.cfg` (currently
-      `com.example.cottagesort`) and register it in App Store Connect.
+- [x] `application/bundle_identifier` in `export_presets.cfg` set to
+      `com.seanlynch.cottagesort` (also in `codemagic.yaml` + `Config.BUNDLE_ID`).
+      Still needs registering as an App ID in App Store Connect.
 - [ ] Add the native plugins (ads / billing / analytics / notifications — see
       `store/INTEGRATION.md`) and commit them so the CI export picks them up.
 - [ ] Configure the Codemagic env groups + integrations per `store/CODEMAGIC.md`.

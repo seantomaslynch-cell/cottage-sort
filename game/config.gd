@@ -14,6 +14,7 @@ class_name Config
 # yet. NEVER point a build you personally test on at these — tapping your own
 # live ads gets the AdMob account banned. Dev/TestFlight builds must use the
 # ADMOB_*_TEST ids below (or register the device via ADMOB_TEST_DEVICE_IDS).
+const ADMOB_PUBLISHER_ID         := "pub-5040304268747359"   # for app-ads.txt
 const ADMOB_APP_ID_IOS           := "ca-app-pub-5040304268747359~5303167211"
 const ADMOB_REWARDED_IOS         := "ca-app-pub-5040304268747359/9888902188"
 const ADMOB_INTERSTITIAL_IOS     := "ca-app-pub-5040304268747359/2101911509"
@@ -59,7 +60,9 @@ const ANALYTICS_ENDPOINT := ""   # for a plain HTTP sink instead of an SDK
 # --- Store / legal -------------------------------------------------------------
 const PRIVACY_POLICY_URL := "https://example.com/cottage-sort/privacy"
 const SUPPORT_EMAIL := "support@example.com"
-const BUNDLE_ID := "com.example.cottagesort"   # match export_presets.cfg + stores
+const BUNDLE_ID := "com.seanlynch.cottagesort"   # match export_presets.cfg + stores
+const APP_STORE_CONNECT_APP_ID := "6806743872"   # numeric adamId of the App Store Connect record
+const APPLE_TEAM_ID := "U34G42XFT8"
 
 # --- Notifications --------------------------------------------------------------
 const NOTIF_DAILY_TITLE := "Cottage Sort"

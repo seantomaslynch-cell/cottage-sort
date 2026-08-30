@@ -13,14 +13,15 @@ workflows: `ios-release`, `android-release`, `web-release`.
    | Group | Variables |
    |---|---|
    | `godot` | `GODOT_VERSION` = `4.7.2-stable` |
-   | `appstore` | `APP_STORE_APP_ID` (the numeric App Store Connect app id), `BUNDLE_ID` = `com.example.cottagesort` |
+   | `appstore` | `APP_STORE_APP_ID` = `6806743872`, `BUNDLE_ID` = `com.seanlynch.cottagesort` |
    | `googleplay` | `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` (paste the Play service-account JSON), `PACKAGE_NAME` = `com.example.cottagesort` |
    | `android_keys` | `CM_KEYSTORE` (upload keystore file — Codemagic base64-encodes it), `CM_KEYSTORE_PASSWORD`, `CM_KEY_ALIAS`, `CM_KEY_PASSWORD` |
 
 3. **iOS code signing** — Teams → Integrations → **App Store Connect API key**.
    Create/upload an API key (Issuer ID + Key ID + `.p8`). Name the integration
    `CodemagicAppStoreKey` (matches `integrations.app_store_connect` in the yaml).
-   Set signing to **Automatic** for bundle id `com.example.cottagesort`.
+   Set signing to **Automatic** for bundle id `com.seanlynch.cottagesort`
+   (Apple team `U34G42XFT8`).
 4. **Android signing** — generate a release keystore once
    (`keytool -genkey -v -keystore release.keystore -alias cottagesort -keyalg RSA -keysize 2048 -validity 10000`),
    upload it under the `android_keys` group.

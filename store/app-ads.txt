@@ -1,0 +1,13 @@
+# app-ads.txt for Cottage Sort
+#
+# HOST THIS at the ROOT of the developer website you list in App Store Connect
+# (App information -> "Marketing URL" / the domain shown on the App Store page),
+# i.e.  https://<that-domain>/app-ads.txt  -- NOT inside a subfolder.
+# AdMob crawls it to authorise this publisher to sell the app's inventory;
+# without it, demand and eCPM are throttled. It can take AdMob a few weeks to
+# pick up after the app is live and the URL is set.
+#
+# Only the non-comment line below is the actual record. f08c47fec0942fa0 is
+# Google's public certification-authority id (same for every AdMob publisher).
+
+google.com, pub-5040304268747359, DIRECT, f08c47fec0942fa0
