@@ -25,6 +25,15 @@ func _initialize() -> void:
 
 	print("iap:")
 	var iap: GameIap = IapS.new()
+
+	# ads-only gate: with purchases off, purchase() grants nothing
+	IapS.ENABLED = false
+	_ok(not iap.enabled(), "enabled() false by default (ads-only v1)")
+	iap.purchase("remove_ads")
+	_ok(not iap.has_remove_ads(), "purchase() is a no-op while disabled")
+
+	IapS.ENABLED = true   # exercise the purchase mechanism itself
+	_ok(iap.enabled(), "enabled() true after the flag flips")
 	_ok(not iap.owns("remove_ads"), "remove_ads not owned initially")
 	_ok(not iap.has_remove_ads(), "has_remove_ads false initially")
 	var got := [""]

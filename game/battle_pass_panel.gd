@@ -145,7 +145,8 @@ func refresh() -> void:
 
 	_claim_free_btn.disabled = reached <= bp.free_claimed()
 	_claim_prem_btn.disabled = not owned or reached <= bp.prem_claimed()
-	_unlock_btn.visible = not owned
+	# Ads-only v1: the premium track isn't purchasable yet.
+	_unlock_btn.visible = not owned and GameIap.ENABLED
 	if reached >= BattlePass.TIERS:
 		_skip_btn.text = "Max tier"
 		_skip_btn.disabled = true

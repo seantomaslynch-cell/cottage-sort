@@ -14,6 +14,8 @@ var _economy: Economy = null
 var _starter_secs := -1   # seconds left on the starter-pack window; <0 = gone
 
 var _title: Label
+var _note: Label
+var _restore_btn: Button
 var _coins: Label
 var _list: VBoxContainer
 var _scroll: ScrollContainer
@@ -42,13 +44,13 @@ func _ready() -> void:
 	_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(_coins)
 
-	var note := _label(
+	_note = _label(
 		"Rewarded videos stay - they're optional bonuses.\nThis only removes full-screen interstitials.", 18)
-	note.add_theme_color_override("font_color", Palette.INK_FAINT)
-	note.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	note.offset_top = 80.0
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(note)
+	_note.add_theme_color_override("font_color", Palette.INK_FAINT)
+	_note.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_note.offset_top = 80.0
+	_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(_note)
 
 	_scroll = ScrollContainer.new()
 	_scroll.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -81,7 +83,8 @@ func _ready() -> void:
 	buttons.add_theme_constant_override("separation", 16)
 	add_child(buttons)
 
-	var restore := _button("Restore purchases", 24)
+	_restore_btn = _button("Restore purchases", 24)
+	var restore := _restore_btn
 	restore.custom_minimum_size = Vector2(300, 72)
 	restore.pressed.connect(func() -> void: restore_pressed.emit())
 	buttons.add_child(restore)
@@ -110,6 +113,20 @@ func refresh() -> void:
 	for c in _list.get_children():
 		_list.remove_child(c)
 		c.queue_free()
+
+	# Ads-only v1: no store yet.
+	_note.visible = _iap.enabled()
+	_restore_btn.visible = _iap.enabled()
+	if not _iap.enabled():
+		var note := _label(
+			"Purchases are coming in a later update.\n\nFor now everything is earnable — clear levels, watch the odd bonus video, and keep your daily streak.",
+			24)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		note.custom_minimum_size = Vector2(0, 240)
+		_list.add_child(note)
+		return
 
 	# Today's rotating deal — a reason to open the shop daily
 	var deal := DealData.today()

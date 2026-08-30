@@ -544,6 +544,8 @@ func _on_failed() -> void:
 ## The struggle pack: shown on the fail screen from the 2nd (through 4th) fail
 ## on a stage, at most once per day.
 func _struggle_available() -> bool:
+	if not _iap.enabled():
+		return false
 	if _stage_fails < 2 or _stage_fails > 4:
 		return false
 	return int(SaveData.data.get("struggle_bought_day", -1)) != _daily.today()
@@ -1015,7 +1017,7 @@ func _enter_game(then_open := Callable()) -> void:
 		_session_popups_done = true
 		if _daily.login_pending() and not _new_player:
 			_open_daily()
-		elif _starter_secs_left() > 0 and not bool(SaveData.data.get("starter_shown_once", false)):
+		elif _iap.enabled() and _starter_secs_left() > 0 and not bool(SaveData.data.get("starter_shown_once", false)):
 			SaveData.data["starter_shown_once"] = true
 			SaveData.save_now()
 			_hud.flash("Starter pack in the Shop — %dh left" % int(ceil(_starter_secs_left() / 3600.0)))

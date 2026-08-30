@@ -8,6 +8,15 @@ class_name GameIap
 signal purchased(product_id: String)
 signal restored
 
+## v1 is ads-only — real-money purchases are turned off everywhere (shop rows,
+## starter-pack / struggle popups, battle-pass premium unlock). Set to true
+## once StoreKit is wired and the products exist in App Store Connect.
+## (static var, not const, so a build flag or a test can flip it.)
+static var ENABLED := false
+
+func enabled() -> bool:
+	return ENABLED
+
 const PRODUCTS: Array[Dictionary] = [
 	{"id": "starter_pack",  "name": "Starter pack", "price": "$2.99", "kind": "bundle",
 		"gems": 120, "coins": 800, "remove_ads": true},
@@ -44,6 +53,8 @@ func owns(id: String) -> bool:
 	return false
 
 func purchase(id: String) -> void:
+	if not ENABLED:
+		return
 	var p := product(id)
 	if p.is_empty():
 		return
