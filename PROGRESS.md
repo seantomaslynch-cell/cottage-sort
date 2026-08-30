@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-30 · +M47 save-format version + migration hook (12 test suites)
+**Updated:** 2026-08-30 · +M48 coalesced save writes (frame-batched + quit flush)
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -59,6 +59,7 @@ file map in [README.md](README.md).
 | M45 "Tidy pour" level-goal variant (AUDIT_CONTENT §3b) — one sealed keepsake jar per L41-120 act (L47/L63/L79/L95); lid pops when the rest is tidied. No difficulty/solver change | ✅ done |
 | M46 streak-freeze token (AUDIT_FUNCTIONAL fun #5) — 1 free/week (cap 2) + buy for 10 gems in Daily; auto-spends to cover a single missed login day | ✅ done |
 | M47 save-format version field + `_migrate(from)` hook in `SaveData.load_now()` (AUDIT_FUNCTIONAL health nit) — `tools/test_save.gd`, suites 11→12 | ✅ done |
+| M48 coalesced `save_now()` — first write/frame goes through, rest batched into one end-of-frame flush; `SaveData.flush()` on close/pause/crash (AUDIT_FUNCTIONAL health nit) | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·

@@ -34,9 +34,13 @@ All 8 headless test suites pass; a headless run and every screen render clean.
 
 ## Known risks / follow-ups (not blocking)
 
-- **`SaveData.save_now()` writes on every economy change.** Claiming a
-  10-tier battle pass fires ~30 synchronous file writes in a frame. Fine on
-  desktop; consider a debounced/deferred save on mobile.
+- ~~**`SaveData.save_now()` writes on every economy change.**~~ *done (M48)*:
+  `save_now()` now coalesces within a frame — the first call writes through
+  immediately (state stays durable), any further calls that frame are held and
+  collapsed into one trailing write at end-of-frame (`process_frame`
+  one-shot). `SaveData.flush()` forces the held write; `main._notification()`
+  calls it on close / app-pause / back / crash. A 10-tier BP claim goes from
+  ~30 writes/frame to 2.
 - ~~**No save-format version field.**~~ *done (M47)*: `SaveData.CURRENT_SAVE_VERSION`
   + a `_migrate(from)` chain that runs inside `load_now()` (reads the on-disk
   version *before* the merge so a pre-versioning save isn't mistaken for

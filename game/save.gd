@@ -92,7 +92,37 @@ static func _migrate(from: int) -> void:
 	data["save_version"] = CURRENT_SAVE_VERSION
 	save_now()
 
+static var _coalescing := false   # a same-frame flush is already scheduled
+static var _dirty := false         # writes were suppressed since the last flush
+
+## Persist the save. The first call in a frame writes immediately (so state is
+## durable right away); any further calls in the same frame are collapsed into a
+## single trailing write at end-of-frame. This keeps bursty callers — a 10-tier
+## battle-pass claim, an achievement cascade — from doing ~30 file writes in one
+## frame, which matters on mobile.
 static func save_now() -> void:
+	if _coalescing:
+		_dirty = true
+		return
+	_write()
+	var loop := Engine.get_main_loop()
+	if loop is SceneTree:
+		_coalescing = true
+		(loop as SceneTree).process_frame.connect(_end_frame_flush, CONNECT_ONE_SHOT)
+
+static func _end_frame_flush() -> void:
+	_coalescing = false
+	if _dirty:
+		_write()
+		_dirty = false
+
+## Force any coalesced write to disk right now (call on quit / app-pause).
+static func flush() -> void:
+	if _dirty:
+		_write()
+		_dirty = false
+
+static func _write() -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	if f == null:
 		return

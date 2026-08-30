@@ -1008,6 +1008,12 @@ func _enter_game(then_open := Callable()) -> void:
 	if then_open.is_valid():
 		then_open.call()
 
+func _notification(what: int) -> void:
+	# Make sure a coalesced save is on disk before we lose the chance to write it.
+	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_PAUSED,
+			NOTIFICATION_WM_GO_BACK_REQUEST, NOTIFICATION_CRASH]:
+		SaveData.flush()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return

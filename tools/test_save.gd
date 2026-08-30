@@ -62,6 +62,18 @@ func _initialize() -> void:
 	SaveData.load_now()
 	_ok(int(SaveData.data["coins"]) == 42, "load_now() with no file leaves data untouched")
 
+	print("same-frame writes coalesce:")
+	SaveData._coalescing = false
+	SaveData._dirty = false
+	SaveData.data["coins"] = 111
+	SaveData.save_now()
+	_ok(int(_disk().get("coins", -1)) == 111, "the first save_now in a frame writes through")
+	SaveData.data["coins"] = 222
+	SaveData.save_now()
+	_ok(int(_disk().get("coins", -1)) == 111, "a second same-frame save is held, not written")
+	SaveData.flush()
+	_ok(int(_disk().get("coins", -1)) == 222, "flush() writes the held change (as on quit / app-pause)")
+
 	if had:
 		FileAccess.open(SaveData.PATH, FileAccess.WRITE).store_string(backup)
 	else:
