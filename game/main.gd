@@ -90,7 +90,7 @@ func _ready() -> void:
 		SaveData.data["starter_seen_at"] = int(Time.get_unix_time_from_system())
 		SaveData.save_now()
 
-	SaveData.migrate_audio_flags()
+	# save-format migrations run inside SaveData.load_now()
 	_audio = AudioScene.new()
 	add_child(_audio)
 	_audio.sfx_on = bool(SaveData.data.get("sfx_on", true))

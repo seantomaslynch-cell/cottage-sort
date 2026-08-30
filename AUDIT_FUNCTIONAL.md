@@ -37,8 +37,11 @@ All 8 headless test suites pass; a headless run and every screen render clean.
 - **`SaveData.save_now()` writes on every economy change.** Claiming a
   10-tier battle pass fires ~30 synchronous file writes in a frame. Fine on
   desktop; consider a debounced/deferred save on mobile.
-- **No save-format version field.** All reads are defensive so it's safe today,
-  but a future incompatible change has no migration hook. Cheap to add later.
+- ~~**No save-format version field.**~~ *done (M47)*: `SaveData.CURRENT_SAVE_VERSION`
+  + a `_migrate(from)` chain that runs inside `load_now()` (reads the on-disk
+  version *before* the merge so a pre-versioning save isn't mistaken for
+  current). v0→v1 folds in the legacy `muted`→`sfx_on` fix. `tools/test_save.gd`
+  covers it (suite count 11→12).
 - **Jackpot forfeits silently** if the player navigates away mid-board (the
   attempt is consumed on start). Acceptable, but a "you'll lose your jackpot"
   confirm could reduce complaints.

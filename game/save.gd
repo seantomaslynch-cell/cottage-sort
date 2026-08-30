@@ -5,7 +5,11 @@ class_name SaveData
 
 const PATH := "user://save.json"
 
+## Bump when a save-format change needs a migration step in `_migrate()`.
+const CURRENT_SAVE_VERSION := 1
+
 static var data: Dictionary = {
+	"save_version": CURRENT_SAVE_VERSION,
 	"completed": {},   # str(stage_index) -> best move count
 	"muted": false,    # legacy; migrated to sfx_on on load
 	"sfx_on": true,
@@ -67,8 +71,26 @@ static func load_now() -> void:
 		return
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	if typeof(parsed) == TYPE_DICTIONARY:
+		# The on-disk version, read before the merge — the in-memory default
+		# already holds CURRENT_SAVE_VERSION, so a save without the key would
+		# otherwise look up to date.
+		var from := int((parsed as Dictionary).get("save_version", 0))
 		for k in parsed:
 			data[k] = parsed[k]
+		_migrate(from)
+
+## Bring an older on-disk save up to CURRENT_SAVE_VERSION. Runs once, right
+## after load. Each step must be idempotent (safe to re-run). `from` is the
+## version the file was written at; 0 = pre-versioning.
+static func _migrate(from: int) -> void:
+	if from >= CURRENT_SAVE_VERSION:
+		data["save_version"] = CURRENT_SAVE_VERSION
+		return
+	if from < 1:
+		migrate_audio_flags()   # legacy `muted` -> `sfx_on`
+	# future: if from < 2: ...
+	data["save_version"] = CURRENT_SAVE_VERSION
+	save_now()
 
 static func save_now() -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
@@ -113,7 +135,8 @@ static func set_flag(key: String, v: bool) -> void:
 	data[key] = v
 	save_now()
 
-## Fold the legacy `muted` key into sfx_on for saves made before settings existed.
+## v0 -> v1 migration step (also safe to call directly). Folds the legacy
+## `muted` key into `sfx_on` for saves made before the settings screen existed.
 static func migrate_audio_flags() -> void:
 	if bool(data.get("muted", false)) and bool(data.get("sfx_on", true)):
 		data["sfx_on"] = false

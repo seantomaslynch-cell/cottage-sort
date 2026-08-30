@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-30 · +M46 streak-freeze token (free weekly + gem-buyable, auto-covers one missed day)
+**Updated:** 2026-08-30 · +M47 save-format version + migration hook (12 test suites)
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -58,13 +58,14 @@ file map in [README.md](README.md).
 | M44 cosmetic gem sink (gem-only "Keepsakes" decor) + seasonal storefront bundle + rewarded "double your combo" — closes AUDIT_FUNCTIONAL money list (#17 backend is external) | ✅ done |
 | M45 "Tidy pour" level-goal variant (AUDIT_CONTENT §3b) — one sealed keepsake jar per L41-120 act (L47/L63/L79/L95); lid pops when the rest is tidied. No difficulty/solver change | ✅ done |
 | M46 streak-freeze token (AUDIT_FUNCTIONAL fun #5) — 1 free/week (cap 2) + buy for 10 gems in Daily; auto-spends to cover a single missed login day | ✅ done |
+| M47 save-format version field + `_migrate(from)` hook in `SaveData.load_now()` (AUDIT_FUNCTIONAL health nit) — `tools/test_save.gd`, suites 11→12 | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
 [AUDIT_CONTENT.md](AUDIT_CONTENT.md) = content / FTUE / "full game" pass + M33+
 roadmap · `store/` = App Store submission kit.
 Playable end to end. Test suites: `test_logic`, `test_daily`, `test_shop`,
-`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms`, `test_ftue`, `test_ach`, `test_story` — all pass.
+`test_decor`, `test_booster`, `test_bp`, `test_lb`, `test_realms`, `test_ftue`, `test_ach`, `test_story`, `test_save` — all pass.
 
 ## What's left — all need an external piece
 
@@ -130,7 +131,7 @@ godot --path .
 godot --headless --path . --editor --quit
 
 # tests
-for t in logic daily shop decor booster bp lb realms ftue ach story; do
+for t in logic daily shop decor booster bp lb realms ftue ach story save; do
   godot --headless --path . --script res://tools/test_$t.gd
 done
 
