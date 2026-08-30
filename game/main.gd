@@ -321,6 +321,10 @@ func _ready() -> void:
 	_daily_panel.week_claim_pressed.connect(_on_claim_week)
 	_daily_panel.jackpot_pressed.connect(_start_jackpot)
 	_daily_panel.ranks_pressed.connect(_open_ranks)
+	_daily_panel.buy_freeze_pressed.connect(_on_buy_freeze)
+	_daily.streak_frozen.connect(func(streak: int) -> void:
+		_daily_panel.flash("Freeze used — your %d-day streak is safe" % streak)
+		_hud.flash("Streak freeze used — your login streak held"))
 	_lb_panel.closed.connect(func() -> void: _lb_panel.visible = false)
 	_daily_panel.debug_day_pressed.connect(func() -> void:
 		_daily.advance_debug_day()
@@ -913,6 +917,16 @@ func _on_claim_login() -> void:
 		_bp.add_xp(10)
 		_daily_panel.flash("+%d coins" % amt)
 		_daily_panel.refresh()
+
+func _on_buy_freeze() -> void:
+	if _daily.freezes() >= Daily.FREEZE_CAP:
+		return
+	if _economy.spend_gems(Daily.FREEZE_GEM_COST):
+		_daily.add_freeze(1)
+		_daily_panel.flash("Streak freeze added")
+	else:
+		_daily_panel.flash("Not enough gems")
+	_daily_panel.refresh()
 
 func _on_spin() -> void:
 	var idx := _daily.roll_spin()

@@ -7,8 +7,11 @@ class_name Daily
 
 signal changed
 signal chest_awarded(amount: int)
+signal streak_frozen(streak: int)   # a missed day was covered by a freeze token
 
 const LOGIN_REWARDS := [25, 40, 60, 90, 130, 180, 300]
+const FREEZE_CAP := 2
+const FREEZE_GEM_COST := 10
 const AD_STREAK_TARGET := 3
 const AD_STREAK_CHEST := 150
 const SPIN := [
@@ -48,16 +51,38 @@ func login_pending() -> bool:
 func _slot_for(streak: int) -> int:
 	return (maxi(1, streak) - 1) % LOGIN_REWARDS.size()
 
-func _streak_if_claimed_now() -> int:
+# --- streak freeze --------------------------------------------------------
+# A token that covers a single missed day so a long login streak survives one
+# slip. One is granted free each week (capped), and more can be bought for gems.
+
+func freezes() -> int:
+	return int(_d().get("freezes", 1))
+
+func add_freeze(n: int) -> void:
+	var d := _d()
+	d["freezes"] = clampi(freezes() + n, 0, FREEZE_CAP)
+	_commit(d)
+
+## What the streak becomes if the login is claimed right now, and whether a
+## freeze token would be spent to get there.
+func _resolve_streak() -> Dictionary:
 	var d := _d()
 	var last := int(d.get("last_login_day", 0))
 	var streak := int(d.get("streak_len", 0))
 	var t := today()
-	if last != 0 and t == last + 1:
-		return streak + 1
-	if last != 0 and t == last:
-		return streak
-	return 1
+	if last == 0:
+		return {"streak": 1, "freeze_used": false}
+	if t == last:
+		return {"streak": maxi(1, streak), "freeze_used": false}
+	if t == last + 1:
+		return {"streak": streak + 1, "freeze_used": false}
+	# Exactly one missed day, and a token in hand -> keep the streak going.
+	if t == last + 2 and freezes() > 0 and streak >= 1:
+		return {"streak": streak + 1, "freeze_used": true}
+	return {"streak": 1, "freeze_used": false}
+
+func _streak_if_claimed_now() -> int:
+	return int(_resolve_streak()["streak"])
 
 func current_login_slot() -> int:
 	return _slot_for(_streak_if_claimed_now())
@@ -72,10 +97,15 @@ func claim_login() -> int:
 	if not login_pending():
 		return 0
 	var d := _d()
-	var new_streak := _streak_if_claimed_now()
+	var res := _resolve_streak()
+	var new_streak: int = res["streak"]
+	if bool(res["freeze_used"]):
+		d["freezes"] = maxi(0, freezes() - 1)
 	d["streak_len"] = new_streak
 	d["last_login_day"] = today()
 	_commit(d)
+	if bool(res["freeze_used"]):
+		streak_frozen.emit(new_streak)
 	return LOGIN_REWARDS[_slot_for(new_streak)]
 
 # --- spin -----------------------------------------------------------------
@@ -175,10 +205,13 @@ func week_label() -> String:
 func _week() -> Dictionary:
 	var d := _d()
 	if int(d.get("week_id", -1)) != week_id():
+		var rollover := d.has("week_id")   # not the very first call for this save
 		d["week_id"] = week_id()
 		d["week_prog"] = 0
 		d["week_stars"] = 0
 		d["week_claimed"] = false
+		if rollover:
+			d["freezes"] = clampi(int(d.get("freezes", 1)) + 1, 0, FREEZE_CAP)
 		_commit(d)
 	return d
 

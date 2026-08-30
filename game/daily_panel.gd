@@ -8,6 +8,7 @@ signal spin_pressed
 signal week_claim_pressed
 signal jackpot_pressed
 signal ranks_pressed
+signal buy_freeze_pressed
 signal closed
 signal debug_day_pressed
 
@@ -23,6 +24,8 @@ var _spin_btn: Button
 var _adstreak_lbl: Label
 var _week_lbl: Label
 var _week_btn: Button
+var _freeze_lbl: Label
+var _freeze_btn: Button
 var _jackpot_btn: Button
 var _toast: Label
 
@@ -112,6 +115,17 @@ func _ready() -> void:
 	ranks.pressed.connect(func() -> void: ranks_pressed.emit())
 	spin_box.add_child(ranks)
 
+	spin_box.add_child(_hsep(8))
+
+	_freeze_lbl = _label("Streak freeze: 0", 22, Palette.INK)
+	_freeze_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	spin_box.add_child(_freeze_lbl)
+
+	_freeze_btn = _button("", 22)
+	_freeze_btn.custom_minimum_size = Vector2(260, 54)
+	_freeze_btn.pressed.connect(func() -> void: buy_freeze_pressed.emit())
+	spin_box.add_child(_freeze_btn)
+
 	_toast = _label("", 30, Color("f2c14e"))
 	_toast.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_toast.offset_top = 812.0
@@ -175,6 +189,15 @@ func refresh() -> void:
 
 	var ls := _daily.login_streak()
 	_streak_lbl.text = "Login streak: %d day%s" % [ls, "" if ls == 1 else "s"]
+
+	var fz := _daily.freezes()
+	_freeze_lbl.text = "Streak freeze: %d   (covers one missed day)" % fz
+	if fz >= Daily.FREEZE_CAP:
+		_freeze_btn.disabled = true
+		_freeze_btn.text = "Freeze stock full"
+	else:
+		_freeze_btn.disabled = false
+		_freeze_btn.text = "Get a freeze   %d gems" % Daily.FREEZE_GEM_COST
 
 	if _daily.jackpot_available():
 		_jackpot_btn.disabled = false

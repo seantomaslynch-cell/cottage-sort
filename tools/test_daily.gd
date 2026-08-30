@@ -25,6 +25,8 @@ func _initialize() -> void:
 	_reset()
 	_test_login_wrap()
 	_reset()
+	_test_streak_freeze()
+	_reset()
 	_test_spin()
 	_reset()
 	_test_ad_streak()
@@ -105,6 +107,36 @@ func _test_login_wrap() -> void:
 		var got := d.claim_login()
 		_ok(got == expected[i], "day %d -> %d (got %d)" % [i + 1, expected[i], got])
 	d.free()
+
+func _test_streak_freeze() -> void:
+	print("streak freeze:")
+	var d: Daily = DailyS.new()
+	_ok(d.freezes() == 1, "a fresh save starts with one freeze")
+	_ok(d.claim_login() == 25, "day 1 claim")
+	d.debug_day_offset = 1
+	_ok(d.claim_login() == 40, "day 2 claim -> streak 2")
+	d.debug_day_offset = 3            # skipped day 3, back on day 4 = one missed day
+	_ok(d.login_pending(), "pending after the one-day gap")
+	var frozen := [0]
+	d.streak_frozen.connect(func(s: int) -> void: frozen[0] = s)
+	var r := d.claim_login()
+	_ok(d.login_streak() == 3, "streak held through the missed day (-> 3)")
+	_ok(d.freezes() == 0, "the freeze token was spent")
+	_ok(frozen[0] == 3, "streak_frozen fired with the new streak")
+	_ok(r == 60, "reward is the day-3 slot")
+	d.debug_day_offset = 5            # another one-day gap, but no token left
+	_ok(d.claim_login() == 25 and d.login_streak() == 1, "no token -> the gap resets the streak")
+	d.free()
+
+	_reset()
+	var e: Daily = DailyS.new()
+	e.claim_login()
+	e.debug_day_offset = 3            # missed TWO days (1 and 2)
+	_ok(e.freezes() == 1 and e.claim_login() == 25, "two missed days: one token can't save it")
+	_ok(e.login_streak() == 1 and e.freezes() == 1, "streak reset, token untouched")
+	e.add_freeze(5)
+	_ok(e.freezes() == Daily.FREEZE_CAP, "add_freeze clamps to the cap")
+	e.free()
 
 func _test_spin() -> void:
 	print("spin:")

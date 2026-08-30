@@ -66,9 +66,12 @@ Ranked by impact ÷ effort. Anything marked *(external)* needs a plugin/asset.
 4. **Realm-specific bead skins** — beads are the same 8 colours in every
    chapter. A subtle per-realm palette shift (jam jars in the Pantry, seed
    packets in the Garden) would make chapters feel distinct beyond the shelf.
-5. **Streak-freeze token** — one free "protect my login streak" per week (or
-   sold). Losing a long streak is the #1 churn moment; a safety valve keeps
-   players in the loop.
+5. **Streak-freeze token** — *done (M46)*: `Daily.freezes()` — one free token
+   granted per week rollover (`FREEZE_CAP` 2), buyable for `FREEZE_GEM_COST`
+   (10) gems in the Daily panel. `_resolve_streak()` auto-spends one when the
+   player returns after exactly one missed day, keeping the login streak alive
+   and emitting `streak_frozen` (main flashes a note). Two+ missed days still
+   reset. New saves start with one in reserve.
 6. **Push notifications** *(external)* — the single biggest D1→D7 lever still
    missing. `platform.gd` is wired.
 7. **Haptic + sound polish per bead colour** — a tiny pitch shift per colour

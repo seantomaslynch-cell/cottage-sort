@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-30 · +M45 "Tidy pour" — sealed keepsake jars on L47/L63/L79/L95
+**Updated:** 2026-08-30 · +M46 streak-freeze token (free weekly + gem-buyable, auto-covers one missed day)
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -57,6 +57,7 @@ file map in [README.md](README.md).
 | M43 weekly event rotation (4 types) + piggy-bank tier 2 (250→500) + remove-ads daily gem stipend | ✅ done |
 | M44 cosmetic gem sink (gem-only "Keepsakes" decor) + seasonal storefront bundle + rewarded "double your combo" — closes AUDIT_FUNCTIONAL money list (#17 backend is external) | ✅ done |
 | M45 "Tidy pour" level-goal variant (AUDIT_CONTENT §3b) — one sealed keepsake jar per L41-120 act (L47/L63/L79/L95); lid pops when the rest is tidied. No difficulty/solver change | ✅ done |
+| M46 streak-freeze token (AUDIT_FUNCTIONAL fun #5) — 1 free/week (cap 2) + buy for 10 gems in Daily; auto-spends to cover a single missed login day | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
