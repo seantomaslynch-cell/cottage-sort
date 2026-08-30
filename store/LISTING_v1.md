@@ -64,18 +64,17 @@ with a cottage to rebuild. Feedback and bug reports very welcome.
 - **Marketing URL (optional):**  https://seantomaslynch-cell.github.io/cottage-sort/
 - **Privacy Policy URL (required):**  https://seantomaslynch-cell.github.io/cottage-sort/privacy.html
 
-  These serve from `docs/` in this repo via GitHub Pages
-  (Settings → Pages → Source: `master` / `/docs`). A **private** repo needs a
-  paid GitHub plan for Pages — otherwise make a small public site repo, or host
-  the files anywhere.
+  Repo is **public**, so serve straight from `docs/`: Settings → Pages →
+  Source: Deploy from a branch → `master` / `/docs` → Save. Live in ~1 min at
+  `https://seantomaslynch-cell.github.io/cottage-sort/`.
 
   **`app-ads.txt` caveat:** AdMob looks for it at the **root of the domain**
-  in the store listing, not a sub-path. `…github.io/cottage-sort/app-ads.txt`
-  will NOT be found. To make it work either (a) use a user Pages site
-  (`seantomaslynch-cell.github.io` repo, file at true root), or (b) put a cheap
-  custom domain in front. It is **not a launch blocker** — it only improves ad
-  fill/eCPM over the following weeks. `docs/app-ads.txt` is ready for whichever
-  host you pick.
+  in the store listing, not a sub-path — `…github.io/cottage-sort/app-ads.txt`
+  will NOT be found. To make it work either (a) add a public repo named
+  `seantomaslynch-cell.github.io` with `app-ads.txt` at its root, or (b) put a
+  cheap custom domain in front of this Pages site. **Not a launch blocker** —
+  it only improves ad fill/eCPM over the first few weeks. `docs/app-ads.txt`
+  holds the record for whichever host you pick.
 
 ## Category & price
 - Primary: **Games → Puzzle**.  Secondary: **Games → Casual**.
