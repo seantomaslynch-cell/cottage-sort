@@ -58,8 +58,11 @@ const ANALYTICS_SECRET := "REPLACE_ME"
 const ANALYTICS_ENDPOINT := ""   # for a plain HTTP sink instead of an SDK
 
 # --- Store / legal -------------------------------------------------------------
-const PRIVACY_POLICY_URL := "https://example.com/cottage-sort/privacy"
-const SUPPORT_EMAIL := "support@example.com"
+# Served from docs/ via GitHub Pages (Settings -> Pages -> master / /docs).
+const MARKETING_URL     := "https://seantomaslynch-cell.github.io/cottage-sort/"
+const PRIVACY_POLICY_URL := "https://seantomaslynch-cell.github.io/cottage-sort/privacy.html"
+const SUPPORT_URL        := "https://seantomaslynch-cell.github.io/cottage-sort/support.html"
+const SUPPORT_EMAIL := "REPLACE-WITH-SUPPORT-EMAIL"   # also in docs/support.html
 const BUNDLE_ID := "com.seanlynch.cottagesort"   # match export_presets.cfg + stores
 const APP_STORE_CONNECT_APP_ID := "6806743872"   # numeric adamId of the App Store Connect record
 const APPLE_TEAM_ID := "U34G42XFT8"

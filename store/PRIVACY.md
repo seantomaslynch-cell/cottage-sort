@@ -1,7 +1,9 @@
 # Privacy Policy — Cottage Sort
 
-_Last updated: 2026-08-29. This is a template; a real build must host it at a
-public URL (see `Config.PRIVACY_POLICY_URL`) and have counsel review it._
+_The **hosted** v1 policy is `docs/privacy.html` (ads-only, AdMob only) — that
+is what `Config.PRIVACY_POLICY_URL` points at. This Markdown file is the fuller
+template kept for when IAP + a real analytics SDK are added back. Have counsel
+review before a wide launch._
 
 Cottage Sort ("the game", "we") is a single-player puzzle game. We keep data
 collection to the minimum needed to run the game, show ads, and process
