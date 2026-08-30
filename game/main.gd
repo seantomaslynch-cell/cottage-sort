@@ -214,6 +214,7 @@ func _ready() -> void:
 	_board.solved.connect(_on_solved)
 	_board.failed.connect(_on_failed)
 	_board.combo.connect(_on_combo)
+	_board.rush_cleared.connect(_on_rush_cleared)
 	_board.changed.connect(_refresh_buttons)
 
 	_hud.restart_pressed.connect(_load_current)
@@ -428,6 +429,12 @@ func _load_current() -> void:
 		SaveData.data["lid_tip_seen"] = true
 		SaveData.save_now()
 		_coach.show_tip("That jar has a lid. Tidy every other jar and it'll pop open on its own.")
+	# One-time note the first time a level highlights a colour to rush.
+	if not _ftue_active and Levels.has_rush(_stage) \
+			and not bool(SaveData.data.get("rush_tip_seen", false)):
+		SaveData.data["rush_tip_seen"] = true
+		SaveData.save_now()
+		_coach.show_tip("See the glowing beads? Finish a full jar of that colour first for a bonus.")
 	_analytics.log_event("level_start", {"stage": _stage, "budget": _board.move_budget})
 	_refresh_buttons()
 
@@ -736,6 +743,13 @@ func _on_double() -> void:
 	_ads.watch_rewarded(func() -> void:
 		_economy.add_coins(_last_earned)
 		_hud.mark_doubled())
+
+func _on_rush_cleared() -> void:
+	if _jackpot_active:
+		return
+	_economy.add_coins(Levels.RUSH_BONUS)
+	_hud.flash("Colour rush!   +%d" % Levels.RUSH_BONUS)
+	_analytics.log_event("colour_rush", {"stage": _stage})
 
 func _on_combo_double() -> void:
 	var bonus := _hud.combo_bonus()

@@ -27,6 +27,13 @@ func _initialize() -> void:
 				fails += 1
 			jars = jars.slice(0, jars.size() - 1)
 
+		# "Colour rush" stages carry a `rush` colour picked at build time.
+		if Levels.has_rush(stage):
+			var rc := int(data.get("rush", -99))
+			if rc < 0 or rc >= int(cfg["colors"]):
+				push_error("stage %d: rush colour %d out of range 0..%d" % [stage, rc, int(cfg["colors"]) - 1])
+				fails += 1
+
 		# generated stages must match their difficulty knob; hand levels are free-form
 		if not hand and jars.size() != cfg["colors"] + cfg["extra"]:
 			push_error("stage %d: jar count %d != %d" % [stage, jars.size(), cfg["colors"] + cfg["extra"]])

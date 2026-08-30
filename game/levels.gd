@@ -174,6 +174,32 @@ const LIDDED_STAGES := [46, 62, 78, 94]
 static func has_lid(stage_index: int) -> bool:
 	return stage_index in LIDDED_STAGES
 
+## "Colour rush" variant (AUDIT_CONTENT §3b): on these stages one colour glows;
+## finishing a full jar of it first pays a small bonus. Purely additive — no
+## structural change, so it's injected at build() time, not baked.
+const RUSH_STAGES := [38, 54, 70, 86, 102]
+const RUSH_BONUS := 40
+
+static func has_rush(stage_index: int) -> bool:
+	return stage_index in RUSH_STAGES
+
+## The colour spread across the most jars — the most satisfying one to gather up.
+static func rush_color(jars: Array) -> int:
+	var spread := {}   # colour -> {jar_index: true}
+	for i in jars.size():
+		for c in (jars[i] as Array):
+			if not spread.has(c):
+				spread[c] = {}
+			spread[c][i] = true
+	var best := -1
+	var best_n := -1
+	for c in spread:
+		var n: int = spread[c].size()
+		if n > best_n:
+			best_n = n
+			best = c
+	return best
+
 ## Endless mode: levels per colour tier before the colour count steps up.
 const ENDLESS_TIER_LEN := 12
 
@@ -206,6 +232,8 @@ static func build(stage_index: int) -> Dictionary:
 			var js: Array = d["jars"]
 			js.append([KEEPSAKE_COLOR, KEEPSAKE_COLOR, KEEPSAKE_COLOR, KEEPSAKE_COLOR])
 			d["lock"] = [js.size() - 1]
+		if has_rush(stage_index):
+			d["rush"] = rush_color(d["jars"])
 		return d
 	# Endless: colour tier + rising scramble. LevelGen verifies each board.
 	var sh := _shape(stage_index)

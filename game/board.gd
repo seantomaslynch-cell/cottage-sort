@@ -10,6 +10,7 @@ signal moved(count: int)
 signal solved
 signal failed             # ran out of the move budget (or wedged the board)
 signal combo(n: int)      # n jars completed in quick succession (>= 2)
+signal rush_cleared       # first full jar of the "colour rush" colour landed
 signal changed            # selection / history / jar count changed -> refresh HUD
 
 const UNLIMITED := 999
@@ -65,6 +66,9 @@ var _anim_t := 0.0
 var locked_jars: Array = []   # sealed "keepsake" jars — see Levels.LIDDED_STAGES
 var _lids_open := false        # true once every other jar is tidied
 
+var rush_color := -1          # "colour rush" target colour, or -1 — see Levels.RUSH_STAGES
+var _rush_done := false
+
 const HINT_TIME := 2.6
 const COMBO_WINDOW_MS := 2200
 
@@ -90,6 +94,8 @@ func load_level(data: Dictionary) -> void:
 	_last_pour_col = -1
 	locked_jars = data.get("lock", [])
 	_lids_open = false
+	rush_color = int(data.get("rush", -1))
+	_rush_done = false
 	_recv_jar = -1
 	_recv_count = 0
 	_pops = PackedFloat32Array()
@@ -217,6 +223,7 @@ func _after_booster() -> void:
 	_completed = _jars_complete()   # resync so the next real move's combo math is sane
 	_clear_hint()
 	_update_lids()
+	_update_rush()
 	queue_redraw()
 	_sfx("pour", 1.1)
 	if _is_solved():
@@ -359,6 +366,21 @@ func _update_lids() -> void:
 			_rings.append({"pos": _rects[i].position + _rects[i].size * 0.5, "t": 0.0, "dur": 0.7})
 	queue_redraw()
 
+## Fire once when the first full jar of the "colour rush" colour is completed.
+func _update_rush() -> void:
+	if rush_color < 0 or _rush_done:
+		return
+	for i in jars.size():
+		var a: Array = jars[i]
+		if a.size() == CAP and _top_run_len(a) == CAP and a[0] == rush_color:
+			_rush_done = true
+			_sfx("win", 1.3)
+			if i < _rects.size():
+				_rings.append({"pos": _rects[i].position + _rects[i].size * 0.5, "t": 0.0, "dur": 0.7})
+			rush_cleared.emit()
+			queue_redraw()
+			return
+
 ## Jars that still need work: non-empty and not already one full colour.
 func _unsorted_jars() -> Array:
 	var out: Array = []
@@ -374,6 +396,8 @@ func _process(delta: float) -> void:
 	var redraw := false
 	_anim_t += delta
 	if _last_jar >= 0 and not _locked:
+		redraw = true
+	if rush_color >= 0 and not _rush_done and not _locked:
 		redraw = true
 
 	if _busy:
@@ -425,6 +449,7 @@ func _process(delta: float) -> void:
 func _post_move() -> void:
 	_check_combo()
 	_update_lids()
+	_update_rush()
 	var u := _unsorted_jars()
 	var new_last: int = u[0] if u.size() == 1 else -1
 	if new_last != -1 and _last_jar == -1 and not _is_solved():
@@ -704,6 +729,9 @@ func _draw_jar(i: int) -> void:
 			base = Vector2(r.position.x + r.size.x * 0.5, r.position.y - 22.0 - (jar.size() - 1 - s) * (ITEM_R * 2.0 + 3.0))
 		var p := center + (base - center) * sc
 		_draw_item(p, COLORS[jar[s]], sc)
+		if rush_color >= 0 and not _rush_done and jar[s] == rush_color:
+			var pulse := 0.55 + 0.30 * (0.5 + 0.5 * sin(_anim_t * 5.0))
+			draw_arc(p, ITEM_R * sc + 4.0, 0.0, TAU, 28, Palette.ACCENT * Color(1, 1, 1, pulse), 2.5, true)
 
 	if _is_locked(i):
 		_draw_lid(rr)

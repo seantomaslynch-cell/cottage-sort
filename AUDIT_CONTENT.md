@@ -181,11 +181,17 @@ chapter, flagged in the stage knobs:
   budget / the BFS solver are all unchanged — a cosy reveal beat, not
   difficulty. `board.gd` `locked_jars` / `_is_locked` / `_update_lids` /
   `_draw_lid`; one-time coach note (`lid_tip_seen`).
+- **Colour rush** — *done (M49)*: `Levels.RUSH_STAGES` (L39/L55/L71/L87/L103) —
+  `build()` picks the colour spread across the most jars and stamps `rush` on
+  the level dict (injected, not baked). `board.gd` pulses a gold ring on those
+  beads (`rush_color` / `_update_rush`); completing a full jar of it first
+  emits `rush_cleared` → `main` pays `RUSH_BONUS` (40) + a flash. Purely
+  additive — no structural or solver change. One-time coach note
+  (`rush_tip_seen`).
 - **No spares** — a level with zero empty jars to start (the deferred
   1-spare/"challenge" idea from `DESIGN.md`). *Deferred — safe now that LevelGen
-  verifies solvability; just a knob + label.*
-- **Colour rush** — sort one *highlighted* colour first for an early bonus.
-  *Deferred — needs highlight + tracking.*
+  verifies solvability; just a knob + label. The only §3b variant still open,
+  and it's a difficulty bump so it's low priority for a cosy game.*
 
 Keep it rare and cosy — variety, not difficulty spikes.
 

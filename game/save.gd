@@ -35,6 +35,7 @@ static var data: Dictionary = {
 	"ftue_budget_seen": false, # shown the "moves are limited now" heads-up
 	"ftue_stars_seen": false,  # shown the star-rating explainer
 	"lid_tip_seen": false,     # shown the "sealed keepsake jar" note
+	"rush_tip_seen": false,    # shown the "colour rush" note
 	"story_seen": false,       # shown the one-paragraph intro
 	"cat_gift_day": -1,        # last day the cottage cat left a gift
 	"ft_upgrade": false,       # first cottage upgrade bought

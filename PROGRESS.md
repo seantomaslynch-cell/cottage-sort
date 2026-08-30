@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-30 · +M48 coalesced save writes (frame-batched + quit flush)
+**Updated:** 2026-08-30 · +M49 "Colour rush" level variant — glow a colour, bonus for finishing it first
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -60,6 +60,7 @@ file map in [README.md](README.md).
 | M46 streak-freeze token (AUDIT_FUNCTIONAL fun #5) — 1 free/week (cap 2) + buy for 10 gems in Daily; auto-spends to cover a single missed login day | ✅ done |
 | M47 save-format version field + `_migrate(from)` hook in `SaveData.load_now()` (AUDIT_FUNCTIONAL health nit) — `tools/test_save.gd`, suites 11→12 | ✅ done |
 | M48 coalesced `save_now()` — first write/frame goes through, rest batched into one end-of-frame flush; `SaveData.flush()` on close/pause/crash (AUDIT_FUNCTIONAL health nit) | ✅ done |
+| M49 "Colour rush" level variant (AUDIT_CONTENT §3b, 3rd of 4) — L39/L55/L71/L87/L103 glow one colour; first full jar of it pays +40. Injected at build(), no re-bake, no solver change | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·
@@ -139,7 +140,7 @@ done
 # screenshot a screen (no --headless; restores save.json after)
 godot --path . --script res://tools/screenshot.gd -- res://shot.png board [stage]
 #   modes: home | story | board | chapter | ranks | stats | collection | trophies | cottage | cottage_decor | daily | shop | settings | booster | season | fail
-#   (board 46 / 62 / 78 / 94 shows a "Tidy pour" level with a sealed keepsake jar)
+#   (board 46/62/78/94 = "Tidy pour" sealed-jar level; board 38/54/70/86/102 = "Colour rush")
 
 # summarise the analytics log to tune the difficulty curve
 python tools/analyze_events.py
