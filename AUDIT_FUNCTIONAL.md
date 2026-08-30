@@ -83,10 +83,10 @@ Ranked by impact ÷ effort. Anything marked *(external)* needs a plugin/asset.
    vanity outlet.
 10. **Battle-pass "tier skip"** — *done (M41)*: a "Skip tier · N gems" button
     in the season panel; cost eases toward season end (`maxi(20, 55 - days_left)`).
-11. **Piggy-bank tiers** — a bigger bank (500 gems, $9.99) that unlocks after
-    the first crack; whales fill and crack it repeatedly.
-12. **Remove-ads should also grant a small daily gem stipend** — makes the
-    $2.99 feel like a subscription-lite and lifts its conversion.
+11. **Piggy-bank tiers** — *done (M43)*: the cap grows 250 -> 500 the first
+    time the bank is cracked (`piggy_cracked_once`).
+12. **Remove-ads daily gem stipend** — *done (M43)*: ad-free owners get +3
+    gems on the first session each day (`stipend_day`).
 13. **Seasonal event storefront** — bundle the current seasonal decor set at a
     discount for gems during its 28-day window; expires with the season.
 14. **First-purchase doubler** — *done (M41)*: first gem pack is doubled
@@ -103,7 +103,8 @@ granted amount, once per day.
     deep-run flow breather, building to a two-level peak, then winding down;
     all 120 solvability-verified and frozen in `game/level_data.gd`. Endless
     mode now starts at L121.
-16. **Rotate the weekly event type** — "clear N", "earn N stars", "no-undo
-    run", "beat par on 3 levels". One variable keeps it fresh.
+16. **Rotate the weekly event type** — *done (M43)*: `Daily.WEEK_EVENTS` cycles
+    by `week_id` between clear-N / earn-N-stars / beat-par-N / N-no-hint-clears;
+    `note_level_cleared(stars, under_par, used_hint)` scores the active one.
 17. **Leaderboard needs a real backend eventually** — the ghost board is fine
     for soft launch but savvy players will notice the bots.

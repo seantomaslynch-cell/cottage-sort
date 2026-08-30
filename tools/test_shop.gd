@@ -65,6 +65,9 @@ func _initialize() -> void:
 	eco.piggy_add(9999)
 	_ok(eco.piggy() == Economy.PIGGY_MAX and eco.piggy_full(), "piggy caps at PIGGY_MAX")
 	_ok(eco.piggy_crack() == Economy.PIGGY_MAX and eco.piggy() == 0, "piggy_crack empties and returns the amount")
+	_ok(eco.piggy_max() == Economy.PIGGY_MAX_BIG, "cap grows to the big size after the first crack")
+	eco.piggy_add(9999)
+	_ok(eco.piggy() == Economy.PIGGY_MAX_BIG, "the bigger bank fills to PIGGY_MAX_BIG")
 	eco.free()
 
 	print("interstitial gating:")

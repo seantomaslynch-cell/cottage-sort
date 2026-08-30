@@ -33,13 +33,18 @@ func spend_gems(n: int) -> bool:
 
 # --- piggy bank ----------------------------------------------------------------
 
-const PIGGY_MAX := 250
+const PIGGY_MAX := 250        # base cap
+const PIGGY_MAX_BIG := 500    # after the first crack — whales fill + crack it again
 
 func piggy() -> int:
 	return int(SaveData.data.get("piggy", 0))
 
+## The current cap: it grows the first time the bank is cracked.
+func piggy_max() -> int:
+	return PIGGY_MAX_BIG if bool(SaveData.data.get("piggy_cracked_once", false)) else PIGGY_MAX
+
 func piggy_add(n: int) -> void:
-	var v := mini(PIGGY_MAX, piggy() + n)
+	var v := mini(piggy_max(), piggy() + n)
 	if v == piggy():
 		return
 	SaveData.data["piggy"] = v
@@ -47,12 +52,13 @@ func piggy_add(n: int) -> void:
 	changed.emit()
 
 func piggy_full() -> bool:
-	return piggy() >= PIGGY_MAX
+	return piggy() >= piggy_max()
 
 ## Empty the bank and return what was in it (call after the IAP succeeds).
 func piggy_crack() -> int:
 	var amt := piggy()
 	SaveData.data["piggy"] = 0
+	SaveData.data["piggy_cracked_once"] = true
 	SaveData.save_now()
 	changed.emit()
 	return amt

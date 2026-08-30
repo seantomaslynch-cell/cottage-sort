@@ -131,7 +131,7 @@ func refresh() -> void:
 	# Piggy bank
 	var pg := _economy.piggy()
 	_list.add_child(_offer_card(
-		"Piggy bank   ·   %d / %d gems" % [pg, Economy.PIGGY_MAX],
+		"Piggy bank   ·   %d / %d gems" % [pg, _economy.piggy_max()],
 		"Cracks open for %s — fuller = better value" % _iap.product("piggy_crack")["price"],
 		"piggy_crack", pg >= 20))
 

@@ -188,8 +188,8 @@ func refresh() -> void:
 	_adstreak_lbl.text = "Ad-watch streak: %d / %d   (chest %d)" % [
 		_daily.ad_streak(), Daily.AD_STREAK_TARGET, Daily.AD_STREAK_CHEST]
 
-	_week_lbl.text = "Weekly goal: %d / %d   (chest %d)" % [
-		_daily.week_progress(), Daily.WEEK_GOAL, Daily.WEEK_CHEST]
+	_week_lbl.text = "%s   —   %d / %d   (chest %d)" % [
+		_daily.week_label(), _daily.week_progress(), _daily.week_goal(), Daily.WEEK_CHEST]
 	if _daily.week_claimed():
 		_week_btn.visible = true
 		_week_btn.disabled = true

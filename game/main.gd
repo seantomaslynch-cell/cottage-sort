@@ -353,6 +353,14 @@ func _ready() -> void:
 		SaveData.data["stat_last_played_day"] = day
 		SaveData.data["stat_days_played"] = int(SaveData.data.get("stat_days_played", 0)) + 1
 		SaveData.save_now()
+	# Remove-ads owners get a small daily gem stipend — makes the SKU feel
+	# subscription-lite and lifts its conversion.
+	const AD_FREE_STIPEND := 3
+	if _iap.has_remove_ads() and day != int(SaveData.data.get("stipend_day", -1)):
+		SaveData.data["stipend_day"] = day
+		SaveData.save_now()
+		_economy.add_gems(AD_FREE_STIPEND)
+		_hud.flash("Ad-free bonus  —  +%d gems" % AD_FREE_STIPEND)
 	_ach.scan()
 	if _new_player:
 		SaveData.data["intro_seen"] = true
@@ -654,8 +662,7 @@ func _on_solved() -> void:
 	var prev_best := SaveData.best_moves(_stage)
 	SaveData.mark_complete(_stage, _board.moves)
 	SaveData.set_stars(_stage, stars)
-	_daily.note_level_cleared()
-	_daily.note_week_stars(stars)
+	_daily.note_level_cleared(stars, under_par, _hints_used > 0)
 	_economy.piggy_add(2)
 	_bp.add_xp(10 + (stars - 1) * 5)
 	if first and stars == 3:
@@ -678,7 +685,7 @@ func _on_solved() -> void:
 		_hud.flash("Level %d milestone!  +%d coins  +%d gems  +1 booster" % [lvl, mc, mg])
 		_analytics.log_event("endless_milestone", {"level": lvl})
 
-	var left := Daily.WEEK_GOAL - _daily.week_progress()
+	var left := _daily.week_goal() - _daily.week_progress()
 	var teach_stars := stars >= 2 and not bool(SaveData.data.get("ftue_stars_seen", false))
 	if was_ftue:
 		_hud.set_next_hint("Coins rebuild your cottage — try the Cottage button")

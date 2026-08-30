@@ -53,10 +53,13 @@ func _test_weekly() -> void:
 	print("weekly event:")
 	var d: Daily = DailyS.new()
 	_ok(d.week_progress() == 0 and not d.week_goal_met(), "starts empty")
-	for i in DailyS.WEEK_GOAL - 1:
-		d.note_level_cleared()
-	_ok(d.week_progress() == DailyS.WEEK_GOAL - 1 and not d.week_goal_met(), "one short of goal")
-	d.note_level_cleared()
+	var g := d.week_goal()
+	_ok(g > 0 and d.week_label().length() > 0, "this week's event has a goal and label")
+	# a 3-star, under-par, no-hint clear scores 1 toward every event type
+	for i in g - 1:
+		d.note_level_cleared(1, true, false)
+	_ok(d.week_progress() == g - 1 and not d.week_goal_met(), "one short of goal")
+	d.note_level_cleared(1, true, false)
 	_ok(d.week_goal_met() and not d.week_claimed(), "goal met, unclaimed")
 	_ok(d.claim_week() == DailyS.WEEK_CHEST, "claim pays the chest")
 	_ok(d.claim_week() == 0 and d.week_claimed(), "second claim pays nothing")

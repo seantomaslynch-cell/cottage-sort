@@ -150,41 +150,61 @@ func consume_jackpot() -> void:
 	d["last_jackpot_day"] = today()
 	_commit(d)
 
-# --- weekly event -----------------------------------------------------------
+# --- weekly event (rotates by week) --------------------------------------
 
-const WEEK_GOAL := 15
 const WEEK_CHEST := 200
+const WEEK_EVENTS := [
+	{"id": "clear",  "label": "Clear %d levels this week",      "goal": 15},
+	{"id": "stars",  "label": "Earn %d stars this week",        "goal": 30},
+	{"id": "par",    "label": "Beat par on %d levels this week", "goal": 6},
+	{"id": "nohint", "label": "%d clears with no hint",         "goal": 8},
+]
 
 func week_id() -> int:
 	return int(today() / 7.0)
+
+func week_event() -> Dictionary:
+	return WEEK_EVENTS[week_id() % WEEK_EVENTS.size()]
+
+func week_goal() -> int:
+	return int(week_event()["goal"])
+
+func week_label() -> String:
+	return str(week_event()["label"]) % week_goal()
 
 func _week() -> Dictionary:
 	var d := _d()
 	if int(d.get("week_id", -1)) != week_id():
 		d["week_id"] = week_id()
-		d["week_cleared"] = 0
+		d["week_prog"] = 0
+		d["week_stars"] = 0
 		d["week_claimed"] = false
 		_commit(d)
 	return d
 
 func week_progress() -> int:
-	return mini(int(_week().get("week_cleared", 0)), WEEK_GOAL)
+	return mini(int(_week().get("week_prog", 0)), week_goal())
 
 func week_goal_met() -> bool:
-	return int(_week().get("week_cleared", 0)) >= WEEK_GOAL
+	return int(_week().get("week_prog", 0)) >= week_goal()
 
 func week_claimed() -> bool:
 	return bool(_week().get("week_claimed", false))
 
-func note_level_cleared() -> void:
+## Called on every clear with the outcome, so the active event can score it.
+func note_level_cleared(stars: int = 1, under_par: bool = false, used_hint: bool = false) -> void:
 	var d := _week()
-	if not bool(d.get("week_claimed", false)):
-		d["week_cleared"] = int(d.get("week_cleared", 0)) + 1
-		_commit(d)
-
-func note_week_stars(n: int) -> void:
-	var d := _week()
-	d["week_stars"] = int(d.get("week_stars", 0)) + n
+	if bool(d.get("week_claimed", false)):
+		return
+	d["week_stars"] = int(d.get("week_stars", 0)) + maxi(0, stars)   # kept for the leaderboard
+	var inc := 0
+	match str(week_event()["id"]):
+		"clear":  inc = 1
+		"stars":  inc = maxi(0, stars)
+		"par":    inc = 1 if under_par else 0
+		"nohint": inc = 1 if not used_hint else 0
+	if inc > 0:
+		d["week_prog"] = int(d.get("week_prog", 0)) + inc
 	_commit(d)
 
 func week_stars() -> int:

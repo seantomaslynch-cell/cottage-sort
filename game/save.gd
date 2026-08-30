@@ -37,6 +37,8 @@ static var data: Dictionary = {
 	"endless_milestone": 0,    # highest endless milestone level already rewarded
 	"first_gem_buy": false,    # first gem pack -> doubled
 	"deal_bought_day": -1,     # last day the rotating daily deal was taken
+	"stipend_day": -1,         # last day the ad-free gem stipend was paid
+	"piggy_cracked_once": false,  # unlocks the bigger piggy bank
 	"achievements": {},        # id -> true once earned
 	"stat_deepest": 0,         # furthest stage index reached
 	"stat_flawless": 0,        # 3-star clears with no undo/hint
