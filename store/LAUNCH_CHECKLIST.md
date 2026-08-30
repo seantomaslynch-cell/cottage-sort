@@ -78,23 +78,26 @@ setup detail.
 
 ## Phase 3 — On-device verification
 
+Ads are **fully wired** (commit `c7bf0fc`): AdmobPlugin editor plugin enabled,
+`addons/AdmobPlugin/export.cfg` drives the plist injection, `USE_ADMOB_PLUGIN`
+is true, `ads.gd` uses the real plugin API, the ~26 MB Google SDK is committed
+(no CI download). `Config.ADS_FORCE_TEST = true` + `export.cfg is_real=false`
+→ **Google TEST ads** in every build until the real launch.
+
 - [ ] Game launches, no crash, portrait, respects the notch / home indicator
 - [ ] Touch: pours, drags, all menu screens, settings toggles
 - [ ] Performance is smooth (watch the board with combos + confetti)
 - [ ] Save/resume works across app kill + relaunch
-- [ ] **AdMob:** does the cengiz-pz addon load on Godot 4.7?
-  - [ ] `tools/fetch_assets.*` has pulled `addons/AdmobPlugin/`; enable it in the
-        iOS export preset
-  - [ ] Flip `USE_ADMOB_PLUGIN := true` in `game/ads.gd`
-  - [ ] Reconcile the plugin method/signal names against the list in `ads.gd`'s
-        header comment — fix any that differ in the installed version
-  - [ ] Rebuild, install; confirm a **rewarded** ad shows (Google *test* ad —
-        `_use_test_ads()` returns true in a TestFlight build) and the reward is
-        granted only on completion
-  - [ ] Confirm an **interstitial** shows between levels, respects the 90s cooldown
-  - [ ] Confirm the **ATT prompt** appears once before the first ad
-  - [ ] EEA/UK: the Google UMP consent form appears (set up the AdMob GDPR message
-        in the AdMob console first)
+- [ ] **ATT prompt** appears once before the first ad
+- [ ] A **rewarded** ad shows (Google test ad), reward granted only on completion
+- [ ] An **interstitial** shows between levels, 90s cooldown holds
+- [ ] EEA/UK: the Google UMP consent form appears — set up the GDPR message in
+      the AdMob console first (until then the SDK serves non-personalised ads)
+- [ ] If ads *don't* show: check the Codemagic build log for the AdmobPlugin
+      export step, and that `ios/framework/*.xcframework` linked. Reconcile
+      method/signal names in `ads.gd` against `addons/AdmobPlugin/Admob.gd` if
+      the installed plugin version differs.
+- [ ] **Recapture the 5 screenshots** from this build (no debug button / toast)
 - [ ] **Screenshots:** recapture the 5 in `store/screenshots/` from this build (no
       "+1 day (debug)" button, no stray toast) — either regenerate via
       `tools/make_store_shots.gd` against release-config raws, or screenshot
@@ -119,8 +122,8 @@ All copy is in **`store/LISTING_v1.md`** — paste from there.
       you*, purpose *Third-Party Advertising*. Nothing else. (Table in LISTING_v1.md.)
 - [ ] **Age rating:** answer every question **None** → 4+. Simulated Gambling =
       None (spin/jackpot are free, no wager, no purchasable chance).
-- [ ] **Export compliance:** add `ITSAppUsesNonExemptEncryption` = `false` to the
-      plist, or answer "No" to the non-exempt-encryption question in App Store Connect
+- [x] **Export compliance:** `ITSAppUsesNonExemptEncryption` = `false` is in the
+      plist (`export_presets.cfg`) — no compliance question to answer
 - [ ] **In-App Purchases:** none for v1 — leave the section empty
 - [ ] Assign the processed build to the version
 - [ ] "Sign-in required" = No; demo account = not needed
@@ -145,11 +148,20 @@ All copy is in **`store/LISTING_v1.md`** — paste from there.
 - [ ] Tune the difficulty curve / economy from real data
       (`game/levels.gd` knobs, `tools/analyze_events.py`)
 
+### When you launch for real (flip off test ads)
+
+- [ ] `game/config.gd`: `ADS_FORCE_TEST = false`
+- [ ] `addons/AdmobPlugin/export.cfg`: `[General] is_real = true`
+- [ ] Both must agree. Commit, rebuild — now serving live ads.
+
 ### Deferred to later updates
 
-- [ ] **IAP:** create the 11 products from `store/METADATA.md` in App Store
-      Connect, wire StoreKit into `game/iap.gd`, set `GameIap.ENABLED = true`,
-      re-do the App Privacy label (add Purchases row), update the description
+- [ ] **IAP:** it stays off for v1 (`GameIap.ENABLED = false`). Real StoreKit
+      needs an iOS billing plugin (not in the repo — e.g. a cengiz-pz or
+      godot-ios billing plugin) **and** the 11 products created in App Store
+      Connect from `store/METADATA.md`. Then set `GameIap.ENABLED = true`, wire
+      `iap.gd`'s `purchase()` to the plugin, add the Purchases row to the App
+      Privacy label, and update the description.
 - [ ] **Push notifications:** native plugin into `game/platform.gd`
 - [ ] **Android:** real AdMob Android app + 2 units → `Config.ADMOB_*_ANDROID`;
       `com.seanlynch.cottagesort` as the package name in the Android preset;
