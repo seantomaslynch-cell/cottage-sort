@@ -16,3 +16,6 @@
 /shot*.png.import
 /play_*.png
 /play_*.png.import
+
+# Store screenshot intermediates (regenerate: tools/screenshot.gd)
+/store/raw/

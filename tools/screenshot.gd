@@ -16,6 +16,9 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
+	# Force the design resolution so captures aren't clipped by a small window.
+	DisplayServer.window_set_size(Vector2i(720, 1280))
+	get_root().size = Vector2i(720, 1280)
 	await create_timer(1.0).timeout
 
 	var args := OS.get_cmdline_user_args()
