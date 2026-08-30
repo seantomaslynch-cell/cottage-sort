@@ -18,6 +18,10 @@ boot_splash/bg_color=Color(0.953, 0.914, 0.847, 1)
 boot_splash/show_image=false
 config/icon="res://icon.png"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/AdmobPlugin/plugin.cfg")
+
 [display]
 
 window/size/viewport_width=720

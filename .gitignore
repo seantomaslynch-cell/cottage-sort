@@ -2,11 +2,8 @@
 .godot/
 /android/
 
-# Heavy vendored native SDK binaries — restored by tools/fetch_assets.* / CI.
-# The AdMob plugin's GDScript (addons/AdmobPlugin/*.gd) IS committed; only the
-# large Google binaries are fetched.
-/ios/framework/
-/ios/plugins/*.a
+# The AdMob iOS SDK binaries (~29 MB) are committed so the CI iOS build has no
+# runtime download dependency. tools/fetch_assets.* can still restore them.
 
 # Build output
 /build/

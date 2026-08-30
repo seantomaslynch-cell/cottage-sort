@@ -33,6 +33,13 @@ const ADMOB_INTERSTITIAL_TEST_ANDROID := "ca-app-pub-3940256099942544/1033173712
 
 const ADMOB_TEST_DEVICE_IDS: Array[String] = []   # add your device IDs while developing
 
+## Keep Google TEST ads even in a release / TestFlight build. Tapping a live
+## ad you served yourself gets the AdMob account banned, and a TestFlight build
+## is a release build. Flip to false ONLY for the real App Store launch — and
+## when you do, also change GADApplicationIdentifier in export_presets.cfg from
+## the test id (…3940256099942544~1458002511) back to …5040304268747359~5303167211.
+const ADS_FORCE_TEST := true
+
 # App Tracking Transparency — iOS shows this line in the permission dialog.
 # Must also be set verbatim as NSUserTrackingUsageDescription in the iOS export
 # preset (application/additional_plist_content).
