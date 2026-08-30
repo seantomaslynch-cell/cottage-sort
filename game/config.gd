@@ -4,17 +4,32 @@ class_name Config
 ## stubs; the real ad/IAP/analytics/notification code (see store/INTEGRATION.md)
 ## reads from here so wiring the SDKs is fill-in-the-blanks.
 ##
-## Do NOT commit real keys. In a real project, load these from an untracked
-## `config.local.gd` / an env / a build-time generated file and keep this as the
-## example.
+## Do NOT commit real SECRETS (analytics secret, signing keys, service creds) —
+## load those from an untracked file / env at build time. AdMob app + ad-unit
+## IDs are the exception: they ship inside every app binary and are not
+## sensitive, so the real ones live here.
 
-# --- AdMob ---------------------------------------------------------------------
-const ADMOB_APP_ID_ANDROID := "ca-app-pub-0000000000000000~0000000000"
-const ADMOB_APP_ID_IOS     := "ca-app-pub-0000000000000000~0000000000"
+# --- AdMob -------------------------------------------------------------------
+# PRODUCTION ids. iOS app "Cottage Sort" is live in AdMob; Android not created
+# yet. NEVER point a build you personally test on at these — tapping your own
+# live ads gets the AdMob account banned. Dev/TestFlight builds must use the
+# ADMOB_*_TEST ids below (or register the device via ADMOB_TEST_DEVICE_IDS).
+const ADMOB_APP_ID_IOS           := "ca-app-pub-5040304268747359~5303167211"
+const ADMOB_REWARDED_IOS         := "ca-app-pub-5040304268747359/9888902188"
+const ADMOB_INTERSTITIAL_IOS     := "ca-app-pub-5040304268747359/2101911509"
+const ADMOB_APP_ID_ANDROID       := "ca-app-pub-0000000000000000~0000000000"
 const ADMOB_REWARDED_ANDROID     := "ca-app-pub-0000000000000000/0000000000"
-const ADMOB_REWARDED_IOS         := "ca-app-pub-0000000000000000/0000000000"
 const ADMOB_INTERSTITIAL_ANDROID := "ca-app-pub-0000000000000000/0000000000"
-const ADMOB_INTERSTITIAL_IOS     := "ca-app-pub-0000000000000000/0000000000"
+
+# Google's public test ids — safe to click. ads.gd should use these whenever
+# OS.is_debug_build() or a soft-launch flag is set.
+const ADMOB_APP_ID_TEST_IOS         := "ca-app-pub-3940256099942544~1458002511"
+const ADMOB_APP_ID_TEST_ANDROID     := "ca-app-pub-3940256099942544~3347511713"
+const ADMOB_REWARDED_TEST_IOS       := "ca-app-pub-3940256099942544/1712485313"
+const ADMOB_REWARDED_TEST_ANDROID   := "ca-app-pub-3940256099942544/5224354917"
+const ADMOB_INTERSTITIAL_TEST_IOS     := "ca-app-pub-3940256099942544/4411468910"
+const ADMOB_INTERSTITIAL_TEST_ANDROID := "ca-app-pub-3940256099942544/1033173712"
+
 const ADMOB_TEST_DEVICE_IDS: Array[String] = []   # add your device IDs while developing
 
 # App Tracking Transparency — iOS shows this line in the permission dialog.

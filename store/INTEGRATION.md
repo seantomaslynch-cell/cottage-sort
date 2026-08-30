@@ -26,10 +26,14 @@ To go live:
    once (`godot --editor`) and enable the plugin under
    *Project → Project Settings → Plugins* (Android) and tick it in the **iOS**
    export preset. Confirm the addon loads on Godot 4.7 — it's built for 4.4.1.
-2. Put real unit IDs in `game/config.gd` (`ADMOB_*`), and the real
-   `GADApplicationIdentifier` into `export_presets.cfg`
-   (`application/additional_plist_content`, currently a placeholder) and the
-   Android manifest/gradle the plugin generates.
+2. Unit IDs live in `game/config.gd` (`ADMOB_*`). The **iOS** app + units are
+   real (`~5303167211` app, `/9888902188` rewarded, `/2101911509` interstitial)
+   and the iOS `GADApplicationIdentifier` in `export_presets.cfg` is set.
+   **Android is still placeholder** — create the AdMob Android app + 2 units and
+   fill `ADMOB_*_ANDROID` + the manifest/gradle the plugin generates.
+   `ads.gd` must serve `ADMOB_*_TEST_*` (Google's clickable test ids, already in
+   `config.gd`) whenever `OS.is_debug_build()` — testing against the live ids
+   gets the AdMob account banned.
 3. Flip `USE_ADMOB_PLUGIN := true` in `ads.gd`. Wire the plugin calls where the
    stub bodies are:
    - `watch_rewarded()` — `_admob.load_rewarded_ad(...)`, then on the
