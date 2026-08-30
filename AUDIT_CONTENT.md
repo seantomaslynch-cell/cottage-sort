@@ -173,8 +173,14 @@ chapter, flagged in the stage knobs:
 
 - **Beat par** — *done (M39)*: from L11 the win screen shows "par N" and a ✓ +
   30-coin bonus for `moves <= par`. A soft skill target under the stars.
-- **Tidy pour** — a couple of jars start with a lid; clear the rest first to pop
-  them (a soft "locked jar"). *Deferred — needs a new board mechanic.*
+- **Tidy pour** — *done (M45)*: `Levels.LIDDED_STAGES` — one mid-act build level
+  in each L41-120 act (L47/L63/L79/L95) gets a sealed keepsake jar: a lidded
+  jar holding a finished stack of `KEEPSAKE_COLOR` (bead 8, otherwise unused in
+  the authored run) that can't be touched until every other jar is tidied, then
+  its lid pops off with a sparkle. It's already a complete stack, so par /
+  budget / the BFS solver are all unchanged — a cosy reveal beat, not
+  difficulty. `board.gd` `locked_jars` / `_is_locked` / `_update_lids` /
+  `_draw_lid`; one-time coach note (`lid_tip_seen`).
 - **No spares** — a level with zero empty jars to start (the deferred
   1-spare/"challenge" idea from `DESIGN.md`). *Deferred — safe now that LevelGen
   verifies solvability; just a knob + label.*

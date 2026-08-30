@@ -418,6 +418,12 @@ func _load_current() -> void:
 		SaveData.data["ftue_budget_seen"] = true
 		SaveData.save_now()
 		_coach.show_tip("Moves are limited from here. Run low? Watch an ad, spend coins, or just restart — no lives, ever.")
+	# One-time note the first time a level has a sealed keepsake jar.
+	if not _ftue_active and Levels.has_lid(_stage) \
+			and not bool(SaveData.data.get("lid_tip_seen", false)):
+		SaveData.data["lid_tip_seen"] = true
+		SaveData.save_now()
+		_coach.show_tip("That jar has a lid. Tidy every other jar and it'll pop open on its own.")
 	_analytics.log_event("level_start", {"stage": _stage, "budget": _board.move_budget})
 	_refresh_buttons()
 

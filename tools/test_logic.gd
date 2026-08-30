@@ -14,6 +14,19 @@ func _initialize() -> void:
 		var cfg: Dictionary = Levels.STAGES[stage]
 		var hand: bool = Levels.HAND_LEVELS.has(stage)
 
+		# "Tidy pour" stages carry one sealed keepsake jar appended by Levels.build;
+		# it's a finished stack of KEEPSAKE_COLOR and isn't part of the puzzle, so
+		# check it on its own and run the structural checks on the rest.
+		if Levels.has_lid(stage):
+			if data.get("lock", []) != [jars.size() - 1]:
+				push_error("stage %d: lock index wrong: %s" % [stage, str(data.get("lock"))])
+				fails += 1
+			var keep: Array = jars[-1]
+			if keep != [Levels.KEEPSAKE_COLOR, Levels.KEEPSAKE_COLOR, Levels.KEEPSAKE_COLOR, Levels.KEEPSAKE_COLOR]:
+				push_error("stage %d: keepsake jar malformed: %s" % [stage, str(keep)])
+				fails += 1
+			jars = jars.slice(0, jars.size() - 1)
+
 		# generated stages must match their difficulty knob; hand levels are free-form
 		if not hand and jars.size() != cfg["colors"] + cfg["extra"]:
 			push_error("stage %d: jar count %d != %d" % [stage, jars.size(), cfg["colors"] + cfg["extra"]])

@@ -163,6 +163,17 @@ const HAND_LEVELS: Dictionary = {
 ## Stages 0..FLOW_STAGES-1 never fail (teaching + flow window).
 const FLOW_STAGES := 10
 
+## "Tidy pour" variant (AUDIT_CONTENT §3b): these stages get one sealed keepsake
+## jar — a lidded jar holding a complete stack of KEEPSAKE_COLOR that stays
+## untouchable until every other jar is sorted, then its lid pops off. It is
+## already a finished stack, so it adds a cosy reveal beat, not difficulty.
+## One mid-act build level in each of the four L41-120 acts.
+const KEEPSAKE_COLOR := 8
+const LIDDED_STAGES := [46, 62, 78, 94]
+
+static func has_lid(stage_index: int) -> bool:
+	return stage_index in LIDDED_STAGES
+
 ## Endless mode: levels per colour tier before the colour count steps up.
 const ENDLESS_TIER_LEN := 12
 
@@ -187,7 +198,15 @@ static func build(stage_index: int) -> Dictionary:
 	# Authored run: frozen + pre-verified in game/level_data.gd (regenerate with
 	# tools/bake_levels.gd). No runtime solver stall, puzzles stable across builds.
 	if stage_index >= 0 and stage_index < LevelData.STAGES.size():
-		return (LevelData.STAGES[stage_index] as Dictionary).duplicate(true)
+		var d := (LevelData.STAGES[stage_index] as Dictionary).duplicate(true)
+		if has_lid(stage_index):
+			# Append a sealed keepsake jar. It's a finished stack of an otherwise
+			# unused colour, so the solver / par / budget are unchanged (BFS
+			# never moves a full uniform jar), and the win check still passes.
+			var js: Array = d["jars"]
+			js.append([KEEPSAKE_COLOR, KEEPSAKE_COLOR, KEEPSAKE_COLOR, KEEPSAKE_COLOR])
+			d["lock"] = [js.size() - 1]
+		return d
 	# Endless: colour tier + rising scramble. LevelGen verifies each board.
 	var sh := _shape(stage_index)
 	return LevelGen.generate(int(sh["colors"]), int(sh["extra"]),

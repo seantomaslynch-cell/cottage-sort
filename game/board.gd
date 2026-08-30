@@ -62,6 +62,9 @@ var _last_pour_col := -1    # colour of the most recent pour (for per-colour pit
 var _last_jar := -1         # the sole remaining unsorted jar, or -1
 var _anim_t := 0.0
 
+var locked_jars: Array = []   # sealed "keepsake" jars — see Levels.LIDDED_STAGES
+var _lids_open := false        # true once every other jar is tidied
+
 const HINT_TIME := 2.6
 const COMBO_WINDOW_MS := 2200
 
@@ -85,6 +88,8 @@ func load_level(data: Dictionary) -> void:
 	_combo_n = 0
 	_last_jar = -1
 	_last_pour_col = -1
+	locked_jars = data.get("lock", [])
+	_lids_open = false
 	_recv_jar = -1
 	_recv_count = 0
 	_pops = PackedFloat32Array()
@@ -211,6 +216,7 @@ func _after_booster() -> void:
 	_history.clear()
 	_completed = _jars_complete()   # resync so the next real move's combo math is sane
 	_clear_hint()
+	_update_lids()
 	queue_redraw()
 	_sfx("pour", 1.1)
 	if _is_solved():
@@ -257,6 +263,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	var hit := _jar_at(pos)
 	if hit == -1:
+		return
+
+	if _is_locked(hit):
+		_sfx("buzz", 1.25)   # sealed — tidy the rest and the lid pops on its own
 		return
 
 	if tutorial_lock and tutorial_move.size() == 2:
@@ -326,6 +336,29 @@ func _pitch_for(col: int) -> float:
 		return 1.0
 	return 1.0 + (float(col) - 3.5) * 0.035
 
+## A sealed keepsake jar the player can't touch yet.
+func _is_locked(i: int) -> bool:
+	return not _lids_open and i in locked_jars
+
+## Once every non-locked jar is a finished stack, pop the keepsake lids.
+func _update_lids() -> void:
+	if _lids_open or locked_jars.is_empty():
+		return
+	for i in jars.size():
+		if i in locked_jars:
+			continue
+		var a: Array = jars[i]
+		if a.is_empty():
+			continue
+		if not (a.size() == CAP and _top_run_len(a) == CAP):
+			return
+	_lids_open = true
+	_sfx("win", 1.5)
+	for i in locked_jars:
+		if i < _rects.size():
+			_rings.append({"pos": _rects[i].position + _rects[i].size * 0.5, "t": 0.0, "dur": 0.7})
+	queue_redraw()
+
 ## Jars that still need work: non-empty and not already one full colour.
 func _unsorted_jars() -> Array:
 	var out: Array = []
@@ -391,6 +424,7 @@ func _process(delta: float) -> void:
 
 func _post_move() -> void:
 	_check_combo()
+	_update_lids()
 	var u := _unsorted_jars()
 	var new_last: int = u[0] if u.size() == 1 else -1
 	if new_last != -1 and _last_jar == -1 and not _is_solved():
@@ -670,6 +704,32 @@ func _draw_jar(i: int) -> void:
 			base = Vector2(r.position.x + r.size.x * 0.5, r.position.y - 22.0 - (jar.size() - 1 - s) * (ITEM_R * 2.0 + 3.0))
 		var p := center + (base - center) * sc
 		_draw_item(p, COLORS[jar[s]], sc)
+
+	if _is_locked(i):
+		_draw_lid(rr)
+
+## A wooden lid sealing a keepsake jar: hides the contents until it pops.
+func _draw_lid(rr: Rect2) -> void:
+	var wood: Color = realm.get("shelf", Palette.SHELF)
+	var wood_d: Color = realm.get("shelf_dark", Palette.SHELF_DARK)
+	var h := rr.size.y * 0.6
+	var lr := Rect2(rr.position + Vector2(-5.0, -7.0), Vector2(rr.size.x + 10.0, h))
+	# a soft drop shadow just under the lid
+	_round_rect(Rect2(lr.position + Vector2(0, 6), lr.size), Color(0, 0, 0, 0.10), Color(0, 0, 0, 0), 0, 12)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = wood
+	sb.border_color = wood_d
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(10)
+	draw_style_box(sb, lr)
+	# two plank grooves
+	for k in 2:
+		var gy := lr.position.y + lr.size.y * (0.36 + 0.30 * k)
+		draw_line(Vector2(lr.position.x + 8, gy), Vector2(lr.position.x + lr.size.x - 8, gy), wood_d * Color(1, 1, 1, 0.6), 2.0)
+	# a little knob
+	var knob := Vector2(lr.position.x + lr.size.x * 0.5, lr.position.y + lr.size.y - 10.0)
+	draw_circle(knob, 8.0, wood_d)
+	draw_circle(knob + Vector2(-2, -2), 3.0, wood.lightened(0.3))
 
 func _draw_item(p: Vector2, col: Color, sc: float) -> void:
 	var tint: Color = realm.get("bead_tint", Color(0, 0, 0, 0))
