@@ -26,22 +26,25 @@ One list that ties the other `store/` docs together. Check items off as you go.
 - [x] Apple Developer Program membership active
 - [x] App Store Connect app record created (`6806743872`)
 - [x] Team ID, AdMob iOS app + 2 ad units, publisher ID — all in `game/config.gd` + `export_presets.cfg` + `codemagic.yaml`
-- [ ] **Register the Bundle ID** `com.seanlynch.cottagesort`
-      → developer.apple.com → Certificates, Identifiers & Profiles → Identifiers → +
-      → App IDs → App → tick **In-App Purchase** (for later) → nothing else
+- [x] **Bundle ID** `com.seanlynch.cottagesort` registered (matches
+      `export_presets.cfg`, `codemagic.yaml`, `game/config.gd`)
 - [ ] Confirm the App Store Connect record's Bundle ID = `com.seanlynch.cottagesort`
-      (Apps → Cottage Sort → App Information). If it was created with a different
-      one, set it here or recreate.
+      (Apps → Cottage Sort → App Information)
 
 ## Phase 1 — Hosting (privacy / support / app-ads.txt)
 
-- [x] `docs/` static site written (index / privacy / support / app-ads.txt)
-- [ ] **Enable GitHub Pages:** repo Settings → Pages → Deploy from a branch
-      → `master` / `/docs` → Save. Live in ~1 min.
-- [ ] Verify the 3 URLs load:
+- [x] `docs/` static site written (index / privacy / support / app-ads.txt / .nojekyll)
+- [x] GitHub Pages enabled — live at `https://seantomaslynch-cell.github.io/cottage-sort/`
+- [ ] **Fix the Pages source:** it's currently serving from the repo **root**
+      (shows the README, and `docs/` pages only work under `/docs/…`). Change
+      Settings → Pages → Branch folder from `/ (root)` to **`/docs`** → Save.
+      After that the clean URLs below work and `/` shows the player-facing page.
+- [ ] Verify the 3 URLs load (after the source fix):
       - `https://seantomaslynch-cell.github.io/cottage-sort/`
       - `https://seantomaslynch-cell.github.io/cottage-sort/privacy.html`
       - `https://seantomaslynch-cell.github.io/cottage-sort/support.html`
+      *(if you leave the source on root instead, the working URLs are the same
+      with `/docs/` inserted — then update `game/config.gd` + `LISTING_v1.md` to match)*
 - [ ] *(later, not blocking)* app-ads.txt at a real domain root — either add a
       public `seantomaslynch-cell.github.io` repo with `app-ads.txt` at its root,
       or put a custom domain in front of the Pages site. Only affects ad fill/eCPM.
