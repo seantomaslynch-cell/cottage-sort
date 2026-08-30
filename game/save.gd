@@ -39,6 +39,7 @@ static var data: Dictionary = {
 	"deal_bought_day": -1,     # last day the rotating daily deal was taken
 	"stipend_day": -1,         # last day the ad-free gem stipend was paid
 	"piggy_cracked_once": false,  # unlocks the bigger piggy bank
+	"season_bundle_id": -1,    # last season number whose decor bundle was bought
 	"achievements": {},        # id -> true once earned
 	"stat_deepest": 0,         # furthest stage index reached
 	"stat_flawless": 0,        # 3-star clears with no undo/hint

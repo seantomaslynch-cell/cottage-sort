@@ -76,19 +76,25 @@ Ranked by impact ÷ effort. Anything marked *(external)* needs a plugin/asset.
 
 ### Money
 
-8. **Rewarded "double your combo"** offer at the end of a big combo — high
-   intent, opt-in, on-brand.
-9. **A cosmetic gem sink** — sell exclusive premium decor sets for gems (not
-   just coins). Right now gems only buy boosters + continues; give them a
-   vanity outlet.
+8. **Rewarded "double your combo"** — *done (M44)*: a combo of x4+ pops a
+   transient HUD button ("Double x4 combo (Watch) +20") that times out after
+   5s; watching a rewarded video pays the combo bonus a second time
+   (`HUD.offer_combo_double` / `combo_double_pressed` → `main._on_combo_double`).
+9. **A cosmetic gem sink** — *done (M44)*: `DecorData.PREMIUM` — a gem-only
+   "Keepsakes" set (5 pieces, 8–28 gems) that never sells for coins. Shows in
+   the Cottage Decorate tab and the Progress → Collection tab;
+   `Economy.buy_decor` branches on `it.has("gem")`.
+13. **Seasonal event storefront** — *done (M44)*: the Shop shows a "<Season>
+    bundle" card — all 4 of the live seasonal pieces for `SEASON_BUNDLE_GEMS`
+    (24), once per 28-day season (`SaveData.season_bundle_id` vs
+    `DecorData.season_id()`); `main._on_season_bundle` spends the gems and
+    `grant_decor`s each unowned piece.
 10. **Battle-pass "tier skip"** — *done (M41)*: a "Skip tier · N gems" button
     in the season panel; cost eases toward season end (`maxi(20, 55 - days_left)`).
 11. **Piggy-bank tiers** — *done (M43)*: the cap grows 250 -> 500 the first
     time the bank is cracked (`piggy_cracked_once`).
 12. **Remove-ads daily gem stipend** — *done (M43)*: ad-free owners get +3
     gems on the first session each day (`stipend_day`).
-13. **Seasonal event storefront** — bundle the current seasonal decor set at a
-    discount for gems during its 28-day window; expires with the season.
 14. **First-purchase doubler** — *done (M41)*: first gem pack is doubled
     (`SaveData.first_gem_buy`), flagged with a "2× first buy!" tag in the Shop.
 

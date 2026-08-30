@@ -155,6 +155,14 @@ func _build_collection() -> void:
 		for it in items2:
 			_list.add_child(_decor_row(it))
 
+	var kh := 0
+	for it in DecorData.PREMIUM:
+		if _eco != null and _eco.owns_decor(it["id"]):
+			kh += 1
+	_list.add_child(_head("%s   (gems only -  %d / %d)" % [DecorData.PREMIUM_SET, kh, DecorData.PREMIUM.size()]))
+	for it in DecorData.PREMIUM:
+		_list.add_child(_decor_row(it))
+
 	_list.add_child(_head("Sundries   (never ends -  %d owned)" % (_eco._endless_bought() if _eco != null else 0)))
 	if _eco != null:
 		_list.add_child(_decor_row(_eco.next_endless()))
@@ -167,7 +175,8 @@ func _decor_row(it: Dictionary) -> Control:
 	var nm := _label(it["name"] if owned else "▢  ???", 23, Palette.INK if owned else Palette.INK_FAINT)
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(nm)
-	top.add_child(_label("owned" if owned else "%dc" % int(it.get("cost", 0)), 19, Palette.ACCENT_WARM))
+	var price := ("%dg" % int(it["gem"])) if it.has("gem") else ("%dc" % int(it.get("cost", 0)))
+	top.add_child(_label("owned" if owned else price, 19, Palette.ACCENT_WARM))
 	box.add_child(top)
 	box.add_child(_label(it.get("flavour", "") if owned else "not yet in the collection", 18, Palette.INK_FAINT))
 	var card := _card()

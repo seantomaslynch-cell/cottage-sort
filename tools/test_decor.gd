@@ -32,6 +32,25 @@ func _initialize() -> void:
 	_ok(DecorData.item(season["items"][0]["id"]).get("set") == season["name"],
 		"seasonal item resolves to its season set")
 
+	print("premium (gem-only) set:")
+	_ok(DecorData.PREMIUM.size() >= 4, "Keepsakes has several pieces")
+	var p0: Dictionary = DecorData.PREMIUM[0]
+	_ok(p0.has("gem") and not p0.has("cost"), "premium item is priced in gems, not coins")
+	_ok(DecorData.item(p0["id"]).get("set") == DecorData.PREMIUM_SET,
+		"premium item resolves to the Keepsakes set")
+	_ok(DecorData.set_items(DecorData.PREMIUM_SET).size() == DecorData.PREMIUM.size(),
+		"set_items() knows the premium set")
+	var pe: Economy = EconomyS.new()
+	_ok(not pe.can_buy_decor(p0["id"]), "can't buy a keepsake with no gems")
+	pe.add_gems(int(p0["gem"]))
+	_ok(pe.can_buy_decor(p0["id"]) and pe.buy_decor(p0["id"]), "buy keepsake spends gems")
+	_ok(pe.gems() == 0 and pe.owns_decor(p0["id"]), "gems deducted, keepsake owned")
+	_ok(not pe.grant_decor(p0["id"]), "grant_decor is a no-op when already owned")
+	_ok(pe.grant_decor(DecorData.PREMIUM[1]["id"]), "grant_decor adds without a cost check")
+	pe.free()
+	SaveData.data["decor"] = []
+	SaveData.data["gems"] = 0
+
 	print("endless catalog:")
 	var costs := []
 	for i in 9:

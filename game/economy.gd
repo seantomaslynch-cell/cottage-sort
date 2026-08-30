@@ -161,13 +161,33 @@ func sets_complete_count() -> int:
 
 func can_buy_decor(id: String) -> bool:
 	var it := DecorData.item(id)
-	return not it.is_empty() and not owns_decor(id) and coins() >= int(it["cost"])
+	if it.is_empty() or owns_decor(id):
+		return false
+	if it.has("gem"):
+		return gems() >= int(it["gem"])
+	return coins() >= int(it["cost"])
 
 func buy_decor(id: String) -> bool:
 	if not can_buy_decor(id):
 		return false
 	var it := DecorData.item(id)
-	SaveData.data["coins"] = coins() - int(it["cost"])
+	if it.has("gem"):
+		SaveData.data["gems"] = gems() - int(it["gem"])
+	else:
+		SaveData.data["coins"] = coins() - int(it.get("cost", 0))
+	_add_decor(id)
+	return true
+
+## Add a decor item without a cost check (seasonal bundle, rewards). Returns
+## false if already owned.
+func grant_decor(id: String) -> bool:
+	if owns_decor(id) or DecorData.item(id).is_empty():
+		return false
+	_add_decor(id)
+	return true
+
+func _add_decor(id: String) -> void:
+	var it := DecorData.item(id)
 	var owned: Array = decor_owned()
 	owned.append(id)
 	SaveData.data["decor"] = owned
@@ -183,10 +203,10 @@ func buy_decor(id: String) -> bool:
 
 	SaveData.save_now()
 	coins_changed.emit(coins())
+	gems_changed.emit(gems())
 	changed.emit()
 	if newly_done != "":
 		set_completed.emit(newly_done, DecorData.SET_BONUS)
-	return true
 
 func _set_full(set_name: String) -> bool:
 	var items := DecorData.set_items(set_name)

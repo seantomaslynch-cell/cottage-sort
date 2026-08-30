@@ -228,6 +228,7 @@ func _ready() -> void:
 	_hud.cottage_pressed.connect(_show_cottage)
 	_hud.hint_pressed.connect(_on_hint)
 	_hud.double_pressed.connect(_on_double)
+	_hud.combo_double_pressed.connect(_on_combo_double)
 	_hud.mute_toggled.connect(_on_mute_toggled)
 
 	_ads.rewarded_started.connect(func() -> void: _hud.flash("Playing ad..."))
@@ -307,6 +308,7 @@ func _ready() -> void:
 
 	_shop.closed.connect(func() -> void: _shop.visible = false)
 	_shop.buy_pressed.connect(func(id: String) -> void: _iap.purchase(id))
+	_shop.season_bundle_pressed.connect(_on_season_bundle)
 	_shop.restore_pressed.connect(func() -> void:
 		_iap.restore()
 		_ads.remove_ads = _iap.has_remove_ads()
@@ -399,6 +401,7 @@ func _load_current() -> void:
 	_hud.set_moves(0)
 	_hud.hide_win()
 	_hud.hide_fail()
+	_hud.hide_combo_offer()
 	_hints_used = 0
 	_undos_used = 0
 	_stage_fails = 0
@@ -498,6 +501,9 @@ func _on_combo(n: int) -> void:
 	var word: String = COMBO_WORDS[mini(n, COMBO_WORDS.size() - 1)]
 	_hud.flash("%s  x%d combo   +%d" % [word, n, bonus])
 	_analytics.log_event("combo", {"n": n, "stage": _stage})
+	# A strong combo earns a transient rewarded offer to double just that bonus.
+	if n >= 4:
+		_hud.offer_combo_double(n, bonus)
 
 func _on_achievement(id: String, aname: String, coins: int, gems: int) -> void:
 	if coins > 0:
@@ -634,6 +640,7 @@ func _on_setting_toggled(key: String, value: bool) -> void:
 
 func _on_solved() -> void:
 	_coach.clear()
+	_hud.hide_combo_offer()
 	if _jackpot_active:
 		_finish_jackpot()
 		return
@@ -719,6 +726,30 @@ func _on_double() -> void:
 	_ads.watch_rewarded(func() -> void:
 		_economy.add_coins(_last_earned)
 		_hud.mark_doubled())
+
+func _on_combo_double() -> void:
+	var bonus := _hud.combo_bonus()
+	_ads.watch_rewarded(func() -> void:
+		_economy.add_coins(bonus)
+		_hud.flash("Combo doubled   +%d" % bonus)
+		_analytics.log_event("combo_double", {"bonus": bonus, "stage": _stage}))
+
+func _on_season_bundle() -> void:
+	if int(SaveData.data.get("season_bundle_id", -1)) == DecorData.season_id():
+		return
+	if not _economy.spend_gems(DecorData.SEASON_BUNDLE_GEMS):
+		_shop.flash("Not enough gems")
+		return
+	SaveData.data["season_bundle_id"] = DecorData.season_id()
+	SaveData.save_now()
+	var got := 0
+	for it in DecorData.current_season()["items"]:
+		if _economy.grant_decor(it["id"]):
+			got += 1
+	_shop.refresh()
+	_shop.flash("%s bundle claimed  —  %d piece%s" % [
+		DecorData.current_season()["name"], got, "" if got == 1 else "s"])
+	_analytics.log_event("season_bundle", {"season": DecorData.season_id(), "got": got})
 
 func _on_mystery() -> void:
 	_ads.watch_rewarded(func() -> void:

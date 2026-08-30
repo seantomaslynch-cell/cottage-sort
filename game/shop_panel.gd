@@ -5,6 +5,7 @@ class_name ShopPanel
 ## Lists IAP products; emits intents, main.gd does the buy.
 
 signal buy_pressed(product_id: String)
+signal season_bundle_pressed
 signal restore_pressed
 signal closed
 
@@ -119,6 +120,15 @@ func refresh() -> void:
 		"%s   +%d%% bonus   —   %s" % [dp["name"], int(float(deal["bonus"]) * 100.0), dp["price"]],
 		deal["id"], not taken))
 
+	# Seasonal storefront — the live decor set, for gems, expires with the season
+	var season := DecorData.current_season()
+	var got_bundle := int(SaveData.data.get("season_bundle_id", -1)) == DecorData.season_id()
+	_list.add_child(_offer_card(
+		"%s bundle   ·   %s" % [season["name"], "owned this season" if got_bundle else "%dd left" % DecorData.season_days_left()],
+		"All %d seasonal pieces   —   %d gems" % [season["items"].size(), DecorData.SEASON_BUNDLE_GEMS],
+		"", not got_bundle and _economy.gems() >= DecorData.SEASON_BUNDLE_GEMS,
+		func() -> void: season_bundle_pressed.emit()))
+
 	# Starter pack — value-heavy, time-boxed, one-time
 	if _starter_secs >= 0 and not _iap.owns("starter_pack"):
 		var sp := _iap.product("starter_pack")
@@ -161,7 +171,7 @@ func refresh() -> void:
 		row.add_child(btn)
 		_list.add_child(row)
 
-func _offer_card(title: String, sub: String, pid: String, enabled := true) -> Control:
+func _offer_card(title: String, sub: String, pid: String, enabled := true, on_buy := Callable()) -> Control:
 	var card := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Palette.BTN_HOVER
@@ -189,7 +199,10 @@ func _offer_card(title: String, sub: String, pid: String, enabled := true) -> Co
 	var btn := _button("Buy", 24)
 	btn.custom_minimum_size = Vector2(150, 60)
 	btn.disabled = not enabled
-	btn.pressed.connect(func() -> void: buy_pressed.emit(pid))
+	if on_buy.is_valid():
+		btn.pressed.connect(on_buy)
+	else:
+		btn.pressed.connect(func() -> void: buy_pressed.emit(pid))
 	row.add_child(btn)
 	return card
 

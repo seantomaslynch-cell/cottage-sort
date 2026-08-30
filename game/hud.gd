@@ -16,6 +16,7 @@ signal home_pressed
 signal progress_pressed
 signal hint_pressed
 signal double_pressed
+signal combo_double_pressed
 signal add_moves_pressed
 signal buy_moves_pressed
 signal skip_pressed
@@ -47,6 +48,8 @@ var _win_next: Label
 var _double_btn: Button
 var _win_cottage_btn: Button
 var _win_earned := 0
+var _combo_btn: Button
+var _combo_bonus := 0
 var _fail_root: Control
 var _fail_buy_btn: Button
 var _fail_skip_btn: Button
@@ -131,6 +134,20 @@ func _ready() -> void:
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.modulate.a = 0.0
 	add_child(_toast)
+
+	# Transient "double your combo" offer — appears after a strong combo, times out.
+	_combo_btn = _button("")
+	_combo_btn.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_combo_btn.offset_left = 175.0
+	_combo_btn.offset_right = -175.0
+	_combo_btn.offset_top = 148.0
+	_combo_btn.offset_bottom = 214.0
+	_combo_btn.add_theme_font_size_override("font_size", 25)
+	_combo_btn.visible = false
+	_combo_btn.pressed.connect(func() -> void:
+		_combo_btn.visible = false
+		combo_double_pressed.emit())
+	add_child(_combo_btn)
 
 	_build_win_overlay()
 	_build_fail_overlay()
@@ -425,6 +442,23 @@ func flash(text: String) -> void:
 	var tw := create_tween()
 	tw.tween_interval(0.9)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.5)
+
+## Offer to double a just-earned combo bonus for a rewarded video. Auto-hides.
+func offer_combo_double(n: int, bonus: int) -> void:
+	if bonus <= 0:
+		return
+	_combo_bonus = bonus
+	_combo_btn.text = "Double  x%d combo   (Watch)   +%d" % [n, bonus]
+	_combo_btn.visible = true
+	var tw := create_tween()
+	tw.tween_interval(5.0)
+	tw.tween_callback(func() -> void: _combo_btn.visible = false)
+
+func combo_bonus() -> int:
+	return _combo_bonus
+
+func hide_combo_offer() -> void:
+	_combo_btn.visible = false
 
 func set_next_hint(text: String) -> void:
 	_win_next.text = text

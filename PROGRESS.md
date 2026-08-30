@@ -3,7 +3,7 @@
 Cross-machine handoff snapshot. Design & roadmap live in [DESIGN.md](DESIGN.md);
 file map in [README.md](README.md).
 
-**Updated:** 2026-08-30 · +M43 weekly rotation, piggy tier 2, ad-free stipend
+**Updated:** 2026-08-30 · +M44 cosmetic gem sink (Keepsakes), seasonal storefront bundle, rewarded double-combo
 **Repo:** github.com/seantomaslynch-cell/cottage-sort (private) · branch `master`
 **Engine:** Godot 4.7.2 stable (standard / GDScript, GL Compatibility, portrait 720×1280)
 
@@ -55,6 +55,7 @@ file map in [README.md](README.md).
 | M41 monetization depth — BP tier skip, first-gem-pack doubler, rotating daily shop deal | ✅ done |
 | M42 authored curve to L120 — 5 new 16-level acts + 5 realm chapters (Orchard/Cellar/Loft/Meadow/Hearth); all verified + frozen | ✅ done |
 | M43 weekly event rotation (4 types) + piggy-bank tier 2 (250→500) + remove-ads daily gem stipend | ✅ done |
+| M44 cosmetic gem sink (gem-only "Keepsakes" decor) + seasonal storefront bundle + rewarded "double your combo" — closes AUDIT_FUNCTIONAL money list (#17 backend is external) | ✅ done |
 
 [AUDIT.md](AUDIT.md) = competitive gap analysis · [AUDIT_FUNCTIONAL.md](AUDIT_FUNCTIONAL.md)
 = code audit + fix log + a ranked fun/money upgrade list ·

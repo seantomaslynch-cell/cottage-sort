@@ -222,6 +222,11 @@ func _refresh_decor() -> void:
 	for it in season["items"]:
 		_decor_list.add_child(_decor_row(it))
 
+	var kp := economy.set_progress(DecorData.PREMIUM_SET)
+	_decor_list.add_child(_set_header("%s   (gems only -  %d / %d)" % [DecorData.PREMIUM_SET, kp.x, kp.y]))
+	for it in DecorData.PREMIUM:
+		_decor_list.add_child(_decor_row(it))
+
 	_decor_list.add_child(_set_header("%s   (never ends)" % DecorData.ENDLESS_SET))
 	_decor_list.add_child(_decor_row(economy.next_endless()))
 
@@ -240,7 +245,7 @@ func _decor_row(it: Dictionary) -> Control:
 		btn.text = "Owned"
 		btn.disabled = true
 	else:
-		btn.text = "Buy  %d" % int(it["cost"])
+		btn.text = "Buy  %dg" % int(it["gem"]) if it.has("gem") else "Buy  %d" % int(it.get("cost", 0))
 		btn.disabled = not economy.can_buy_decor(id)
 		btn.pressed.connect(func() -> void: decor_buy_pressed.emit(id))
 	row.add_child(btn)

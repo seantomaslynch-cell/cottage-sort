@@ -29,6 +29,16 @@ const SETS := {
 }
 const SET_BONUS := 150      # coins, first time a set is completed
 const ENDLESS_SET := "Sundries"
+const PREMIUM_SET := "Keepsakes"
+
+## Gem-only vanity decor — the cosmetic sink. Never sold for coins.
+const PREMIUM := [
+	{"id": "p_lantern", "name": "Brass lantern",    "gem": 8,  "color": 5, "shape": 2, "flavour": "Casts a proper pool of gold."},
+	{"id": "p_clock",   "name": "Mantel clock",     "gem": 12, "color": 1, "shape": 0, "flavour": "Ticks a half-second slow. Nobody minds."},
+	{"id": "p_globe",   "name": "Little globe",     "gem": 16, "color": 4, "shape": 1, "flavour": "Spins if you breathe on it."},
+	{"id": "p_teaset",  "name": "Painted tea set",  "gem": 20, "color": 6, "shape": 3, "flavour": "For visitors who never quite arrive."},
+	{"id": "p_music",   "name": "Music box",        "gem": 28, "color": 3, "shape": 2, "flavour": "One tune, and it's the right one."},
+]
 
 ## Rotating seasonal sets — one is on offer at a time, changing every 28 days.
 const SEASONS := [
@@ -58,8 +68,17 @@ const SEASONS := [
 	]},
 ]
 
+const SEASON_BUNDLE_GEMS := 24   # all 4 of the live seasonal set, discounted
+
 static func season_index() -> int:
 	return int(Time.get_unix_time_from_system() / 86400.0 / 28.0) % SEASONS.size()
+
+## The absolute 28-day season number (for "bought this season?" checks).
+static func season_id() -> int:
+	return int(Time.get_unix_time_from_system() / 86400.0 / 28.0)
+
+static func season_days_left() -> int:
+	return 28 - int(Time.get_unix_time_from_system() / 86400.0) % 28
 
 static func current_season() -> Dictionary:
 	return SEASONS[season_index()]
@@ -68,6 +87,8 @@ static func current_season() -> Dictionary:
 static func set_items(name: String) -> Array:
 	if SETS.has(name):
 		return SETS[name]
+	if name == PREMIUM_SET:
+		return PREMIUM
 	for s in SEASONS:
 		if s["name"] == name:
 			return s["items"]
@@ -94,6 +115,11 @@ static func item(id: String) -> Dictionary:
 				var c: Dictionary = (it as Dictionary).duplicate()
 				c["set"] = season["name"]
 				return c
+	for it in PREMIUM:
+		if it["id"] == id:
+			var c: Dictionary = (it as Dictionary).duplicate()
+			c["set"] = PREMIUM_SET
+			return c
 	if id.begins_with("sundry_"):
 		return endless_item(int(id.trim_prefix("sundry_")))
 	return {}
