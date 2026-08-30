@@ -10,9 +10,11 @@ extends RefCounted
 ##   flow    - true = no fail state, lenient stars (the habit-forming window)
 ##
 ## Shape: teaching (1-4) -> fail-free flow (5-10) -> first challenge (~12) ->
-## designed spike (~20) -> relief (21-25) -> rising (26-32) -> hard tail (33-40).
-## Past stage 40 endless mode ramps scramble within a colour tier, then steps
-## the colour count up (capped at the palette) so difficulty keeps climbing.
+## designed spike (~20) -> relief (21-25) -> rising (26-32) -> hard tail (33-40),
+## then five 16-level acts (L41-120) that each open with relief + a deep-run
+## flow breather, build, hit a two-level peak, and wind down — each act a touch
+## harder than the last. Past stage 120 endless mode ramps scramble within a
+## colour tier, then steps the colour count up (capped at the palette).
 
 const STAGES: Array[Dictionary] = [
 	# Teaching (authored layouts) --------------------------------------------
@@ -62,6 +64,92 @@ const STAGES: Array[Dictionary] = [
 	{"colors": 8, "extra": 2, "scr": 1.45, "bm": 0.78},
 	{"colors": 8, "extra": 3, "scr": 1.5, "bm": 0.8},
 	{"colors": 8, "extra": 2, "scr": 1.5, "bm": 0.75},
+
+	# --- Act 3: Orchard  (L41-56) ----------------------
+	{"colors": 6, "extra": 3, "scr": 0.95, "bm": 1.3},
+	{"colors": 7, "extra": 3, "scr": 1.0, "bm": 1.25},
+	{"colors": 7, "extra": 2, "scr": 1.05, "bm": 1.2},
+	{"colors": 5, "extra": 3, "scr": 0.7, "flow": true},
+	{"colors": 7, "extra": 3, "scr": 1.05, "bm": 1.1},
+	{"colors": 7, "extra": 2, "scr": 1.1, "bm": 1.05},
+	{"colors": 8, "extra": 3, "scr": 1.1, "bm": 1.0},
+	{"colors": 8, "extra": 2, "scr": 1.15, "bm": 0.98},
+	{"colors": 7, "extra": 2, "scr": 1.2, "bm": 0.95},
+	{"colors": 8, "extra": 3, "scr": 1.2, "bm": 0.95},
+	{"colors": 8, "extra": 2, "scr": 1.25, "bm": 0.92},
+	{"colors": 8, "extra": 2, "scr": 1.4, "bm": 0.82},
+	{"colors": 8, "extra": 2, "scr": 1.48, "bm": 0.78},
+	{"colors": 7, "extra": 3, "scr": 1.15, "bm": 1.0},
+	{"colors": 8, "extra": 3, "scr": 1.2, "bm": 0.98},
+	{"colors": 7, "extra": 2, "scr": 1.1, "bm": 1.05},
+	# --- Act 4: Cellar  (L57-72) ----------------------
+	{"colors": 6, "extra": 3, "scr": 0.98, "bm": 1.28},
+	{"colors": 7, "extra": 3, "scr": 1.03, "bm": 1.23},
+	{"colors": 7, "extra": 2, "scr": 1.08, "bm": 1.18},
+	{"colors": 5, "extra": 3, "scr": 0.73, "flow": true},
+	{"colors": 7, "extra": 3, "scr": 1.08, "bm": 1.08},
+	{"colors": 7, "extra": 2, "scr": 1.13, "bm": 1.03},
+	{"colors": 8, "extra": 3, "scr": 1.13, "bm": 0.98},
+	{"colors": 8, "extra": 2, "scr": 1.18, "bm": 0.96},
+	{"colors": 7, "extra": 2, "scr": 1.23, "bm": 0.93},
+	{"colors": 8, "extra": 3, "scr": 1.23, "bm": 0.93},
+	{"colors": 8, "extra": 2, "scr": 1.28, "bm": 0.9},
+	{"colors": 8, "extra": 2, "scr": 1.43, "bm": 0.8},
+	{"colors": 8, "extra": 2, "scr": 1.51, "bm": 0.76},
+	{"colors": 7, "extra": 3, "scr": 1.18, "bm": 0.98},
+	{"colors": 8, "extra": 3, "scr": 1.23, "bm": 0.96},
+	{"colors": 7, "extra": 2, "scr": 1.13, "bm": 1.03},
+	# --- Act 5: Loft  (L73-88) ----------------------
+	{"colors": 6, "extra": 3, "scr": 1.01, "bm": 1.26},
+	{"colors": 7, "extra": 3, "scr": 1.06, "bm": 1.21},
+	{"colors": 7, "extra": 2, "scr": 1.11, "bm": 1.16},
+	{"colors": 5, "extra": 3, "scr": 0.76, "flow": true},
+	{"colors": 7, "extra": 3, "scr": 1.11, "bm": 1.06},
+	{"colors": 7, "extra": 2, "scr": 1.16, "bm": 1.01},
+	{"colors": 8, "extra": 3, "scr": 1.16, "bm": 0.96},
+	{"colors": 8, "extra": 2, "scr": 1.21, "bm": 0.94},
+	{"colors": 7, "extra": 2, "scr": 1.26, "bm": 0.91},
+	{"colors": 8, "extra": 3, "scr": 1.26, "bm": 0.91},
+	{"colors": 8, "extra": 2, "scr": 1.31, "bm": 0.88},
+	{"colors": 8, "extra": 2, "scr": 1.46, "bm": 0.78},
+	{"colors": 8, "extra": 2, "scr": 1.54, "bm": 0.74},
+	{"colors": 7, "extra": 3, "scr": 1.21, "bm": 0.96},
+	{"colors": 8, "extra": 3, "scr": 1.26, "bm": 0.94},
+	{"colors": 7, "extra": 2, "scr": 1.16, "bm": 1.01},
+	# --- Act 6: Meadow  (L89-104) ----------------------
+	{"colors": 6, "extra": 3, "scr": 1.04, "bm": 1.24},
+	{"colors": 7, "extra": 3, "scr": 1.09, "bm": 1.19},
+	{"colors": 7, "extra": 2, "scr": 1.14, "bm": 1.14},
+	{"colors": 5, "extra": 3, "scr": 0.79, "flow": true},
+	{"colors": 7, "extra": 3, "scr": 1.14, "bm": 1.04},
+	{"colors": 7, "extra": 2, "scr": 1.19, "bm": 0.99},
+	{"colors": 8, "extra": 3, "scr": 1.19, "bm": 0.94},
+	{"colors": 8, "extra": 2, "scr": 1.24, "bm": 0.92},
+	{"colors": 7, "extra": 2, "scr": 1.29, "bm": 0.89},
+	{"colors": 8, "extra": 3, "scr": 1.29, "bm": 0.89},
+	{"colors": 8, "extra": 2, "scr": 1.34, "bm": 0.86},
+	{"colors": 8, "extra": 2, "scr": 1.49, "bm": 0.76},
+	{"colors": 8, "extra": 2, "scr": 1.57, "bm": 0.72},
+	{"colors": 7, "extra": 3, "scr": 1.24, "bm": 0.94},
+	{"colors": 8, "extra": 3, "scr": 1.29, "bm": 0.92},
+	{"colors": 7, "extra": 2, "scr": 1.19, "bm": 0.99},
+	# --- Act 7: Hearth  (L105-120) ----------------------
+	{"colors": 6, "extra": 3, "scr": 1.07, "bm": 1.22},
+	{"colors": 7, "extra": 3, "scr": 1.12, "bm": 1.17},
+	{"colors": 7, "extra": 2, "scr": 1.17, "bm": 1.12},
+	{"colors": 5, "extra": 3, "scr": 0.82, "flow": true},
+	{"colors": 7, "extra": 3, "scr": 1.17, "bm": 1.02},
+	{"colors": 7, "extra": 2, "scr": 1.22, "bm": 0.97},
+	{"colors": 8, "extra": 3, "scr": 1.22, "bm": 0.92},
+	{"colors": 8, "extra": 2, "scr": 1.27, "bm": 0.9},
+	{"colors": 7, "extra": 2, "scr": 1.32, "bm": 0.87},
+	{"colors": 8, "extra": 3, "scr": 1.32, "bm": 0.87},
+	{"colors": 8, "extra": 2, "scr": 1.37, "bm": 0.84},
+	{"colors": 8, "extra": 2, "scr": 1.52, "bm": 0.74},
+	{"colors": 8, "extra": 2, "scr": 1.6, "bm": 0.7},
+	{"colors": 7, "extra": 3, "scr": 1.27, "bm": 0.92},
+	{"colors": 8, "extra": 3, "scr": 1.32, "bm": 0.9},
+	{"colors": 7, "extra": 2, "scr": 1.22, "bm": 0.97},
 ]
 
 ## Hand-authored teaching levels. Each colour appears exactly CAP (4) times.

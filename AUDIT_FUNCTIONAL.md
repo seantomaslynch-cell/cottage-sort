@@ -98,8 +98,11 @@ granted amount, once per day.
 
 ### Content cadence (needed for a live game)
 
-15. **Hand-author levels 41–80** and push the generator further out. The
-    authored curve currently ends at L40.
+15. **Authored curve** — *done to L120 (M42)*: five 16-level acts past L40
+    (Orchard / Cellar / Loft / Meadow / Hearth), each opening with relief + a
+    deep-run flow breather, building to a two-level peak, then winding down;
+    all 120 solvability-verified and frozen in `game/level_data.gd`. Endless
+    mode now starts at L121.
 16. **Rotate the weekly event type** — "clear N", "earn N stars", "no-undo
     run", "beat par on 3 levels". One variable keeps it fresh.
 17. **Leaderboard needs a real backend eventually** — the ghost board is fine
