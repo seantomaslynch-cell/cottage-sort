@@ -67,9 +67,6 @@ func _init_admob() -> void:
 	_admob.att_text = Config.ATT_USAGE_DESCRIPTION
 	_admob.max_ad_content_rating = AdmobConfig.ContentRating.G
 
-	for id in Config.ADMOB_TEST_DEVICE_IDS:
-		pass   # test-device ids are applied via configure_ads(); see plugin
-
 	_admob.initialization_completed.connect(_on_sdk_init)
 	_admob.rewarded_ad_loaded.connect(_on_rewarded_loaded)
 	_admob.rewarded_ad_failed_to_load.connect(_on_rewarded_failed)
